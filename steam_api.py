@@ -19,34 +19,44 @@ def get_app_details(appid):
 
     return False
 
+def is_cache_valid(cache_file, expiration_time):
+    """Check if the cache file is valid based on its timestamp."""
+    if os.path.exists(cache_file):
+        cache_timestamp = os.path.getmtime(cache_file)
+        current_time = time.time()
+        return current_time - cache_timestamp < expiration_time
+    return False
+
+def load_cache(cache_file):
+    """Load data from the cache file."""
+    with open(cache_file, 'r') as cache_file_obj:
+        print("Loading app list from cache file...")
+        return json.load(cache_file_obj)
+
+def save_cache(cache_file, data):
+    """Save data to the cache file."""
+    with open(cache_file, 'w') as cache_file_obj:
+        print("Saving app list to cache...")
+        json.dump(data, cache_file_obj)
+
+
 def fetch_app_list():
     """Fetch the list of all the apps (games) from the Steam API."""
 
-    # Create the cache directory if it doesn't exist
+    # Ensure cache directory exists
     os.makedirs(os.path.dirname(APPS_LIST_CACHE_FILE), exist_ok=True)
 
-    # Check if the cache file exists and if it's still valid
-    if os.path.exists(APPS_LIST_CACHE_FILE):
-        # Get the timestamp of when the cache was saved
-        cache_timestamp = os.path.getmtime(APPS_LIST_CACHE_FILE)
-        current_time = time.time()
-
-        # If the cache is still valid, return the cached list
-        if current_time - cache_timestamp < CACHE_EXPIRATION_TIME:
-            with open(APPS_LIST_CACHE_FILE, 'r') as cache_file:
-                print("Loading app list from cache file...")
-                return json.load(cache_file)
+    # Check if cache is valid and return from cache if possible
+    if is_cache_valid(APPS_LIST_CACHE_FILE, CACHE_EXPIRATION_TIME):
+        return load_cache(APPS_LIST_CACHE_FILE)
 
     # Fetch the app list from the Steam API
     data = fetch_from_api(f"{STEAMAPI_BASE_URL}ISteamApps/GetAppList/v2/")
 
     if data:
-        # Save the fetched list to the cache file
-        with open(APPS_LIST_CACHE_FILE, 'w') as cache_file:
-            print("Saving app list to cache...")
-            json.dump(data["applist"]["apps"], cache_file)
-
+        save_cache(APPS_LIST_CACHE_FILE, data["applist"]["apps"])
         return data["applist"]["apps"]
+
     return False
 
 def get_app_categories(details):
