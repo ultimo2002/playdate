@@ -1,8 +1,11 @@
 import json
 import os
+
+import requests
 import time
 
 from config import STEAMAPI_BASE_URL, STEAMSTORE_BASE_URL, fetch_from_api, APPS_LIST_CACHE_FILE, CACHE_EXPIRATION_TIME
+
 
 def get_app_details(appid):
     """Fetch details for a specific app (game) from the Steam store API."""
@@ -47,9 +50,6 @@ def fetch_app_list():
     if is_cache_valid(APPS_LIST_CACHE_FILE, CACHE_EXPIRATION_TIME):
         return load_cache(APPS_LIST_CACHE_FILE)
 
-
-    print("Fetching app list...")
-
     # Fetch the app list from the Steam API
     data = fetch_from_api(f"{STEAMAPI_BASE_URL}ISteamApps/GetAppList/v2/")
 
@@ -80,6 +80,7 @@ def get_current_player_count(appid):
 
 if __name__ == "__main__":
     # Fetch and process each app
+    print("Fetching app list...")
     app_list = fetch_app_list()
 
     if not app_list or len(app_list) == 0:
