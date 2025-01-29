@@ -21,30 +21,32 @@ def fetch_app_list():
     app_list_response = fetch_from_api(f"{STEAMAPI_BASE_URL}ISteamApps/GetAppList/v2/")
     return app_list_response["applist"]["apps"]
 
-# Fetch and process each app
-print("Fetching app list...")
-app_list = fetch_app_list()
 
-for app in app_list:
-    appid = app["appid"]
-    name = app["name"]
+if __name__ == "__main__":
+    # Fetch and process each app
+    print("Fetching app list...")
+    app_list = fetch_app_list()
 
-    # when name is empty, skip to the next app
-    if not name:
-        continue
+    for app in app_list:
+        appid = app["appid"]
+        name = app["name"]
 
-    print(f"Processing appid {appid}: {name}")
-    details = get_app_details(appid)
+        # when name is empty, skip to the next app
+        if not name:
+            continue
 
-    if details:
-        categories = details.get("categories", [])
-        category_names = ", ".join([cat["description"] for cat in categories])
+        print(f"Processing appid {appid}: {name}")
+        details = get_app_details(appid)
 
-        # Print data instead of saving to database
-        print(f"AppID: {appid}, Name: {name}, Categories: {category_names}")
+        if details:
+            categories = details.get("categories", [])
+            category_names = ", ".join([cat["description"] for cat in categories])
 
-    # Sleep to prevent rate limits
-    time.sleep(0.5)
+            # Print data instead of saving to database
+            print(f"AppID: {appid}, Name: {name}, Categories: {category_names}")
 
-print("Done fetching app data.")
+        # Sleep to prevent rate limits
+        time.sleep(0.5)
+
+    print("Done fetching app data.")
 
