@@ -63,20 +63,26 @@ def womp_exception_hook(exc_type, exc_value, exc_traceback):
 
     # Try to get the author of the error line
     author = get_git_author(filename, lineno)
-    author = f"{author}" if author else ""
 
     # Print original traceback except last line
     sys.stderr.write("".join(tb[:-1]))
 
     if author:
-        sys.stderr.write(f"Womp womp skill issue, error from: {author}. {tb[-1]}")
+        sys.stderr.write(f"Womp womp skill issue, from: {author}. {tb[-1]}")
     else:
         sys.stderr.write(f"Womp womp, error: {tb[-1]}")
+
+def set_womp_exception(enabled):
+    """Enable or disable the custom womp womp exception hook."""
+    if enabled:
+        sys.excepthook = womp_exception_hook
+    else:
+        sys.excepthook = sys.__excepthook__
+
+# Set the custom exception hook
+set_womp_exception(True)
 
 # Only execute this code when this script is run directly, not when it's imported
 # We don't want ZeroDivisionError when this file is imported
 if __name__ == "__main__":
-    # Set the custom exception hook
-    sys.excepthook = womp_exception_hook
-    # Trigger an error
     print(1 / 0)  # This will trigger a ZeroDivisionError
