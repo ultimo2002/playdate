@@ -1,3 +1,5 @@
+import os
+
 import requests
 
 API_HOST_URL = '127.0.0.1'
@@ -84,6 +86,25 @@ def set_womp_exception(enabled):
         sys.excepthook = womp_exception_hook
     else:
         sys.excepthook = sys.__excepthook__
+
+def load_env():
+    """Load environment variables from the .env file."""
+    with open(".env") as f:
+        for line in f:
+            if line.strip() and not line.startswith("#"):  # Ignore empty lines and comments
+                key, value = line.strip().split("=", 1)
+                os.environ[key] = value
+                # update DB_CONFIG
+                if key in DB_CONFIG:
+                    DB_CONFIG[key] = value
+
+DB_CONFIG = {
+    "DB_USER": None,
+    "DB_PASSWORD": None,
+    "DB_NAME": None,
+    "DB_HOST": None,
+    "DB_PORT": None,
+}
 
 # Set the custom exception hook
 set_womp_exception(True)
