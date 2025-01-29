@@ -64,7 +64,10 @@ def womp_exception_hook(exc_type, exc_value, exc_traceback):
     # Print original traceback except last line
     sys.stderr.write("".join(tb[:-1]))
 
-    sys.stderr.write(f"Womp womp error from: {author} {tb[-1]}")
+    if author:
+        sys.stderr.write(f"Womp womp skill issue, error from: {author}. {tb[-1]}")
+    else:
+        sys.stderr.write(f"Womp womp, error: {tb[-1]}")
 
 if __name__ == "__main__":
     # Set the custom exception hook
