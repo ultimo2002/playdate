@@ -40,7 +40,7 @@ def set_database_url():
 
     global URL_DATABASE
     URL_DATABASE = f"postgresql://{DB_CONFIG['DB_USER']}:{DB_CONFIG['DB_PASSWORD']}@{DB_CONFIG['DB_HOST']}:{DB_CONFIG['DB_PORT']}/{DB_CONFIG['DB_NAME']}"
-    # print(f"Set database URL to: {URL_DATABASE}")
+    print(f"Set database URL to: {URL_DATABASE}")
 
 def set_database_engine():
     """Set the database engine, session and base."""
