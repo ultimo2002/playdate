@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
 
+from config import API_HOST_URL, API_HOST_PORT
 from steam_api import get_app_details
 
 class API:
@@ -10,8 +11,7 @@ class API:
     def run(self):
         self.register_endpoints()
 
-        uvicorn.run(self.app, host="127.0.0.1", port=8000, reload=False)
-
+        uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False)
 
     def register_endpoints(self):
         @self.app.get("/")

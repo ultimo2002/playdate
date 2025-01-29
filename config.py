@@ -1,5 +1,8 @@
 import requests
 
+API_HOST_URL = '127.0.0.1'
+API_HOST_PORT = 8000
+
 STEAMAPI_BASE_URL = 'https://api.steampowered.com/'
 STEAMSTORE_BASE_URL = 'https://store.steampowered.com/api/'
 
