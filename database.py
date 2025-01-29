@@ -23,7 +23,7 @@ def is_database_online(tries: int = 7, wait_time: int = 2) -> bool:
     while (time.time() - start_time) < timeout:
         try:
             with Engine.connect() as conn:
-                conn.execute("SELECT id FROM apps")  # Simple query to check the connection
+                conn.execute("SELECT id FROM apps FETCH FIRST 1 ROWS ONLY")# Simple query to check the connection
                 print("Database is online.")
                 return True
         except Exception:
