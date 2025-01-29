@@ -1,7 +1,11 @@
+import json
+import os
+
 import requests
 import time
 
-from config import STEAMAPI_BASE_URL, STEAMSTORE_BASE_URL, fetch_from_api
+from config import STEAMAPI_BASE_URL, STEAMSTORE_BASE_URL, fetch_from_api, APPS_LIST_CACHE_FILE, CACHE_EXPIRATION_TIME
+
 
 def get_app_details(appid):
     """Fetch details for a specific app (game) from the Steam store API."""
@@ -17,10 +21,32 @@ def get_app_details(appid):
 
 def fetch_app_list():
     """Fetch the list of all the apps (games) from the Steam API."""
-    app_list_response = fetch_from_api(f"{STEAMAPI_BASE_URL}ISteamApps/GetAppList/v2/")
-    if app_list_response:
-        return app_list_response["applist"]["apps"]
 
+    # Create the cache directory if it doesn't exist
+    os.makedirs(os.path.dirname(APPS_LIST_CACHE_FILE), exist_ok=True)
+
+    # Check if the cache file exists and if it's still valid
+    if os.path.exists(APPS_LIST_CACHE_FILE):
+        # Get the timestamp of when the cache was saved
+        cache_timestamp = os.path.getmtime(APPS_LIST_CACHE_FILE)
+        current_time = time.time()
+
+        # If the cache is still valid, return the cached list
+        if current_time - cache_timestamp < CACHE_EXPIRATION_TIME:
+            with open(APPS_LIST_CACHE_FILE, 'r') as cache_file:
+                print("Loading app list from cache file...")
+                return json.load(cache_file)
+
+    # Fetch the app list from the Steam API
+    data = fetch_from_api(f"{STEAMAPI_BASE_URL}ISteamApps/GetAppList/v2/")
+
+    if data:
+        # Save the fetched list to the cache file
+        with open(APPS_LIST_CACHE_FILE, 'w') as cache_file:
+            print("Saving app list to cache...")
+            json.dump(data["applist"]["apps"], cache_file)
+
+        return data["applist"]["apps"]
     return False
 
 def get_app_categories(details):

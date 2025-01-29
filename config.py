@@ -6,6 +6,9 @@ API_HOST_PORT = 8000
 STEAMAPI_BASE_URL = 'https://api.steampowered.com/'
 STEAMSTORE_BASE_URL = 'https://store.steampowered.com/api/'
 
+APPS_LIST_CACHE_FILE = 'cache/apps_list.json'
+CACHE_EXPIRATION_TIME = 604800  # Time in seconds (604800 seconds = 1 week)
+
 def fetch_from_api(endpoint):
     """Make a GET request to the specified API endpoint and return the JSON data.
     :return: JSON data from the API, Exit when an error occurs.
