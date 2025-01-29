@@ -1,5 +1,9 @@
 import requests
 
+import sys
+import subprocess
+import traceback
+
 STEAMAPI_BASE_URL = 'https://api.steampowered.com/'
 STEAMSTORE_BASE_URL = 'https://store.steampowered.com/api/'
 
@@ -31,3 +35,39 @@ class TextStyles:
     bold = "\u001b[1m"
     inverse = "\u001b[7m"
     reset = "\u001b[0m"
+
+def get_git_author(filename, lineno):
+    """Try to get the author of a specific line using `git blame`."""
+    try:
+        git_blame_output = subprocess.check_output(
+            ["git", "blame", f"-L{lineno},{lineno}", filename],
+            stderr=subprocess.DEVNULL,
+            text=True
+        )
+        return git_blame_output.split('(')[1].split()[0]  # Extract author name
+    except Exception:
+        return ''  # If blame fails, return empty string
+
+
+def womp_exception_hook(exc_type, exc_value, exc_traceback):
+    tb = traceback.format_exception(exc_type, exc_value, exc_traceback)
+
+    # Extract the last traceback entry (filename + line number)
+    last_call = traceback.extract_tb(exc_traceback)[-1]
+    filename = last_call.filename
+    lineno = last_call.lineno
+
+    # Try to get the author of the error line
+    author = get_git_author(filename, lineno)
+    author = f"{author}" if author else ""
+
+    # Print original traceback except last line
+    sys.stderr.write("".join(tb[:-1]))
+
+    sys.stderr.write(f"Womp womp error from: {author} {tb[-1]}")
+
+if __name__ == "__main__":
+    # Set the custom exception hook
+    sys.excepthook = womp_exception_hook
+    # Trigger an error
+    print(1 / 0)  # This will trigger a ZeroDivisionError
