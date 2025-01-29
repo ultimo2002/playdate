@@ -8,12 +8,12 @@ def fetch_from_api(endpoint):
     :return: JSON data from the API, Exit when an error occurs.
     """
     try:
-        response = requests.get(endpoint)
+        response = requests.get(endpoint, timeout=10)
         response.raise_for_status()  # Raise an exception for HTTP errors
         return response.json()
     except Exception:
         print("Error fetching data from the API. Is your internet connection working?")
-        exit("Exiting the application.")
+        # exit("Exiting the application.")
 
     return None
 
