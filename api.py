@@ -3,20 +3,40 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 import uvicorn
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session
+from sqlalchemy.sql.annotation import Annotated
 
 from config import API_HOST_URL, API_HOST_PORT, load_env, DB_CONFIG
 from steam_api import get_app_details
 
+import models
+from database import Engine, SessionLocal, set_database_engine
+
+
 class API:
+    db_dependency = None
+
     def __init__(self):
         self.app = FastAPI()
+
+        # set_database_engine() # Make sure the database engine is set
+        models.Base.metadata.create_all(bind=Engine)
+
+        self.db_dependency = Depends(self.get_db)
+
 
     def run(self):
         self.register_endpoints()
 
         uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False)
+
+    def get_db(self):
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+
 
     def register_endpoints(self):
 
@@ -27,7 +47,7 @@ class API:
             return items
 
         @self.app.get("/")
-        async def root(db: Session = Depends(get_db)):
+        def root():
             return {"message": "Hello World"}
 
         # a test getting app details from the Steam API
@@ -43,19 +63,24 @@ class API:
             else:
                 return {"message": "App not found"}
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+        # test endpoint to create a new app in the database with a name and appid
+        @self.app.get("/test_create_app")
+        def create_app(db = self.db_dependency):
+            app = models.App(name="Seger", id=1)
+            db.add(app)
+            db.commit()
+            db.refresh(app)
+            return app
+
+            
+
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
 
 if __name__ == "__main__":
-    load_env()
-
-    database_url = f"postgresql://{DB_CONFIG['DB_USER']}:{DB_CONFIG['DB_PASSWORD']}@{DB_CONFIG['DB_HOST']}:{DB_CONFIG['DB_PORT']}/{DB_CONFIG['DB_NAME']}"
-    engine = create_engine(database_url)
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
     api = API()
     api.run()
