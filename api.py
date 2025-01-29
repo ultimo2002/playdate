@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.annotation import Annotated
 
 from config import API_HOST_URL, API_HOST_PORT, load_env, DB_CONFIG
-from steam_api import get_app_details
+from steam_api import get_app_details, fetch_app_list
 
 import models
 from database import Engine, SessionLocal, set_database_engine
@@ -71,6 +71,21 @@ class API:
             db.commit()
             db.refresh(app)
             return app
+
+        # Endpoint to fill the app table with all apps from the Steam API
+        @self.app.get("/fill_app_table")
+        def fill_app_table(db = self.db_dependency):
+            app_list = fetch_app_list()
+            for app in app_list:
+                appid = app["appid"]
+                name = app["name"]
+
+                if not name:
+                    continue
+
+                # details = get_app_details(appid)
+
+            return {"message": "App table filled"}
 
             
 
