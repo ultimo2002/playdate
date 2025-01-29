@@ -1,9 +1,5 @@
 import requests
 
-import sys
-import subprocess
-import traceback
-
 STEAMAPI_BASE_URL = 'https://api.steampowered.com/'
 STEAMSTORE_BASE_URL = 'https://store.steampowered.com/api/'
 
@@ -36,8 +32,15 @@ class TextStyles:
     inverse = "\u001b[7m"
     reset = "\u001b[0m"
 
+
+import sys
+import subprocess
+import traceback
+
 def get_git_author(filename, lineno):
-    """Try to get the author of a specific line using `git blame`."""
+    """Try to get the author of a specific line using `git blame`.
+    :return: Author name if successful, otherwise an empty string.
+    """
     try:
         git_blame_output = subprocess.check_output(
             ["git", "blame", f"-L{lineno},{lineno}", filename],
@@ -50,6 +53,7 @@ def get_git_author(filename, lineno):
 
 
 def womp_exception_hook(exc_type, exc_value, exc_traceback):
+    """Custom exception hook to add womp womp and the git author name from the error causing code."""
     tb = traceback.format_exception(exc_type, exc_value, exc_traceback)
 
     # Extract the last traceback entry (filename + line number)
@@ -69,6 +73,8 @@ def womp_exception_hook(exc_type, exc_value, exc_traceback):
     else:
         sys.stderr.write(f"Womp womp, error: {tb[-1]}")
 
+# Only execute this code when this script is run directly, not when it's imported
+# We don't want ZeroDivisionError when this file is imported
 if __name__ == "__main__":
     # Set the custom exception hook
     sys.excepthook = womp_exception_hook
