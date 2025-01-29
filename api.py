@@ -30,6 +30,8 @@ class API:
 
         uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False)
 
+        print("Run API")
+
     def get_db(self):
         db = SessionLocal()
         try:
@@ -39,13 +41,6 @@ class API:
 
 
     def register_endpoints(self):
-
-        # get all from database
-        @self.app.get("/all_test")
-        def all_test():
-            items = self.app.state.db.fetch("SELECT datname FROM pg_database WHERE datistemplate = false;")
-            return items
-
         @self.app.get("/")
         def root():
             return {"message": "Hello World"}
