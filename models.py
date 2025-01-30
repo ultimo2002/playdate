@@ -15,8 +15,12 @@ class Category(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, unique=True)
 
-class AppDetails(Base):
-    __tablename__ = "app_details"
+    player_count = Column(Integer, index=True)
+    platform = Column(String, index=True)
+    developer = Column(String, index=True)
+
+class AppCategory(Base):
+    __tablename__ = "app_categories"
 
     app_id = Column(Integer, ForeignKey("apps.id"), primary_key=True)
     category_id = Column(Integer, ForeignKey("categories.id"), primary_key=True)

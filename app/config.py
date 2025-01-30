@@ -9,6 +9,7 @@ STEAMAPI_BASE_URL = 'https://api.steampowered.com/'
 STEAMSTORE_BASE_URL = 'https://store.steampowered.com/api/'
 
 APPS_LIST_CACHE_FILE = 'cache/apps_list.json'
+ADDED_GAMES_LIST_CACHE_FILE = 'cache/added_games_list.txt'
 CACHE_EXPIRATION_TIME = 604800  # Time in seconds (604800 seconds = 1 week)
 
 def fetch_from_api(endpoint):
