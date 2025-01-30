@@ -22,10 +22,7 @@ def is_database_online(tries: int = 7, wait_time: int = 2) -> bool:
 
     while (time.time() - start_time) < timeout:
         try:
-            with Engine.connect() as conn:
-                conn.execute("SELECT id FROM apps FETCH FIRST 1 ROWS ONLY")# Simple query to check the connection
-                print("Database is online.")
-                return True
+
         except Exception:
             print(f"Database not reachable, {TextStyles.grey}({time.time() - start_time:.2f}s) {TextStyles.yellow}retrying in 2 seconds...{TextStyles.reset} max tries: {timeout // wait_time}, Current try: {int((time.time() - start_time) // wait_time) + 1}")
             time.sleep(wait_time)  # Wait before retrying
@@ -46,8 +43,8 @@ def set_database_engine():
     """Set the database engine, session and base."""
     set_database_url()
 
-    if not is_database_online():
-        raise Exception("Database is not online, please check the connection parameters.")
+    # if not is_database_online():
+    #     raise Exception("Database is not online, please check the connection parameters.")
 
     global Engine, SessionLocal, Base
     Engine = create_engine(URL_DATABASE)
