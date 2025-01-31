@@ -42,7 +42,7 @@ class API:
     def register_endpoints(self):
         @self.app.get("/")
         def root():
-            return {"message": "Hello World"}
+            return {"message": "Hello World, auto deploy is working!"}
 
         # a test getting app details from the Steam API
         # TODO: Remove this endpoint, when database is implemented
