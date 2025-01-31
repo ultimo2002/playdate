@@ -4,7 +4,8 @@ import os
 import requests
 import time
 
-from config import STEAMAPI_BASE_URL, STEAMSTORE_BASE_URL, fetch_from_api, APPS_LIST_CACHE_FILE, CACHE_EXPIRATION_TIME
+from config import STEAMAPI_BASE_URL, STEAMSTORE_BASE_URL, fetch_from_api, APPS_LIST_CACHE_FILE, CACHE_EXPIRATION_TIME, \
+    ADDED_GAMES_LIST_CACHE_FILE
 
 
 def get_app_details(appid):
@@ -76,7 +77,7 @@ def get_current_player_count(appid):
     except (KeyError, ValueError):
         pass
 
-    return False
+    return 0
 
 if __name__ == "__main__":
     # Fetch and process each app
@@ -86,9 +87,42 @@ if __name__ == "__main__":
     if not app_list or len(app_list) == 0:
         exit("No games found. Exiting the application.")
 
+
+    # create dirs if they don't exist
+    os.makedirs(os.path.dirname(ADDED_GAMES_LIST_CACHE_FILE), exist_ok=True )
+
+    added_games = []
+
+    try:
+        # skip to the front the last app id from the file, only do the appids that are not in the file
+        # by removing the appids that are already in the file
+        with open(ADDED_GAMES_LIST_CACHE_FILE, 'r') as file:
+            added_games = file.readlines()
+
+    except FileNotFoundError:
+        pass
+
     for app in app_list:
-        appid = app["appid"]
-        name = app["name"]
+        try:
+            appid = int(app["appid"])
+            name = str(app["name"])
+            if not name:
+                continue
+
+            # skip the app if it's already in the file
+            if f"{appid}\n" in added_games:
+                continue
+        except (KeyError, ValueError):
+            continue
+
+        # add app id to a file to continue from there later on
+        with open(ADDED_GAMES_LIST_CACHE_FILE, 'a') as file:
+            file.write(f"{appid}\n")
+
+        player_count = get_current_player_count(appid)
+        if player_count < 500:
+            print(f"Skipping appid {appid}: {name} (player count: {player_count})")
+            continue
 
         # when name is empty, skip to the next app
         if not name:
