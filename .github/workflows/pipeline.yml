@@ -37,7 +37,7 @@ jobs:
     - name: Connect to server via SSH and execute start script
       run: |
         sudo apt-get install -y sshpass # Install sshpass for password-based authentication
-        echo "${{ secrets.SSH_PASSWORD }}" | sshpass ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "bash -s" < start.sh
+        echo "${{ secrets.SERVER_PASSWORD }}" | sshpass ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "bash -s" < start.sh
       env:
         SSH_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
         SSH_USER: ${{ secrets.SERVER_USER }}
