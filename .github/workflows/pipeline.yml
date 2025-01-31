@@ -34,21 +34,14 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Set up SSH key for authentication
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-      env:
-        SERVER_HOST: ${{ secrets.SERVER_HOST }}
 
     - name: Connect to server and execute start script
       run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} -p 22 "bash -s" < start.sh
+          echo "${{ secrets.SERVER_PASSWORD }}" | sshpass ssh -o StrictHostKeyChecking=no "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" -p 22 "bash -s" < start.sh
       env:
         SERVER_USER: ${{ secrets.SERVER_USER }}
         SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
     - name: Test with pytest
       run: |
         pytest
