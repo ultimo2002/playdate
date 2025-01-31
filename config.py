@@ -1,15 +1,19 @@
+
 import os
 
 import requests
 
 API_HOST_URL = '0.0.0.0'
+
 API_HOST_PORT = 8000
 
 STEAMAPI_BASE_URL = 'https://api.steampowered.com/'
 STEAMSTORE_BASE_URL = 'https://store.steampowered.com/api/'
 
 APPS_LIST_CACHE_FILE = 'cache/apps_list.json'
+
 ADDED_GAMES_LIST_CACHE_FILE = 'cache/added_games_list.txt'
+
 CACHE_EXPIRATION_TIME = 604800  # Time in seconds (604800 seconds = 1 week)
 
 def fetch_from_api(endpoint):
@@ -88,6 +92,7 @@ def set_womp_exception(enabled):
     else:
         sys.excepthook = sys.__excepthook__
 
+
 def load_env():
     """Load environment variables from the .env file."""
     with open(".env") as f:
@@ -106,6 +111,7 @@ DB_CONFIG = {
     "DB_HOST": None,
     "DB_PORT": None,
 }
+
 
 # Set the custom exception hook
 set_womp_exception(True)

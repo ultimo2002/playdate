@@ -4,8 +4,10 @@ import os
 import requests
 import time
 
+
 from config import STEAMAPI_BASE_URL, STEAMSTORE_BASE_URL, fetch_from_api, APPS_LIST_CACHE_FILE, CACHE_EXPIRATION_TIME, \
     ADDED_GAMES_LIST_CACHE_FILE
+
 
 
 def get_app_details(appid):
@@ -77,7 +79,9 @@ def get_current_player_count(appid):
     except (KeyError, ValueError):
         pass
 
+
     return 0
+
 
 if __name__ == "__main__":
     # Fetch and process each app
@@ -123,6 +127,7 @@ if __name__ == "__main__":
         if player_count < 500:
             print(f"Skipping appid {appid}: {name} (player count: {player_count})")
             continue
+
 
         # when name is empty, skip to the next app
         if not name:

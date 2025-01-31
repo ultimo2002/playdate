@@ -1,3 +1,4 @@
+
 import os
 import time
 
@@ -42,6 +43,7 @@ class API:
     def register_endpoints(self):
         @self.app.get("/")
         def root():
+
             return {"message": "Hello World"}
 
         # a test getting app details from the Steam API
@@ -145,6 +147,7 @@ class API:
                 time.sleep(0.5) # Sleep for 0.5 seconds to not overload the API
 
             return {"added_apps": added_apps}
+
 
 if __name__ == "__main__":
     api = API()

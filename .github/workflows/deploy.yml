@@ -1,0 +1,38 @@
+name: Build and Deploy to server
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on push to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Deploy to CasaOS
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.CASAOS_HOST }}
+        username: ${{ secrets.CASAOS_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Navigate to the project directory
+          cd /path/to/your/project
+
+          # Pull the latest code
+          git fetch --all
+          git reset --hard origin/main
+
+          # Build the Docker image
+          docker build -t your_image_name:latest .
+
+          # Stop and remove the existing container (if it exists)
+          docker stop your_container_name || true
+          docker rm your_container_name || true
+
+          # Run the new container
+          docker run -d --name your_container_name -p 80:80 your_image_name:latest
