@@ -2,7 +2,7 @@ import os
 
 import requests
 
-API_HOST_URL = '127.0.0.1'
+API_HOST_URL = '0.0.0.0'
 API_HOST_PORT = 8000
 
 STEAMAPI_BASE_URL = 'https://api.steampowered.com/'

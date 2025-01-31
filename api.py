@@ -1,18 +1,14 @@
 import os
 import time
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Depends
 import uvicorn
 
-from sqlalchemy.orm import Session
-from sqlalchemy.sql.annotation import Annotated
-
-from config import API_HOST_URL, API_HOST_PORT, load_env, DB_CONFIG, ADDED_GAMES_LIST_CACHE_FILE
+from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE
 from steam_api import get_app_details, fetch_app_list, get_current_player_count
 
 import models
-from database import Engine, SessionLocal, set_database_engine
+from database import Engine, SessionLocal
 
 
 class API:
