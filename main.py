@@ -1,2 +1,8 @@
-def hello():
-    print("Hello world")
+from api import API
+
+def main():
+    api = API()
+    api.run()
+
+if __name__ == "__main__":
+    main()
