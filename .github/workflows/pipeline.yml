@@ -37,7 +37,8 @@ jobs:
 
     - name: Connect to server and execute start script
       run: |
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" -p 22 "bash -s" < start.sh
+        sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" -p 22 "cat > start.sh && chmod +x start.sh && cat start.sh && bash start.sh" < start.sh
+
       env:
         SERVER_USER: ${{ secrets.SERVER_USER }}
         SERVER_HOST: ${{ secrets.SERVER_HOST }}
