@@ -1,20 +1,20 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Python application
+name: Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: 
+      - "main"
+      - "dev"
   pull_request:
-    branches: [ "main" ]
+    branches: 
+      - "main"
+      - "dev"
 
 permissions:
   contents: read
 
 jobs:
   build:
-
     runs-on: timo
 
     steps:
@@ -34,6 +34,14 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Connect to server and execute start script
+      run: |
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" -p 22 "bash -s" < start.sh
+      env:
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
     - name: Test with pytest
       run: |
         pytest
