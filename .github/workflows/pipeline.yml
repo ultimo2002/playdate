@@ -37,6 +37,8 @@ jobs:
 
     - name: Connect to server and execute start script
       run: |
+        sudo apt-get update
+        sudo apt-get install -y sshpass openssh-client
         sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" -p 22 "cat start.sh && bash start.sh"
 
       env:
