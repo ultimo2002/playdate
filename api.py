@@ -1,8 +1,11 @@
 import os
 import time
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
 import uvicorn
+
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 
 from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE
 from steam_api import get_app_details, fetch_app_list, get_current_player_count
@@ -13,6 +16,8 @@ from database import Engine, SessionLocal
 
 class API:
     db_dependency = None
+
+    templates = Jinja2Templates(directory="templates")
 
     def __init__(self):
         self.app = FastAPI()
@@ -40,9 +45,12 @@ class API:
 
 
     def register_endpoints(self):
-        @self.app.get("/")
-        def root():
-            return {"message": "Hello World, auto deploy is working!"}
+        @self.app.get("/", response_class=HTMLResponse)
+        def root(request: Request):
+            # return {"message": "Hello World, auto deploy is working!"}
+            return self.templates.TemplateResponse(
+                request=request, name="index.html", context={"message": "Hello world!"}
+            )
 
         # a test getting app details from the Steam API
         # TODO: Remove this endpoint, when database is implemented
