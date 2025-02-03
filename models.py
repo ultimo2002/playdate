@@ -8,16 +8,16 @@ class App(Base):
     # appid = Column(Integer, unique=True, index=True) # Can maybe be the same as id
     name = Column(String, index=True)
 
+    player_count = Column(Integer, index=True)
+    platform = Column(String, index=True)
+    developer = Column(String, index=True)
+
 # one for each category in the Steam API to link to the apps
 class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, unique=True)
-
-    player_count = Column(Integer, index=True)
-    platform = Column(String, index=True)
-    developer = Column(String, index=True)
 
 class AppCategory(Base):
     __tablename__ = "app_categories"
