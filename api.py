@@ -6,6 +6,7 @@ import uvicorn
 
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE
 from steam_api import get_app_details, fetch_app_list, get_current_player_count
@@ -21,6 +22,8 @@ class API:
 
     def __init__(self):
         self.app = FastAPI()
+
+        self.app.mount("/static", StaticFiles(directory="static"), name="static")
 
         # set_database_engine() # Make sure the database engine is set
         models.Base.metadata.create_all(bind=Engine)
