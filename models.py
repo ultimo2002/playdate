@@ -22,5 +22,5 @@ class Category(Base):
 class AppCategory(Base):
     __tablename__ = "app_categories"
 
-    app_id = Column(Integer, ForeignKey("apps.id"), primary_key=True)
-    category_id = Column(Integer, ForeignKey("categories.id"), primary_key=True)
+    app_id = Column(Integer, ForeignKey("apps.id"))
+    category_id = Column(Integer, ForeignKey("categories.id"))
