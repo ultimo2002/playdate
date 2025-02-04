@@ -86,6 +86,7 @@ class API:
             try:
                 db.query(models.App).delete()
                 db.query(models.Category).delete()
+                db.query(models.AppCategory).delete()
                 db.commit()
                 return {"message": "All data deleted."}
             except Exception as e:
