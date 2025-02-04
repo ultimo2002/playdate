@@ -78,19 +78,19 @@ class API:
             return app
 
         #TODO: IMPORTANT: Remove this endpoint after testing and creating database models. We dont want this endpoint in the final version, everyone can delete all data.
-        @self.app.get("/delete_all_data")
-        def delete_all_data(db = self.db_dependency):
-            if not os.environ.get("PYCHARM_HOSTED"):
-                return {"message": "This endpoint is only available in the development environment."}
-
-            try:
-                db.query(models.App).delete()
-                db.query(models.Category).delete()
-                db.query(models.AppCategory).delete()
-                db.commit()
-                return {"message": "All data deleted."}
-            except Exception as e:
-                return {"message": f"Error deleting all data: {e}"}
+        # @self.app.get("/delete_all_data")
+        # def delete_all_data(db = self.db_dependency):
+        #     if not os.environ.get("PYCHARM_HOSTED"):
+        #         return {"message": "This endpoint is only available in the development environment."}
+        #
+        #     try:
+        #         db.query(models.App).delete()
+        #         db.query(models.Category).delete()
+        #         db.query(models.AppCategory).delete()
+        #         db.commit()
+        #         return {"message": "All data deleted."}
+        #     except Exception as e:
+        #         return {"message": f"Error deleting all data: {e}"}
 
         # function to fill the category table with all categories from the Steam API
         def fill_category_table(db = self.db_dependency, categories = None, appid = None, genre = False):
