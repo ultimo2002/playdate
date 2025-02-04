@@ -10,9 +10,12 @@ class App(Base):
     name = Column(String, index=True)
 
     # player_count = Column(Integer, index=True)
+    short_description = Column(String, index=True)
+    price = Column(String, index=True)
     platform = Column(String, index=True)
     developer = Column(String, index=True)
     header_image = Column(String, index=True)
+    background_image = Column(String, index=True)
 
 # one for each category in the Steam API to link to the apps
 class Category(Base):

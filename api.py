@@ -94,51 +94,51 @@ class API:
 
         # function to fill the category table with all categories from the Steam API
         def fill_category_table(db = self.db_dependency, categories = None, appid = None, genre = False):
-            try:
-                if categories:
-                    # Get all existing category IDs from the database
+            if categories:
+                # Get all existing category IDs from the database
+
+                if not genre:
                     existing_category_ids = {category.id for category in db.query(models.Category.id).all()}
 
-                    if not genre:
-                        # Prepare the categories to be inserted (those not already in the DB)
-                        new_categories = [
-                            models.Category(id=category["id"], name=category["description"])
-                            for category in categories if category["id"] not in existing_category_ids
-                        ]
-                    else:
-                        # Prepare the genres to be inserted (those not already in the DB)
-                        new_categories = [
-                            models.Genre(id=category["id"], name=category["description"])
-                            for category in categories if category["id"] not in existing_category_ids
-                        ]
+                    for category in categories:
+                        if int(category["id"]) not in existing_category_ids:
+                            cat = models.Category(id=category["id"], name=category["description"])
+                            try:
+                                db.add(cat)
+                                db.commit()
+                            except Exception as e:
+                                print(f"Error while filling the {'genres' if genre else 'categories'} table: {e}")
+                else:
+                    existing_genre_ids = {genre.id for genre in db.query(models.Genre.id).all()}
+                    print(f"Existing genre ids: {existing_genre_ids}")
 
-                    if new_categories:
-                        db.add_all(new_categories)
-                        db.commit()
-                        print(f"Inserted {len(new_categories)} new categories.")
-                    else:
-                        print("No new categories to insert.")
+                    for genre in categories:
+                        if int(genre['id']) not in existing_genre_ids:
+                            gen = models.Genre(id=genre['id'], name=genre['description'])
+                            try:
+                                db.add(gen)
+                                db.commit()
+                            except Exception as e:
+                                print(f"Error while filling the {'genres' if genre else 'categories'} table: {e}")
 
-                    if not appid:
-                        return
+                if not appid:
+                    return
 
-                    # Insert the app-category relations
-                    if not genre:
-                        app_categories = [
-                            models.AppCategory(app_id=appid, category_id=category["id"])
-                            for category in categories
-                        ]
-                    else:
-                        app_categories = [
-                            models.AppGenre(app_id=appid, genre_id=category["id"])
-                            for category in categories
-                        ]
-                    db.add_all(app_categories)
-                    db.commit()
-                    print(f"Inserted {len(app_categories)} app-category relations.")
+                # Insert the app-category relations
+                if not genre:
+                    app_categories = [
+                        models.AppCategory(app_id=appid, category_id=category["id"])
+                        for category in categories
+                    ]
+                else:
+                    app_categories = [
+                        models.AppGenre(app_id=appid, genre_id=category["id"])
+                        for category in categories
+                    ]
+                db.add_all(app_categories)
+                db.commit()
+                print(f"Inserted {len(app_categories)} app-{'genre' if genre else 'category'} relations.")
 
-            except Exception as e:
-                print(f"Error while filling the category table: {e}")
 
         # Endpoint to fill the app table with all apps from the Steam API
         @self.app.get("/fill_app_table")
@@ -168,11 +168,15 @@ class API:
             except FileNotFoundError:
                 pass
 
+            total_apps = len(app_list)
+            for line in added_games:
+                apps_looped += 1
+
             for app in app_list:
                 apps_looped += 1
-                APPS_LOOPED_COUNT = 1000
-                if apps_looped > APPS_LOOPED_COUNT: # limit for testing
-                    break
+                # APPS_LOOPED_COUNT = 1000
+                # if apps_looped > APPS_LOOPED_COUNT: # limit for testing
+                #     break
 
                 try:
                     appid = int(app["appid"])
@@ -196,18 +200,26 @@ class API:
                 player_count = get_current_player_count(appid)
 
                 if player_count < MIN_PLAYER_COUNT:
-                    print(f"{TextStyles.grey}Skipping appid {appid}: {name} (player count: {player_count}){TextStyles.reset}")
+                    print(f"{TextStyles.grey}Skipping appid {appid}: {name} (player count: {player_count}) (app {apps_looped}/{total_apps}){TextStyles.reset}")
                     continue
 
-                print(f"Processing appid {appid}: {name}")
+                print(f"Processing appid {appid}: {name} (player count: {player_count}) (app {apps_looped}/{total_apps})")
                 details = get_app_details(appid)
                 if details:
                     # Platform as a comma-separated string
                     platform = ", ".join(details["platforms"].keys()) if details["platforms"] else ""
                     developer = details["developers"][0] if details["developers"] else ''
                     header_image = details["header_image"] if details["header_image"] else ''
+                    background_image = details["background"] if details["background"] else ''
+                    short_description = details["short_description"] if details["short_description"] else ''
+                    price = ""
+                    try:
+                        if details['price_overview'] and details['price_overview']['final_formatted']:
+                            price = details['price_overview']['final_formatted']
+                    except KeyError:
+                        pass
 
-                    app = models.App(id=appid, name=name, platform=platform, developer=developer, header_image=header_image)
+                    app = models.App(id=appid, name=name, platform=platform, developer=developer, header_image=header_image, price=price, background_image=background_image, short_description=short_description)
                     db.add(app)
                     db.commit()
                     db.refresh(app)
