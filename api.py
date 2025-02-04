@@ -93,17 +93,24 @@ class API:
                 return {"message": f"Error deleting all data: {e}"}
 
         # function to fill the category table with all categories from the Steam API
-        def fill_category_table(db = self.db_dependency, categories = None, appid = None):
+        def fill_category_table(db = self.db_dependency, categories = None, appid = None, genre = False):
             try:
                 if categories:
                     # Get all existing category IDs from the database
                     existing_category_ids = {category.id for category in db.query(models.Category.id).all()}
 
-                    # Prepare the categories to be inserted (those not already in the DB)
-                    new_categories = [
-                        models.Category(id=category["id"], name=category["description"])
-                        for category in categories if category["id"] not in existing_category_ids
-                    ]
+                    if not genre:
+                        # Prepare the categories to be inserted (those not already in the DB)
+                        new_categories = [
+                            models.Category(id=category["id"], name=category["description"])
+                            for category in categories if category["id"] not in existing_category_ids
+                        ]
+                    else:
+                        # Prepare the genres to be inserted (those not already in the DB)
+                        new_categories = [
+                            models.Genre(id=category["id"], name=category["description"])
+                            for category in categories if category["id"] not in existing_category_ids
+                        ]
 
                     if new_categories:
                         db.add_all(new_categories)
@@ -116,10 +123,16 @@ class API:
                         return
 
                     # Insert the app-category relations
-                    app_categories = [
-                        models.AppCategory(app_id=appid, category_id=category["id"])
-                        for category in categories
-                    ]
+                    if not genre:
+                        app_categories = [
+                            models.AppCategory(app_id=appid, category_id=category["id"])
+                            for category in categories
+                        ]
+                    else:
+                        app_categories = [
+                            models.AppGenre(app_id=appid, genre_id=category["id"])
+                            for category in categories
+                        ]
                     db.add_all(app_categories)
                     db.commit()
                     print(f"Inserted {len(app_categories)} app-category relations.")
@@ -138,7 +151,7 @@ class API:
             return {"message": "The app table filling task has started in the background."}
 
         def run_fill_app_table(db):
-            return # Remove this line when the function is implemented
+            # return # Remove this line when the function is implemented
 
             apps_looped = 0
 
@@ -156,10 +169,10 @@ class API:
                 pass
 
             for app in app_list:
-                # apps_looped += 1
-                # APPS_LOOPED_COUNT = 1000
-                # if apps_looped > APPS_LOOPED_COUNT: # limit for testing
-                #     break
+                apps_looped += 1
+                APPS_LOOPED_COUNT = 1000
+                if apps_looped > APPS_LOOPED_COUNT: # limit for testing
+                    break
 
                 try:
                     appid = int(app["appid"])
@@ -192,8 +205,9 @@ class API:
                     # Platform as a comma-separated string
                     platform = ", ".join(details["platforms"].keys()) if details["platforms"] else ""
                     developer = details["developers"][0] if details["developers"] else ''
+                    header_image = details["header_image"] if details["header_image"] else ''
 
-                    app = models.App(id=appid, name=name, platform=platform, developer=developer)
+                    app = models.App(id=appid, name=name, platform=platform, developer=developer, header_image=header_image)
                     db.add(app)
                     db.commit()
                     db.refresh(app)
@@ -201,9 +215,15 @@ class API:
                     # Attempt to get categories
                     categories = details.get("categories", [])
                     if categories:
-                        fill_category_table(db, categories, appid)
+                        fill_category_table(db, categories, appid, genre=False)
                     else:
                         print(f"No categories found for appid: {appid}, name: {name}")
+
+                    genres = details.get("genres", [])
+                    if genres:
+                        fill_category_table(db, genres, appid, genre=True)
+                    else:
+                        print(f"No genres found for appid: {appid}, name: {name}")
 
                 added_apps += 1
 
