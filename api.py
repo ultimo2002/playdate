@@ -115,6 +115,19 @@ class API:
                     ]
 
                 if new_categories:
+                    # check for duplicate categorie names in the database
+                    existing_category_names = {category.name for category in db.query(models.Category.name).all()}
+                    # When it does exist add a number at the end of the name
+                    for category in new_categories:
+                        if category.name in existing_category_names:
+                            i = 1
+                            while f"{category.name} ({i})" in existing_category_names:
+                                i += 1
+                            category.name = f"{category.name} ({i})"
+                            existing_category_names.add(category.name)
+                        else:
+                            existing_category_names.add(category.name)
+
                     db.add_all(new_categories)
                     db.commit()
                     print(f"Inserted {len(new_categories)} new {'genres' if genre else 'categories'}.")
