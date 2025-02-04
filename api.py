@@ -97,29 +97,27 @@ class API:
             if categories:
                 # Get all existing category IDs from the database
 
+                new_categories = []
+
                 if not genre:
                     existing_category_ids = {category.id for category in db.query(models.Category.id).all()}
 
-                    for category in categories:
-                        if int(category["id"]) not in existing_category_ids:
-                            cat = models.Category(id=category["id"], name=category["description"])
-                            try:
-                                db.add(cat)
-                                db.commit()
-                            except Exception as e:
-                                print(f"Error while filling the {'genres' if genre else 'categories'} table: {e}")
+                    new_categories = [
+                        models.Category(id=category["id"], name=category["description"])
+                        for category in categories if int(category["id"]) not in existing_category_ids
+                    ]
                 else:
                     existing_genre_ids = {genre.id for genre in db.query(models.Genre.id).all()}
-                    print(f"Existing genre ids: {existing_genre_ids}")
 
-                    for genre in categories:
-                        if int(genre['id']) not in existing_genre_ids:
-                            gen = models.Genre(id=genre['id'], name=genre['description'])
-                            try:
-                                db.add(gen)
-                                db.commit()
-                            except Exception as e:
-                                print(f"Error while filling the {'genres' if genre else 'categories'} table: {e}")
+                    new_categories = [
+                        models.Genre(id=category["id"], name=category["description"])
+                        for category in categories if int(category["id"]) not in existing_genre_ids
+                    ]
+
+                if new_categories:
+                    db.add_all(new_categories)
+                    db.commit()
+                    print(f"Inserted {len(new_categories)} new {'genres' if genre else 'categories'}.")
 
                 if not appid:
                     return
