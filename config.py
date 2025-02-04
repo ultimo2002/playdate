@@ -99,6 +99,17 @@ def load_env():
                 if key in DB_CONFIG:
                     DB_CONFIG[key] = value
 
+                if key == "API_HOST_URL":
+                    global API_HOST_URL
+                    API_HOST_URL = value
+                elif key == "API_HOST_PORT":
+                    global API_HOST_PORT
+                    try:
+                        API_HOST_PORT = int(value)
+                    except ValueError:
+                        print(f"Invalid API_HOST_PORT value. Using default port 8000.")
+                        API_HOST_PORT = 8000
+
 DB_CONFIG = {
     "DB_USER": None,
     "DB_PASSWORD": None,
@@ -109,6 +120,8 @@ DB_CONFIG = {
 
 # Set the custom exception hook
 set_womp_exception(True)
+
+load_env()
 
 # Only execute this code when this script is run directly, not when it's imported
 # We don't want ZeroDivisionError when this file is imported
