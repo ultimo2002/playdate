@@ -138,7 +138,7 @@ class API:
             return {"message": "The app table filling task has started in the background."}
 
         def run_fill_app_table(db):
-            # return # Remove this line when the function is implemented
+            return # Remove this line when the function is implemented
 
             apps_looped = 0
 
@@ -159,10 +159,10 @@ class API:
             new_apps = []
 
             for app in app_list:
-                apps_looped += 1
-                APPS_LOOPED_COUNT = 1000
-                if apps_looped > APPS_LOOPED_COUNT: # limit for testing
-                    break
+                # apps_looped += 1
+                # APPS_LOOPED_COUNT = 1000
+                # if apps_looped > APPS_LOOPED_COUNT: # limit for testing
+                #     break
 
                 try:
                     appid = int(app["appid"])
