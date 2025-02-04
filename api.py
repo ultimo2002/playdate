@@ -1,7 +1,7 @@
 import os
 import time
 
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI, Depends, Request, BackgroundTasks
 import uvicorn
 
 from fastapi.templating import Jinja2Templates
@@ -77,50 +77,87 @@ class API:
             db.refresh(app)
             return app
 
+        #TODO: IMPORTANT: Remove this endpoint after testing and creating database models. We dont want this endpoint in the final version, everyone can delete all data.
+        @self.app.get("/delete_all_data")
+        def delete_all_data(db = self.db_dependency):
+            if not os.environ.get("PYCHARM_HOSTED"):
+                return {"message": "This endpoint is only available in the development environment."}
+
+            try:
+                db.query(models.App).delete()
+                db.query(models.Category).delete()
+                db.commit()
+                return {"message": "All data deleted."}
+            except Exception as e:
+                return {"message": f"Error deleting all data: {e}"}
+
         # function to fill the category table with all categories from the Steam API
         def fill_category_table(db = self.db_dependency, categories = None):
             try:
-                for category in categories:
-                    db.add(models.Category(id=category["id"], name=category["description"]))
+                if categories:
+                    # Get all existing category IDs from the database
+                    existing_category_ids = {category.id for category in db.query(models.Category.id).all()}
+
+                    # Prepare the categories to be inserted (those not already in the DB)
+                    new_categories = [
+                        models.Category(id=category["id"], name=category["description"])
+                        for category in categories if category["id"] not in existing_category_ids
+                    ]
+
+                    if new_categories:
+                        db.add_all(new_categories)
+                        db.commit()
+                        print(f"Inserted {len(new_categories)} new categories.")
+                    else:
+                        print("No new categories to insert.")
+
             except Exception as e:
-                print(f"Error: {e}")
-            db.commit()
-            db.refresh(models.Category)
+                print(f"Error while filling the category table: {e}")
 
         # Endpoint to fill the app table with all apps from the Steam API
-        # @self.app.get("/fill_app_table")
-        def fill_app_table(db = self.db_dependency):
-            app_list = fetch_app_list()
+        @self.app.get("/fill_app_table")
+        def fill_app_table(background_tasks: BackgroundTasks, db=self.db_dependency):
+            if not os.environ.get("PYCHARM_HOSTED"):
+                return {"message": "This endpoint is only available in the development environment."}
 
+            # Call the function to run in the background
+            background_tasks.add_task(run_fill_app_table, db)
+            return {"message": "The app table filling task has started in the background."}
+
+        def run_fill_app_table(db):
+            return # Remove this line when the function is implemented
+
+            app_list = fetch_app_list()
             added_apps = 0
 
-            # create dirs if they don't exist
             os.makedirs(os.path.dirname(ADDED_GAMES_LIST_CACHE_FILE), exist_ok=True)
 
-            added_games = []
-
+            # Read the already added games from file
+            added_games = set()
             try:
-                # skip to the front the last app id from the file, only do the appids that are not in the file
-                # by removing the appids that are already in the file
                 with open(ADDED_GAMES_LIST_CACHE_FILE, 'r') as file:
-                    added_games = file.readlines()
+                    added_games = set(file.readlines())
             except FileNotFoundError:
                 pass
+
+            # List to hold new apps to be added in bulk
+            new_apps = []
 
             for app in app_list:
                 try:
                     appid = int(app["appid"])
-                    # skip the app if it's already in the file
+                    # Skip if the app is already in the file
                     if f"{appid}\n" in added_games:
                         continue
 
                     name = str(app["name"])
                     if not name:
                         continue
+
                 except (KeyError, ValueError):
                     continue
 
-                # add app id to a file to continue from there later on
+                # Add app id to the file to continue from there later
                 with open(ADDED_GAMES_LIST_CACHE_FILE, 'a') as file:
                     file.write(f"{appid}\n")
 
@@ -130,32 +167,33 @@ class API:
 
                 details = get_app_details(appid)
                 if details:
-                    # platform as comma separated string, need to be different maybe
-                    platform = ''
-                    if details["platforms"] and details["platforms"].keys():
-                        platform = ", ".join(details["platforms"].keys())
-
+                    # Platform as a comma-separated string
+                    platform = ", ".join(details["platforms"].keys()) if details["platforms"] else ""
                     developer = details["developers"][0] if details["developers"] else ''
 
-                    db.add(models.App(app_id=appid, name=name, player_count=player_count, platform=platform, developer=developer))
+                    # Add app to the bulk list
+                    new_apps.append(models.App(app_id=appid, name=name, player_count=player_count, platform=platform,
+                                               developer=developer))
 
-                    try:
-                        # try get categories to use in the fill_category_table function
-                        categories = details["categories"]
+                    # Attempt to get categories
+                    categories = details.get("categories", [])
+                    if categories:
                         fill_category_table(db, categories)
-                    except KeyError:
+                    else:
                         print(f"No categories found for appid: {appid}, name: {name}")
 
                 added_apps += 1
 
-                db.commit()
+                # Perform commit every 50 apps or at the end
+                if added_apps % 50 == 0 or added_apps == len(app_list):
+                    if new_apps:
+                        db.add_all(new_apps)
+                        db.commit()  # Commit all changes
+                        new_apps.clear()
 
-                db.refresh(models.App)
-                db.refresh(models.Category)
+                time.sleep(0.5)
 
-                time.sleep(0.5) # Sleep for 0.5 seconds to not overload the API
-
-            return {"added_apps": added_apps}
+            print(f"Total apps added: {added_apps}")
 
 if __name__ == "__main__":
     api = API()
