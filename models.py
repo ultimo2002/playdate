@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, PrimaryKeyConstraint
+from sqlalchemy.orm import relationship
 from database import Base
 
 class App(Base):
@@ -19,9 +20,13 @@ class Category(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
 
+
 class AppCategory(Base):
     __tablename__ = "app_categories"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    app_id = Column(Integer, ForeignKey("apps.id"), unique=False, index=True)
-    category_id = Column(Integer, ForeignKey("categories.id"), unique=False, index=True)
+    app_id = Column(Integer, ForeignKey("apps.id"), index=True)
+    category_id = Column(Integer, ForeignKey("categories.id"), index=True)
+
+    __table_args__ = (
+        PrimaryKeyConstraint("app_id", "category_id"),  # Composite primary key
+    )
