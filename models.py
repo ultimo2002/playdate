@@ -8,7 +8,7 @@ class App(Base):
     # appid = Column(Integer, unique=True, index=True) # Can maybe be the same as id
     name = Column(String, index=True)
 
-    player_count = Column(Integer, index=True)
+    # player_count = Column(Integer, index=True)
     platform = Column(String, index=True)
     developer = Column(String, index=True)
 
@@ -17,10 +17,11 @@ class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True, unique=True)
+    name = Column(String, unique=True, index=True)
 
 class AppCategory(Base):
     __tablename__ = "app_categories"
 
-    app_id = Column(Integer, ForeignKey("apps.id"), primary_key=True)
-    category_id = Column(Integer, ForeignKey("categories.id"))
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    app_id = Column(Integer, ForeignKey("apps.id"), unique=False, index=True)
+    category_id = Column(Integer, ForeignKey("categories.id"), unique=False, index=True)
