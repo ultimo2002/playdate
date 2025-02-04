@@ -8,7 +8,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE
+from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE, TextStyles
 from steam_api import get_app_details, fetch_app_list, get_current_player_count
 
 import models
@@ -93,7 +93,9 @@ class API:
                 return {"message": f"Error deleting all data: {e}"}
 
         # function to fill the category table with all categories from the Steam API
-        def fill_category_table(db = self.db_dependency, categories = None):
+        def fill_category_table(db = self.db_dependency, categories = None, appid = None):
+            if not appid:
+                return
             try:
                 if categories:
                     # Get all existing category IDs from the database
@@ -112,6 +114,15 @@ class API:
                     else:
                         print("No new categories to insert.")
 
+                    # Insert the app-category relations
+                    app_categories = [
+                        models.AppCategory(app_id=appid, category_id=category["id"])
+                        for category in categories
+                    ]
+                    db.add_all(app_categories)
+                    db.commit()
+                    print(f"Inserted {len(app_categories)} app-category relations.")
+
             except Exception as e:
                 print(f"Error while filling the category table: {e}")
 
@@ -126,7 +137,9 @@ class API:
             return {"message": "The app table filling task has started in the background."}
 
         def run_fill_app_table(db):
-            return # Remove this line when the function is implemented
+            # return # Remove this line when the function is implemented
+
+            apps_looped = 0
 
             app_list = fetch_app_list()
             added_apps = 0
@@ -145,6 +158,11 @@ class API:
             new_apps = []
 
             for app in app_list:
+                apps_looped += 1
+                APPS_LOOPED_COUNT = 1000
+                if apps_looped > APPS_LOOPED_COUNT: # limit for testing
+                    break
+
                 try:
                     appid = int(app["appid"])
                     # Skip if the app is already in the file
@@ -164,35 +182,38 @@ class API:
 
                 player_count = get_current_player_count(appid)
                 if player_count < 500:
+                    print(f"{TextStyles.grey}Skipping appid {appid}: {name} (player count: {player_count}){TextStyles.reset}")
                     continue
 
+                print(f"Processing appid {appid}: {name}")
                 details = get_app_details(appid)
                 if details:
                     # Platform as a comma-separated string
                     platform = ", ".join(details["platforms"].keys()) if details["platforms"] else ""
                     developer = details["developers"][0] if details["developers"] else ''
 
-                    # Add app to the bulk list
-                    new_apps.append(models.App(app_id=appid, name=name, player_count=player_count, platform=platform,
-                                               developer=developer))
+                    app = models.App(id=appid, name=name, platform=platform, developer=developer)
+                    db.add(app)
+                    db.commit()
+                    db.refresh(app)
 
                     # Attempt to get categories
                     categories = details.get("categories", [])
                     if categories:
-                        fill_category_table(db, categories)
+                        fill_category_table(db, categories, appid)
                     else:
                         print(f"No categories found for appid: {appid}, name: {name}")
 
                 added_apps += 1
 
-                # Perform commit every 50 apps or at the end
-                if added_apps % 50 == 0 or added_apps == len(app_list):
-                    if new_apps:
-                        db.add_all(new_apps)
-                        db.commit()  # Commit all changes
-                        new_apps.clear()
+                # Perform commit every 5 apps or at the end
+                # if added_apps % 5 == 0 or added_apps == len(app_list) or apps_looped >= APPS_LOOPED_COUNT:
+                #     if new_apps:
+                #         db.add_all(new_apps)
+                #         db.commit()  # Commit all changes
+                #         new_apps.clear()
 
-                time.sleep(0.5)
+                time.sleep(0.25)
 
             print(f"Total apps added: {added_apps}")
 
