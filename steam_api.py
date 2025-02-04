@@ -56,7 +56,17 @@ def fetch_app_list():
 
     if data:
         save_cache(APPS_LIST_CACHE_FILE, data["applist"]["apps"])
-        return data["applist"]["apps"]
+
+        apps = data["applist"]["apps"]
+
+        # Remove all double appids from the list
+        app_ids = set()
+        apps = [app for app in apps if app["appid"] not in app_ids and not app_ids.add(app["appid"])]
+
+        # order the apps by appid
+        apps.sort(key=lambda x: x["appid"])
+
+        return apps
 
     return False
 
