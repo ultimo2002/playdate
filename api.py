@@ -94,8 +94,6 @@ class API:
 
         # function to fill the category table with all categories from the Steam API
         def fill_category_table(db = self.db_dependency, categories = None, appid = None):
-            if not appid:
-                return
             try:
                 if categories:
                     # Get all existing category IDs from the database
@@ -113,6 +111,9 @@ class API:
                         print(f"Inserted {len(new_categories)} new categories.")
                     else:
                         print("No new categories to insert.")
+
+                    if not appid:
+                        return
 
                     # Insert the app-category relations
                     app_categories = [
@@ -205,13 +206,6 @@ class API:
                         print(f"No categories found for appid: {appid}, name: {name}")
 
                 added_apps += 1
-
-                # Perform commit every 5 apps or at the end
-                # if added_apps % 5 == 0 or added_apps == len(app_list) or apps_looped >= APPS_LOOPED_COUNT:
-                #     if new_apps:
-                #         db.add_all(new_apps)
-                #         db.commit()  # Commit all changes
-                #         new_apps.clear()
 
                 time.sleep(0.25)
 
