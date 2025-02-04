@@ -155,9 +155,6 @@ class API:
             except FileNotFoundError:
                 pass
 
-            # List to hold new apps to be added in bulk
-            new_apps = []
-
             for app in app_list:
                 # apps_looped += 1
                 # APPS_LOOPED_COUNT = 1000
@@ -181,8 +178,11 @@ class API:
                 with open(ADDED_GAMES_LIST_CACHE_FILE, 'a') as file:
                     file.write(f"{appid}\n")
 
+                MIN_PLAYER_COUNT = 500
+
                 player_count = get_current_player_count(appid)
-                if player_count < 500:
+
+                if player_count < MIN_PLAYER_COUNT:
                     print(f"{TextStyles.grey}Skipping appid {appid}: {name} (player count: {player_count}){TextStyles.reset}")
                     continue
 
