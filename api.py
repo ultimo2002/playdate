@@ -199,6 +199,9 @@ class API:
                     if not name:
                         continue
 
+                    if 'DLC' in name:
+                        continue
+
                 except (KeyError, ValueError):
                     continue
 
