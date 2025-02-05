@@ -221,7 +221,6 @@ class API:
                 details = get_app_details(appid)
                 if details:
                     # Platform as a comma-separated string
-                    platform = ", ".join(details["platforms"].keys()) if details["platforms"] else ""
                     developer = details["developers"][0] if details["developers"] else ''
                     header_image = details["header_image"] if details["header_image"] else ''
                     background_image = details["background"] if details["background"] else ''
@@ -233,7 +232,7 @@ class API:
                     except KeyError:
                         pass
 
-                    app = models.App(id=appid, name=name, platform=platform, developer=developer, header_image=header_image, price=price, background_image=background_image, short_description=short_description)
+                    app = models.App(id=appid, name=name, developer=developer, header_image=header_image, price=price, background_image=background_image, short_description=short_description)
                     db.add(app)
                     db.commit()
                     db.refresh(app)
