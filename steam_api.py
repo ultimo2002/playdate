@@ -31,7 +31,17 @@ def load_cache(cache_file):
     """Load data from the cache file."""
     with open(cache_file, 'r') as cache_file_obj:
         print("Loading app list from cache file...")
-        return json.load(cache_file_obj)
+
+        loaded_data = json.load(cache_file_obj)
+
+        # Remove all double appids from the list
+        app_ids = set()
+        loaded_data = [app for app in loaded_data if app["appid"] not in app_ids and not app_ids.add(app["appid"])]
+
+        # order the apps by appid
+        loaded_data.sort(key=lambda x: x["appid"])
+
+        return loaded_data
 
 def save_cache(cache_file, data):
     """Save data to the cache file."""
@@ -55,7 +65,17 @@ def fetch_app_list():
 
     if data:
         save_cache(APPS_LIST_CACHE_FILE, data["applist"]["apps"])
-        return data["applist"]["apps"]
+
+        apps = data["applist"]["apps"]
+
+        # Remove all double appids from the list
+        app_ids = set()
+        apps = [app for app in apps if app["appid"] not in app_ids and not app_ids.add(app["appid"])]
+
+        # order the apps by appid
+        apps.sort(key=lambda x: x["appid"])
+
+        return apps
 
     return False
 
