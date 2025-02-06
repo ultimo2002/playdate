@@ -1,7 +1,7 @@
 import os
 import time
 
-from fastapi import FastAPI, Depends, Request, BackgroundTasks
+from fastapi import FastAPI, Depends, Request, BackgroundTasks, HTTPException
 import uvicorn
 
 from fastapi.templating import Jinja2Templates
@@ -55,8 +55,59 @@ class API:
                 request=request, name="index.html", context={"message": "Hello world!"}
             )
 
+        @self.app.get("/apps")
+        def read_apps(db=self.db_dependency):
+            apps = db.query(models.App).all()
+            return apps
+
+        @self.app.get("/app/{appid}")
+        def read_app(appid: int, db=self.db_dependency):
+            app = db.query(models.App).filter(models.App.id == appid).first()
+            if app:
+                return app
+            else:
+                raise HTTPException(status_code=404, detail="App not found")
+
+        @self.app.put("/app/{appid}")
+        def update_app(appid: int, name: str, db=self.db_dependency):
+            app = db.query(models.App).filter(models.App.id == appid).first()
+            if app:
+                app.name = name
+                db.commit()
+                db.refresh(app)
+                return app
+            else:
+                raise HTTPException(status_code=404, detail="App not found")
+
+        @self.app.post("/app")
+        def add_app(name: str, appid: int, db=self.db_dependency):
+            if not os.environ.get("PYCHARM_HOSTED"):
+                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
+
+            name = name.replace("%20", " ")
+            name.strip()
+
+            app = models.App(name=name, id=appid)
+            db.add(app)
+            db.commit()
+            db.refresh(app)
+            return {"name": name, "appid": appid}
+
+        @self.app.delete("/app/{appid}")
+        def delete_app(appid: int, db=self.db_dependency):
+            if not os.environ.get("PYCHARM_HOSTED"):
+                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
+
+            app = db.query(models.App).filter(models.App.id == appid).first()
+            if app:
+                db.delete(app)
+                db.commit()
+                return {"message": f"App {appid} deleted"}
+            else:
+                raise HTTPException(status_code=404, detail="App not found")
+
         @self.app.get("/similar_name/{target_name}")
-        def find_similar_named_apps(target_name, db=self.db_dependency):
+        def find_similar_named_apps(target_name: str, db=self.db_dependency):
             target_name = target_name.strip().lower()
 
             apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
@@ -77,16 +128,16 @@ class API:
 
         # a test getting app details from the Steam API
         # TODO: Remove this endpoint, when database is implemented
-        @self.app.get("/app/{app_id}")
-        def read_app(app_id: int):
-            app_details = get_app_details(app_id)
-            if app_details:
-                if not isinstance(app_details, dict):
-                    app_details = app_details.to_dict()
-
-                return app_details
-            else:
-                return {"message": "App not found"}
+        # @self.app.get("/app/{app_id}")
+        # def read_app(app_id: int):
+        #     app_details = get_app_details(app_id)
+        #     if app_details:
+        #         if not isinstance(app_details, dict):
+        #             app_details = app_details.to_dict()
+        #
+        #         return app_details
+        #     else:
+        #         return {"message": "App not found"}
 
         # test endpoint to create a new app in the database with a name and appid
         @self.app.get("/test_create_app")
@@ -160,7 +211,7 @@ class API:
         @self.app.get("/fill_app_table")
         def fill_app_table(background_tasks: BackgroundTasks, db=self.db_dependency):
             if not os.environ.get("PYCHARM_HOSTED"):
-                return {"message": "This endpoint is only available in the development environment."}
+                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
 
             # Call the function to run in the background
             background_tasks.add_task(run_fill_app_table, db)
