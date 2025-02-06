@@ -57,7 +57,7 @@ class API:
             )
 
         @self.app.get("/find_similair_name/{target_name}")
-        def find_similar_apps(target_name, threshold=50, db = self.db_dependency):
+        def find_similar_apps(target_name, threshold=60, db = self.db_dependency):
             # apps = db.query(models.App).all()
             # get only the name and id
             apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
@@ -67,12 +67,12 @@ class API:
             for app in apps:
                 similarity = similarity_score(target_name, app.name)
                 if similarity >= threshold:
-                    similar_apps.append((app.id, app.name))
+                    similar_apps.append((app.id, app.name, similarity))
 
             # Sort by similarity score (highest first)
-            similar_apps.sort(key=lambda x: x[1], reverse=True)
+            similar_apps.sort(key=lambda x: x[2], reverse=True)
             # convert similar_apps apps to json
-            similar_apps = [{"id": app[0], "name": app[1]} for app in similar_apps]
+            similar_apps = [{"id": app[0], "name": app[1], "similarity": app[2]} for app in similar_apps]
             return similar_apps
 
         # a test getting app details from the Steam API
