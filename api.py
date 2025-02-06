@@ -8,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+from algoritms import similarity_score
 from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE, TextStyles
 from steam_api import get_app_details, fetch_app_list, get_current_player_count
 
@@ -54,6 +55,25 @@ class API:
             return self.templates.TemplateResponse(
                 request=request, name="index.html", context={"message": "Hello world!"}
             )
+
+        @self.app.get("/find_similair_name/{target_name}")
+        def find_similar_apps(target_name, threshold=50, db = self.db_dependency):
+            # apps = db.query(models.App).all()
+            # get only the name and id
+            apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
+
+            similar_apps = []
+
+            for app in apps:
+                similarity = similarity_score(target_name, app.name)
+                if similarity >= threshold:
+                    similar_apps.append((app.id, app.name))
+
+            # Sort by similarity score (highest first)
+            similar_apps.sort(key=lambda x: x[1], reverse=True)
+            # convert similar_apps apps to json
+            similar_apps = [{"id": app[0], "name": app[1]} for app in similar_apps]
+            return similar_apps
 
         # a test getting app details from the Steam API
         # TODO: Remove this endpoint, when database is implemented
