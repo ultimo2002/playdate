@@ -1,6 +1,5 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, PrimaryKeyConstraint
-from sqlalchemy.orm import relationship
-from database import Base
+from sqlalchemy import Column, ForeignKey, Integer, String, PrimaryKeyConstraint
+from code.database import Base
 
 class App(Base):
     __tablename__ = "apps"
