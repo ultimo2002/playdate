@@ -60,21 +60,36 @@ class API:
             apps = db.query(models.App).all()
             return apps
 
+        def get_app_related_data(appid: str, db, model_class, relationship_class):
+            if appid.isdigit():
+                appid = int(appid)
+            else:
+                app = get_data_from_id_or_name(str(appid), db)
+                appid = int(app.id)
+
+            related_data = db.query(model_class).join(relationship_class).filter(
+                relationship_class.app_id == appid).all()
+
+            if not related_data:
+                raise HTTPException(status_code=404, detail=f"App and/or {model_class.__name__.lower()} not found")
+
+            return related_data
+
+        @self.app.get("/app/{appid}/categories")
+        def read_app_categories(appid: str, db=self.db_dependency):
+            return get_app_related_data(appid, db, models.Category, models.AppCategory)
+
+        @self.app.get("/app/{appid}/genres")
+        def read_app_genres(appid: str, db=self.db_dependency):
+            return get_app_related_data(appid, db, models.Genre, models.AppGenre)
+
+        @self.app.get("/app/{appid}/tags")
+        def read_app_tags(appid: str, db=self.db_dependency):
+            return get_app_related_data(appid, db, models.Tags, models.AppTags)
+
         @self.app.get("/app/{appid}")
         def read_app(appid: str, db=self.db_dependency):
-            app = None
-
-            if appid.isdigit():
-                app = db.query(models.App).filter(models.App.id == int(appid)).first()
-            else:
-                similar_app = most_similar_named_app(appid, db)
-                if similar_app and isinstance(similar_app.get("id"), int):
-                    app = db.query(models.App).filter(models.App.id == similar_app["id"]).first()
-
-            if not app:
-                raise HTTPException(status_code=404, detail="App not found")
-
-            return app
+            return get_data_from_id_or_name(appid, db)
 
         @self.app.put("/app/{appid}")
         def update_app(appid: int, name: str, db=self.db_dependency):
@@ -113,6 +128,18 @@ class API:
                 return {"message": f"App {appid} deleted"}
             else:
                 raise HTTPException(status_code=404, detail="App not found")
+
+        def get_data_from_id_or_name(app_id_or_name: str, db=self.db_dependency):
+            app = None
+
+            if app_id_or_name.isdigit():
+                app = db.query(models.App).filter(models.App.id == int(app_id_or_name)).first()
+            else:
+                similar_app = most_similar_named_app(app_id_or_name, db)
+                if similar_app and isinstance(similar_app.get("id"), int):
+                    app = db.query(models.App).filter(models.App.id == similar_app["id"]).first()
+
+            return app
 
         def most_similar_named_app(target_name: str, db=self.db_dependency):
             """Find the most similar named app in the database
