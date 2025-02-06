@@ -1,7 +1,6 @@
 import json
 import os
 
-import requests
 import time
 
 from config import STEAMAPI_BASE_URL, STEAMSTORE_BASE_URL, fetch_from_api, APPS_LIST_CACHE_FILE, CACHE_EXPIRATION_TIME, \
