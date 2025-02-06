@@ -61,12 +61,20 @@ class API:
             return apps
 
         @self.app.get("/app/{appid}")
-        def read_app(appid: int, db=self.db_dependency):
-            app = db.query(models.App).filter(models.App.id == appid).first()
-            if app:
-                return app
+        def read_app(appid: str, db=self.db_dependency):
+            app = None
+
+            if appid.isdigit():
+                app = db.query(models.App).filter(models.App.id == int(appid)).first()
             else:
+                similar_app = most_similar_named_app(appid, db)
+                if similar_app and isinstance(similar_app.get("id"), int):
+                    app = db.query(models.App).filter(models.App.id == similar_app["id"]).first()
+
+            if not app:
                 raise HTTPException(status_code=404, detail="App not found")
+
+            return app
 
         @self.app.put("/app/{appid}")
         def update_app(appid: int, name: str, db=self.db_dependency):
@@ -106,22 +114,6 @@ class API:
             else:
                 raise HTTPException(status_code=404, detail="App not found")
 
-        def find_most_similar_app(target_name: str, db):
-            target_name = target_name.strip().lower()
-
-            apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
-
-            most_similar_app = None
-            highest_similarity = 0
-
-            for app in apps:
-                similarity = similarity_score(target_name, app.name)
-                if similarity > highest_similarity:
-                    highest_similarity = similarity
-                    most_similar_app = app
-
-            return most_similar_app
-
         def most_similar_named_app(target_name: str, db=self.db_dependency):
             """Find the most similar named app in the database
             :param target_name: The string of name of the app to compare
@@ -140,7 +132,10 @@ class API:
                     highest_similarity = similarity
                     most_similar_app = app
 
-            return most_similar_app
+            if most_similar_app:
+                return {"id": most_similar_app.id, "name": most_similar_app.name, "similarity": round(highest_similarity, 2)}
+
+            return None
 
         @self.app.get("/similar_name/{target_name}")
         def find_similar_named_apps(target_name: str, db=self.db_dependency):
