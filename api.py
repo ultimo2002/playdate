@@ -120,6 +120,8 @@ class API:
                     highest_similarity = similarity
                     most_similar_app = app
 
+            return most_similar_app
+
         def most_similar_named_app(target_name: str, db=self.db_dependency):
             """Find the most similar named app in the database
             :param target_name: The string of name of the app to compare
