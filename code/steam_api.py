@@ -145,7 +145,10 @@ def get_steam_tags(appid):
     if not popular_tags_section:
         return None  # Return None if the section isn't found
 
-    tags = [tag.text.strip() for tag in soup.select(".app_tag")[:5]]
+    tags = [tag.text.strip() for tag in soup.select(".app_tag")[:5]] # Get the first 5 tags
+
+    if not tags:
+        return None
 
     return tags
 

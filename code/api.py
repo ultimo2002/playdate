@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from algoritms import similarity_score, jaccard_similarity
 from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE, TextStyles
-from steam_api import get_app_details, fetch_app_list, get_current_player_count
+from steam_api import get_app_details, fetch_app_list, get_current_player_count, get_steam_tags
 
 import models
 from database import Engine, SessionLocal
@@ -264,6 +264,48 @@ class API:
                 db.commit()
                 print(f"Inserted {len(app_categories)} app-{'genre' if genre else 'category'} relations.")
 
+        @self.app.get("/fill_tags_table")
+        def fill_tags_table(background_tasks: BackgroundTasks, db=self.db_dependency):
+            if not os.environ.get("PYCHARM_HOSTED"):
+                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
+
+            # Call the function to run in the background
+            background_tasks.add_task(run_fill_tags_table, db)
+            return {"message": "The tags table filling task has started in the background."}
+
+        def run_fill_tags_table(db):
+            # Remove all existing tags
+            db.query(models.AppTags).delete()
+            db.query(models.Tags).delete()
+            db.commit()
+
+            # For each app in the database, get the tags and add them to the database if they don't exist yet
+            apps = db.query(models.App.id).all()
+            for app in apps:
+                time.sleep(0.25)
+                tags = get_steam_tags(app.id)
+                if tags:
+                    # check if tags already exist in the database
+                    existing_tags = {tag.name for tag in db.query(models.Tags.name).all()}
+                    new_tags = [
+                        models.Tags(name=tag)
+                        for tag in tags if tag not in existing_tags
+                    ]
+
+                    if new_tags:
+                        db.add_all(new_tags)
+                        db.commit()
+                        print(f"Inserted {len(new_tags)} new tags.")
+
+                    # Insert the app-tag relations
+                    app_tags = [
+                        models.AppTags(app_id=app.id, tag_id=tag.id)
+                        for tag in db.query(models.Tags).filter(models.Tags.name.in_(tags)).all()
+                    ]
+                    db.add_all(app_tags)
+                    db.commit()
+
+                    print(f"Inserted {len(app_tags)} app-tag relations for app {app.id}.")
 
         # Endpoint to fill the app table with all apps from the Steam API
         @self.app.get("/fill_app_table")
