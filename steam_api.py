@@ -99,71 +99,51 @@ def get_current_player_count(appid):
 
     return 0
 
+import time
+from bs4 import BeautifulSoup
+
+
+def get_steam_tags(appid):
+    session = requests.Session()
+    url = f"https://store.steampowered.com/app/{appid}/"
+    headers = {"User-Agent": "Mozilla/5.0"}
+
+    # First request to get the session ID and cookies
+    response = session.get(url, headers=headers)
+    if response.status_code != 200:
+        return None
+
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    # Check if the age gate exists
+    if soup.select("#app_agegate"):
+        # Extract the session ID from cookies
+        session_id = session.cookies.get("sessionid", "")
+
+        print("Age gate detected. Verifying age...")
+
+        age_gate_url = f"https://store.steampowered.com/agecheckset/app/{appid}/"
+        payload = {
+            "sessionid": session_id,  # Use the session ID from cookies
+            "ageDay": 5,
+            "ageMonth": "March",
+            "ageYear": "1999",  # Over 18
+        }
+
+        # Send the age verification request
+        session.post(age_gate_url, headers=headers, data=payload)
+
+        # Fetch the game page again after verifying age
+        response = session.get(url, headers=headers)
+
+    # Parse the updated page
+    soup = BeautifulSoup(response.text, "html.parser")
+    tags = [tag.text.strip() for tag in soup.select(".app_tag")]
+
+    return tags
+
+
 if __name__ == "__main__":
-    # Fetch and process each app
-    print("Fetching app list...")
-    app_list = fetch_app_list()
-
-    if not app_list or len(app_list) == 0:
-        exit("No games found. Exiting the application.")
-
-
-    # create dirs if they don't exist
-    os.makedirs(os.path.dirname(ADDED_GAMES_LIST_CACHE_FILE), exist_ok=True )
-
-    added_games = []
-
-    try:
-        # skip to the front the last app id from the file, only do the appids that are not in the file
-        # by removing the appids that are already in the file
-        with open(ADDED_GAMES_LIST_CACHE_FILE, 'r') as file:
-            added_games = file.readlines()
-
-    except FileNotFoundError:
-        pass
-
-    for app in app_list:
-        try:
-            appid = int(app["appid"])
-            name = str(app["name"])
-            if not name:
-                continue
-
-            # skip the app if it's already in the file
-            if f"{appid}\n" in added_games:
-                continue
-        except (KeyError, ValueError):
-            continue
-
-        # add app id to a file to continue from there later on
-        with open(ADDED_GAMES_LIST_CACHE_FILE, 'a') as file:
-            file.write(f"{appid}\n")
-
-        player_count = get_current_player_count(appid)
-        if player_count < 500:
-            print(f"Skipping appid {appid}: {name} (player count: {player_count})")
-            continue
-
-        # when name is empty, skip to the next app
-        if not name:
-            continue
-
-        print(f"Processing appid {appid}: {name}")
-        details = get_app_details(appid)
-
-        if details:
-            categories = get_app_categories(details)
-            category_names = ", ".join([cat["description"] for cat in categories])
-
-            # Print data instead of saving to database
-            print(f"AppID: {appid}, Name: {name}, Categories: {category_names}")
-
-        # player_count = get_current_player_count(appid)
-        # if player_count:
-        #     print(f"Player count for {name}: {player_count}")
-
-        # Sleep to prevent rate limits
-        time.sleep(0.5)
-
-    print("Done fetching app data.")
-
+    game_id = 271590  # Example: GTA V
+    tags = get_steam_tags(game_id)
+    print(tags)
