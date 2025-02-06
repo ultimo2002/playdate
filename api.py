@@ -106,6 +106,40 @@ class API:
             else:
                 raise HTTPException(status_code=404, detail="App not found")
 
+        def find_most_similar_app(target_name: str, db):
+            target_name = target_name.strip().lower()
+
+            apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
+
+            most_similar_app = None
+            highest_similarity = 0
+
+            for app in apps:
+                similarity = similarity_score(target_name, app.name)
+                if similarity > highest_similarity:
+                    highest_similarity = similarity
+                    most_similar_app = app
+
+        def most_similar_named_app(target_name: str, db=self.db_dependency):
+            """Find the most similar named app in the database
+            :param target_name: The string of name of the app to compare
+            :return: The most similar app, or None if no similar app was found
+            """
+            target_name = target_name.strip().lower()
+
+            apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
+
+            most_similar_app = None
+            highest_similarity = 0
+
+            for app in apps:
+                similarity = similarity_score(target_name, app.name)
+                if similarity > highest_similarity:
+                    highest_similarity = similarity
+                    most_similar_app = app
+
+            return most_similar_app
+
         @self.app.get("/similar_name/{target_name}")
         def find_similar_named_apps(target_name: str, db=self.db_dependency):
             target_name = target_name.strip().lower()
