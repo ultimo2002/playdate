@@ -106,7 +106,8 @@ import requests
 def get_steam_tags(appid):
     session = requests.Session()
     url = f"https://store.steampowered.com/app/{appid}/"
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"}
+    headers["Accept-Language"] = "en-US,en;q=0.5"
 
     # First request to get the session ID and cookies
     response = session.get(url, headers=headers)
@@ -115,7 +116,7 @@ def get_steam_tags(appid):
 
     soup = BeautifulSoup(response.text, "html.parser")
 
-    # Check if the age gate exists
+    # Check if the age gate exists then we give a age and continue
     if soup.select("#app_agegate"):
         # Extract the session ID from cookies
         session_id = session.cookies.get("sessionid", "")
@@ -138,7 +139,13 @@ def get_steam_tags(appid):
 
     # Parse the updated page
     soup = BeautifulSoup(response.text, "html.parser")
-    tags = [tag.text.strip() for tag in soup.select(".app_tag")]
+
+    # Find the "Popular user-defined tags" section
+    popular_tags_section = soup.select_one(".popular_tags")
+    if not popular_tags_section:
+        return None  # Return None if the section isn't found
+
+    tags = [tag.text.strip() for tag in soup.select(".app_tag")[:5]]
 
     return tags
 
