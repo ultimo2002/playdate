@@ -100,6 +100,7 @@ def get_current_player_count(appid):
 
 import time
 from bs4 import BeautifulSoup
+import requests
 
 
 def get_steam_tags(appid):
