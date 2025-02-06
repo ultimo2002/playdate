@@ -55,7 +55,7 @@ class API:
                 request=request, name="index.html", context={"message": "Hello world!"}
             )
 
-        @self.app.get("/find_similair_name/{target_name}")
+        @self.app.get("/similar_name/{target_name}")
         def find_similar_named_apps(target_name, db=self.db_dependency):
             target_name = target_name.strip().lower()
 
