@@ -152,5 +152,18 @@ def get_steam_tags(appid):
 
 if __name__ == "__main__":
     game_id = 271590  # Example: GTA V
-    tags = get_steam_tags(game_id)
-    print(tags)
+    try:
+        tags = get_steam_tags(game_id)
+        print(tags)
+    except Exception as e:
+        print(e)
+
+    # example: go through app list and get tags for each game
+    apps = fetch_app_list()
+    for app in apps:
+        try:
+            tags = get_steam_tags(app["appid"])
+            print(f"Tags for {app['name']}: {tags}")
+        except Exception as e:
+            print(e)
+        time.sleep(1)
