@@ -26,7 +26,6 @@ class API:
 
         self.app.mount("/static", StaticFiles(directory="static"), name="static")
 
-        # set_database_engine() # Make sure the database engine is set
         models.Base.metadata.create_all(bind=Engine)
 
         self.db_dependency = Depends(self.get_db)
@@ -57,25 +56,24 @@ class API:
             )
 
         @self.app.get("/find_similair_name/{target_name}")
-        def find_similar_apps(target_name, threshold=60, jaccard_threshold=25, db=self.db_dependency):
-            # apps = db.query(models.App).all()
-            # get only the name and id
+        def find_similar_named_apps(target_name, db=self.db_dependency):
+            target_name = target_name.strip().lower()
+
             apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
 
             similar_apps = []
+
+            TRESHOLD = 60
+            JACCARD_TRESHOLD = 25
 
             for app in apps:
                 levenshtein_sim = similarity_score(target_name, app.name)
                 jaccard_sim = jaccard_similarity(target_name, app.name)
 
-                if levenshtein_sim >= threshold or jaccard_sim >= jaccard_threshold:
-                    similar_apps.append((app.id, app.name, round(max(levenshtein_sim, jaccard_sim), 2)) )
+                if levenshtein_sim >= TRESHOLD or jaccard_sim >= JACCARD_TRESHOLD:
+                    similar_apps.append({"id": app.id, "name": app.name, "similarity": round(max(levenshtein_sim, jaccard_sim), 2)})
 
-            # Sort by similarity score (highest first)
-            similar_apps.sort(key=lambda x: x[2], reverse=True)
-            # convert similar_apps apps to json
-            similar_apps = [{"id": app[0], "name": app[1], "similarity": app[2]} for app in similar_apps]
-            return similar_apps
+            return sorted(similar_apps, key=lambda x: x["similarity"], reverse=True)
 
         # a test getting app details from the Steam API
         # TODO: Remove this endpoint, when database is implemented
@@ -98,21 +96,6 @@ class API:
             db.commit()
             db.refresh(app)
             return app
-
-        #TODO: IMPORTANT: Remove this endpoint after testing and creating database models. We dont want this endpoint in the final version, everyone can delete all data.
-        # @self.app.get("/delete_all_data")
-        # def delete_all_data(db = self.db_dependency):
-        #     if not os.environ.get("PYCHARM_HOSTED"):
-        #         return {"message": "This endpoint is only available in the development environment."}
-        #
-        #     try:
-        #         db.query(models.App).delete()
-        #         db.query(models.Category).delete()
-        #         db.query(models.AppCategory).delete()
-        #         db.commit()
-        #         return {"message": "All data deleted."}
-        #     except Exception as e:
-        #         return {"message": f"Error deleting all data: {e}"}
 
         # function to fill the category table with all categories from the Steam API
         def fill_category_table(db = self.db_dependency, categories = None, appid = None, genre = False):
