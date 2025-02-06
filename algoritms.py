@@ -17,6 +17,12 @@ def levenshtein_distance(s1, s2):
 
     return previous_row[-1]
 
+# Function to check Jaccard similarity
+def jaccard_similarity(s1, s2):
+    set1, set2 = set(s1.lower().split()), set(s2.lower().split())
+    intersection = set1 & set2
+    union = set1 | set2
+    return len(intersection) / len(union) * 100 if union else 0
 
 def similarity_score(s1, s2):
     max_len = max(len(s1), len(s2))

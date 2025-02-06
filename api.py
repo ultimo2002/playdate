@@ -8,7 +8,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from algoritms import similarity_score
+from algoritms import similarity_score, jaccard_similarity
 from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE, TextStyles
 from steam_api import get_app_details, fetch_app_list, get_current_player_count
 
@@ -57,7 +57,7 @@ class API:
             )
 
         @self.app.get("/find_similair_name/{target_name}")
-        def find_similar_apps(target_name, threshold=60, db = self.db_dependency):
+        def find_similar_apps(target_name, threshold=60, jaccard_threshold=25, db=self.db_dependency):
             # apps = db.query(models.App).all()
             # get only the name and id
             apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
@@ -65,9 +65,11 @@ class API:
             similar_apps = []
 
             for app in apps:
-                similarity = similarity_score(target_name, app.name)
-                if similarity >= threshold:
-                    similar_apps.append((app.id, app.name, similarity))
+                levenshtein_sim = similarity_score(target_name, app.name)
+                jaccard_sim = jaccard_similarity(target_name, app.name)
+
+                if levenshtein_sim >= threshold or jaccard_sim >= jaccard_threshold:
+                    similar_apps.append((app.id, app.name, round(max(levenshtein_sim, jaccard_sim), 2)) )
 
             # Sort by similarity score (highest first)
             similar_apps.sort(key=lambda x: x[2], reverse=True)
