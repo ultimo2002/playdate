@@ -130,7 +130,7 @@ class API:
                 db.commit()
                 return {"message": f"App {appid} deleted"}
             else:
-                raise HTTPException(status_code=404, detail="App not found")
+                raise HTTPException(status_code=404, detail=f"App {appid} not found")
 
         def app_data_from_id_or_name(app_id_or_name: str, db=self.db_dependency):
             app = None
@@ -151,9 +151,11 @@ class API:
             similar_developer = most_similar_named_developer(target_name, db)
 
             if similar_developer:
-                developer = similar_developer["developer"].strip().lower()
+                developer = str(similar_developer)
                 games = db.query(models.App).filter(models.App.developer == developer).all()
-                return games
+                if games:
+                    return games
+                raise HTTPException(status_code=404, detail=f"No games found for developer {developer}")
             else:
                 raise HTTPException(status_code=404, detail="Developer not found")
 
@@ -163,7 +165,8 @@ class API:
             most_similar_dev, similarity = _most_similar(target_name, developers, "developer")
 
             if most_similar_dev:
-                return {"developer": most_similar_dev.developer, "similarity": similarity}
+                print(f"Most similar developer: {most_similar_dev} with similarity: {similarity}. For target: {target_name}")
+                return most_similar_dev.developer
 
             return None
 
@@ -262,19 +265,26 @@ class API:
             background_tasks.add_task(run_fill_tags_table, db)
             return {"message": "The tags table filling task has started in the background."}
 
-        async def run_fill_tags_table(db):
-            # Remove all existing tags
+        @self.app.get("/delete_tags")
+        async def delete_tags(db=self.db_dependency):
+            if not os.environ.get("PYCHARM_HOSTED"):
+                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
+
             db.execute(text(f"TRUNCATE TABLE {models.Tags.__tablename__}, {models.AppTags.__tablename__} RESTART IDENTITY CASCADE"))
             db.commit()
-
             print("Deleted all tags and app-tag relations from the database. A clean start...")
+            return {"message": "Deleted all tags and app-tag relations from the database. A clean start..."}
 
-            await asyncio.sleep(5)
+        async def run_fill_tags_table(db):
+            # get the apps that do not have tags yet
+            apps = db.query(models.App).filter(~models.App.tags.any()).all()
 
-            # For each app in the database, get the tags and add them to the database if they don't exist yet
-            apps = db.query(models.App.id).all()
+            current_index = 0
+            len_apps = len(apps)
 
             for app in apps:
+                current_index += 1
+                print(f"Processing app {app.id} ({current_index}/{len_apps})")
                 await asyncio.sleep(0.25)
                 tags = get_steam_tags(app.id)
                 if tags:

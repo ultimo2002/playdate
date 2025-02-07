@@ -120,6 +120,11 @@ def get_steam_tags(appid):
 
     soup = BeautifulSoup(response.text, "html.parser")
 
+    # when login screen is detected, we skip the request
+    if soup.select(".login"):
+        print("Login screen detected. Skipping request.")
+        return None
+
     # Check if the age gate exists then we give a age and continue
     if soup.select("#app_agegate"):
         # Extract the session ID from cookies
