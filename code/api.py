@@ -74,13 +74,20 @@ class API:
             apps = db.query(models.App.id, models.App.name).all()
             return [{"id": app.id, "name": app.name} for app in apps]
 
-        def get_app_related_data(appid: str, db, model_class, relationship_class):
+        def get_app_related_data(appid: str, db, model_class, relationship_class, fuzzy: bool = True):
             """Get the related data for the app, like categories, genres or tags."""
             if appid.isdigit():
                 appid = int(appid)
             else:
-                app = app_data_from_id_or_name(str(appid), db)
-                appid = int(app.id)
+                if fuzzy:
+                    app = app_data_from_id_or_name(str(appid), db)
+                    appid = int(app.id)
+                else:
+                    appid = appid.strip().capitalize()
+                    app = db.query(models.App).filter(models.App.name == appid).first()
+                    if not app:
+                        raise HTTPException(status_code=404, detail=f"App {appid} not found")
+                    appid = int(app.id)
 
             related_data = db.query(model_class).join(relationship_class).filter(
                 relationship_class.app_id == appid).all()
@@ -106,20 +113,20 @@ class API:
             return genres
 
         @self.app.get("/app/{appid}/categories")
-        def read_app_categories(appid: str, db=self.db_dependency):
-            return get_app_related_data(appid, db, models.Category, models.AppCategory)
+        def read_app_categories(appid: str, fuzzy: bool = True, db=self.db_dependency):
+            return get_app_related_data(appid, db, models.Category, models.AppCategory, fuzzy)
 
         @self.app.get("/app/{appid}/genres")
-        def read_app_genres(appid: str, db=self.db_dependency):
-            return get_app_related_data(appid, db, models.Genre, models.AppGenre)
+        def read_app_genres(appid: str, fuzzy: bool = True, db=self.db_dependency):
+            return get_app_related_data(appid, db, models.Genre, models.AppGenre, fuzzy)
 
         @self.app.get("/app/{appid}/tags")
-        def read_app_tags(appid: str, db=self.db_dependency):
-            return get_app_related_data(appid, db, models.Tags, models.AppTags)
+        def read_app_tags(appid: str, fuzzy: bool = True, db=self.db_dependency):
+            return get_app_related_data(appid, db, models.Tags, models.AppTags, fuzzy)
 
         @self.app.get("/app/{appid}")
-        def read_app(appid: str, db=self.db_dependency):
-            return app_data_from_id_or_name(appid, db)
+        def read_app(appid: str, fuzzy: bool = True, db=self.db_dependency):
+            return app_data_from_id_or_name(appid, db, fuzzy)
 
         @self.app.put("/app/{appid}")
         def update_app(appid: int, name: str, db=self.db_dependency):
@@ -166,27 +173,38 @@ class API:
             else:
                 raise HTTPException(status_code=404, detail=f"App {appid} not found")
 
-        def app_data_from_id_or_name(app_id_or_name: str, db=self.db_dependency):
+        def app_data_from_id_or_name(app_id_or_name: str, db=self.db_dependency, fuzzy: bool = True):
             app = None
 
             if app_id_or_name.isdigit():
                 app = db.query(models.App).filter(models.App.id == int(app_id_or_name)).first()
             else:
-                similar_app = most_similar_named_app(app_id_or_name, db)
-                if similar_app and isinstance(similar_app.get("id"), int):
-                    app = db.query(models.App).filter(models.App.id == similar_app["id"]).first()
+                if fuzzy:
+                    similar_app = most_similar_named_app(app_id_or_name, db)
+                    if similar_app and isinstance(similar_app.get("id"), int):
+                        app = db.query(models.App).filter(models.App.id == similar_app["id"]).first()
+                else:
+                    app_id_or_name = app_id_or_name.strip().capitalize()
+                    app = db.query(models.App).filter(models.App.name == app_id_or_name).first()
+                    if not app:
+                        raise HTTPException(status_code=404, detail=f"App {app_id_or_name} not found")
 
             return app
 
         @self.app.get("/apps/developer/{target_name}")
-        def get_developer_games(target_name: str, db=self.db_dependency):
-            target_name = target_name.strip().lower()
+        def get_developer_games(target_name: str, fuzzy: bool = True, db=self.db_dependency):
+            target_name = target_name.strip().capitalize()
 
-            similar_developer = most_similar_named_developer(target_name, db)
+            similar_developer = target_name
+            if fuzzy:
+                similar_developer = most_similar_named_developer(target_name, db)
 
             if similar_developer:
                 developer = str(similar_developer)
-                games = db.query(models.App).filter(models.App.developer == developer).all()
+                try:
+                    games = db.query(models.App).filter(models.App.developer == developer).all()
+                except AttributeError:
+                    raise HTTPException(status_code=404, detail=f"(AttributeError) No games found for developer {developer}")
                 if games:
                     return games
                 raise HTTPException(status_code=404, detail=f"No games found for developer {developer}")
@@ -290,18 +308,26 @@ class API:
                 print(f"Inserted {len(app_categories)} app-{'genre' if genre else 'category'} relations.")
 
         @self.app.get("/apps/tag/{target_name}")
-        def get_apps_based_on_tag_name(target_name: str, db=self.db_dependency):
-            target_name = target_name.strip().lower()
+        def get_apps_based_on_tag_name(target_name: str, fuzzy: bool = True, db=self.db_dependency):
+            target_name = target_name.strip().capitalize()
+            tag = target_name
 
-            tags = db.query(models.Tags).with_entities(models.Tags.name).all()
+            if fuzzy:
+                print(f"Searching for similar tag name to '{target_name}'")
+                tags = db.query(models.Tags).with_entities(models.Tags.name).all()
 
-            # get similar tag name
-            most_similar_tag, similarity = _most_similar(target_name, tags, "name")
+                # get similar tag name
+                most_similar_tag, similarity = _most_similar(target_name, tags, "name")
 
-            if most_similar_tag:
-                apps = db.query(models.App).join(models.AppTags).join(models.Tags).filter(models.Tags.name == most_similar_tag.name).all()
+                tag = most_similar_tag.name if most_similar_tag else target_name
+
+            if tag:
+                try:
+                    apps = db.query(models.App).join(models.AppTags).join(models.Tags).filter(models.Tags.name == tag).all()
+                except AttributeError:
+                    raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found with tag name like '{tag}'")
                 if not apps:
-                    raise HTTPException(status_code=404, detail=f"No apps found with tag name like '{most_similar_tag.name}'")
+                    raise HTTPException(status_code=404, detail=f"No apps found with tag name like '{tag}'")
                 return apps
             else:
                 raise HTTPException(status_code=404, detail="Tag not found")
