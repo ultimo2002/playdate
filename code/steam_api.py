@@ -102,8 +102,8 @@ import requests
 
 def get_steam_tags(appid, tries: int = 0):
     if tries >= 3:
-        print(f"Too many requests for appid: {appid}. Waiting for 30 seconds...")
-        time.sleep(30)
+        print(f"Too many requests for appid: {appid}. Waiting for 15 seconds...")
+        time.sleep(15)
     elif tries >= 5:
         print(f"Too many requests. Skipping tag request for appid: {appid}")
         return None
@@ -166,7 +166,8 @@ def get_steam_tags(appid, tries: int = 0):
     tags = [tag.text.strip() for tag in soup.select(".app_tag")[:5]] # Get the first 5 tags
 
     if not tags:
-        return None
+        tries += 1
+        return get_steam_tags(appid, tries)
 
     return tags
 
