@@ -308,8 +308,10 @@ class API:
                 print(f"Inserted {len(app_categories)} app-{'genre' if genre else 'category'} relations.")
 
         @self.app.get("/apps/tag/{target_name}")
-        def get_apps_based_on_tag_name(target_name: str, fuzzy: bool = True, db=self.db_dependency):
-            target_name = target_name.strip().capitalize()
+        def get_apps_based_on_tag_name(target_name: str, fuzzy: bool = True, all_fields: bool = False, db=self.db_dependency):
+            target_name = target_name.strip()
+            if not target_name.isupper():
+                target_name = target_name.strip().capitalize()
             tag = target_name
 
             if fuzzy:
@@ -323,7 +325,11 @@ class API:
 
             if tag:
                 try:
-                    apps = db.query(models.App).join(models.AppTags).join(models.Tags).filter(models.Tags.name == tag).all()
+                    if all_fields:
+                        apps = db.query(models.App).join(models.AppTags).join(models.Tags).filter(models.Tags.name == tag).all()
+                    else:
+                        apps = db.query(models.App.id, models.App.name).join(models.AppTags).join(models.Tags).filter(models.Tags.name == tag).all()
+                        apps = [{"id": app.id, "name": app.name} for app in apps]
                 except AttributeError:
                     raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found with tag name like '{tag}'")
                 if not apps:
