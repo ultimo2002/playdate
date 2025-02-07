@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from sqlalchemy.sql import text
 
-from algoritms import similarity_score, jaccard_similarity
+from algoritms import similarity_score, jaccard_similarity, _most_similar
 from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE, TextStyles
 from steam_api import get_app_details, fetch_app_list, get_current_player_count, get_steam_tags
 
@@ -59,14 +59,15 @@ class API:
 
         @self.app.get("/apps")
         def read_apps(db=self.db_dependency):
-            apps = db.query(models.App).all()
-            return apps
+            apps = db.query(models.App.id, models.App.name).all()
+            return [{"id": app.id, "name": app.name} for app in apps]
 
         def get_app_related_data(appid: str, db, model_class, relationship_class):
+            """Get the related data for the app, like categories, genres or tags."""
             if appid.isdigit():
                 appid = int(appid)
             else:
-                app = get_data_from_id_or_name(str(appid), db)
+                app = app_data_from_id_or_name(str(appid), db)
                 appid = int(app.id)
 
             related_data = db.query(model_class).join(relationship_class).filter(
@@ -91,7 +92,7 @@ class API:
 
         @self.app.get("/app/{appid}")
         def read_app(appid: str, db=self.db_dependency):
-            return get_data_from_id_or_name(appid, db)
+            return app_data_from_id_or_name(appid, db)
 
         @self.app.put("/app/{appid}")
         def update_app(appid: int, name: str, db=self.db_dependency):
@@ -116,7 +117,7 @@ class API:
             db.add(app)
             db.commit()
             db.refresh(app)
-            return {"name": name, "appid": appid}
+            return app
 
         @self.app.delete("/app/{appid}")
         def delete_app(appid: int, db=self.db_dependency):
@@ -131,7 +132,7 @@ class API:
             else:
                 raise HTTPException(status_code=404, detail="App not found")
 
-        def get_data_from_id_or_name(app_id_or_name: str, db=self.db_dependency):
+        def app_data_from_id_or_name(app_id_or_name: str, db=self.db_dependency):
             app = None
 
             if app_id_or_name.isdigit():
@@ -143,26 +144,36 @@ class API:
 
             return app
 
-        def most_similar_named_app(target_name: str, db=self.db_dependency):
-            """Find the most similar named app in the database
-            :param target_name: The string of name of the app to compare
-            :return: The most similar app, or None if no similar app was found
-            """
+        @self.app.get("/developer/{target_name}")
+        def get_developer_games(target_name: str, db=self.db_dependency):
             target_name = target_name.strip().lower()
 
+            similar_developer = most_similar_named_developer(target_name, db)
+
+            if similar_developer:
+                developer = similar_developer["developer"].strip().lower()
+                games = db.query(models.App).filter(models.App.developer == developer).all()
+                return games
+            else:
+                raise HTTPException(status_code=404, detail="Developer not found")
+
+        def most_similar_named_developer(target_name: str, db=self.db_dependency):
+            """Find the most similar named developer in the database."""
+            developers = db.query(models.App).with_entities(models.App.developer).distinct().all()
+            most_similar_dev, similarity = _most_similar(target_name, developers, "developer")
+
+            if most_similar_dev:
+                return {"developer": most_similar_dev.developer, "similarity": similarity}
+
+            return None
+
+        def most_similar_named_app(target_name: str, db=self.db_dependency):
+            """Find the most similar named app in the database."""
             apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
-
-            most_similar_app = None
-            highest_similarity = 0
-
-            for app in apps:
-                similarity = similarity_score(target_name, app.name)
-                if similarity > highest_similarity:
-                    highest_similarity = similarity
-                    most_similar_app = app
+            most_similar_app, similarity = _most_similar(target_name, apps, "name")
 
             if most_similar_app:
-                return {"id": most_similar_app.id, "name": most_similar_app.name, "similarity": round(highest_similarity, 2)}
+                return {"id": most_similar_app.id, "name": most_similar_app.name, "similarity": similarity}
 
             return None
 
@@ -186,33 +197,9 @@ class API:
 
             return sorted(similar_apps, key=lambda x: x["similarity"], reverse=True)
 
-        # a test getting app details from the Steam API
-        # TODO: Remove this endpoint, when database is implemented
-        # @self.app.get("/app/{app_id}")
-        # def read_app(app_id: int):
-        #     app_details = get_app_details(app_id)
-        #     if app_details:
-        #         if not isinstance(app_details, dict):
-        #             app_details = app_details.to_dict()
-        #
-        #         return app_details
-        #     else:
-        #         return {"message": "App not found"}
-
-        # test endpoint to create a new app in the database with a name and appid
-        @self.app.get("/test_create_app")
-        def create_app(db = self.db_dependency):
-            app = models.App(name="Seger", id=1)
-            db.add(app)
-            db.commit()
-            db.refresh(app)
-            return app
-
         # function to fill the category table with all categories from the Steam API
         def fill_category_table(db = self.db_dependency, categories = None, appid = None, genre = False):
             if categories:
-                # Get all existing category IDs from the database
-
                 new_categories = []
 
                 if not genre:
@@ -277,19 +264,16 @@ class API:
 
         async def run_fill_tags_table(db):
             # Remove all existing tags
-            # db.query(models.AppTags).delete()
-            # db.query(models.Tags).delete()
-            # db.flush()
-            # db.execute(text(f"ALTER SEQUENCE {models.Tags.__tablename__}_id_seq RESTART WITH 1"))
             db.execute(text(f"TRUNCATE TABLE {models.Tags.__tablename__}, {models.AppTags.__tablename__} RESTART IDENTITY CASCADE"))
             db.commit()
 
-            print("Deleted all tags and app-tag relations from the database. A clean start.")
+            print("Deleted all tags and app-tag relations from the database. A clean start...")
 
             await asyncio.sleep(5)
 
             # For each app in the database, get the tags and add them to the database if they don't exist yet
             apps = db.query(models.App.id).all()
+
             for app in apps:
                 await asyncio.sleep(0.25)
                 tags = get_steam_tags(app.id)
@@ -305,7 +289,7 @@ class API:
                         db.add_all(new_tags)
                         db.commit()
 
-                    print(f"Inserted {len(new_tags)} new tags.")
+                    print(f"Inserted {len(new_tags)} new tags from app {app.id} .")
 
                     # Insert the app-tag relations
                     app_tags = [
@@ -316,7 +300,9 @@ class API:
                         db.add_all(app_tags)
                         db.commit()
 
-                    print(f"Inserted {len(app_tags)} app-tag relations for app {app.id}.")
+                    print(f"Inserted {len(app_tags)} app-tag relations for app {app.id} .")
+                else:
+                    print(f"No tags found for app {app.id} .")
 
         # Endpoint to fill the app table with all apps from the Steam API
         @self.app.get("/fill_app_table")
@@ -327,6 +313,59 @@ class API:
             # Call the function to run in the background
             background_tasks.add_task(run_fill_app_table, db)
             return {"message": "The app table filling task has started in the background."}
+
+        @self.app.get("/fetch_app/{appid}")
+        async def fetch_app(appid: int, db=self.db_dependency):
+            """"
+            Fetch the app details from the Steam API and add it to the database.
+            Doesn't look at the player count, just fetches the details and adds it to the database.
+            Used for adding every app you want to the database.
+            """
+            if not os.environ.get("PYCHARM_HOSTED"):
+                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
+
+            app = db.query(models.App).filter(models.App.id == appid).first()
+            if app:
+                raise HTTPException(status_code=409, detail=f"App {appid} already exists in the database.")
+
+            details = get_app_details(appid)
+            if details:
+                os.makedirs(os.path.dirname(ADDED_GAMES_LIST_CACHE_FILE), exist_ok=True)
+                with open(ADDED_GAMES_LIST_CACHE_FILE, 'a') as file:
+                    file.write(f"{appid}\n")
+
+                name = details["name"]
+                developer = details["developers"][0] if details["developers"] else ''
+                header_image = details["header_image"] if details["header_image"] else ''
+                background_image = details["background"] if details["background"] else ''
+                short_description = details["short_description"] if details["short_description"] else ''
+                price = ""
+                try:
+                    if details['price_overview'] and details['price_overview']['final_formatted']:
+                        price = details['price_overview']['final_formatted']
+                except KeyError:
+                    pass
+
+                app = models.App(id=appid, name=name, developer=developer, header_image=header_image, price=price, background_image=background_image, short_description=short_description)
+                db.add(app)
+                db.commit()
+                db.refresh(app)
+
+                categories = details.get("categories", [])
+                if categories:
+                    fill_category_table(db, categories, appid, genre=False)
+                else:
+                    print(f"No categories found for appid: {appid}, name: {name}")
+
+                genres = details.get("genres", [])
+                if genres:
+                    fill_category_table(db, genres, appid, genre=True)
+                else:
+                    print(f"No genres found for appid: {appid}, name: {name}")
+
+                return app
+            else:
+                raise HTTPException(status_code=404, detail=f"App details {appid} not found in the Steam API.")
 
         async def run_fill_app_table(db):
             # return # Remove this line when the function is implemented
@@ -382,7 +421,7 @@ class API:
                 with open(ADDED_GAMES_LIST_CACHE_FILE, 'a') as file:
                     file.write(f"{appid}\n")
 
-                MIN_PLAYER_COUNT = 400
+                MIN_PLAYER_COUNT = 500
 
                 player_count = get_current_player_count(appid)
 

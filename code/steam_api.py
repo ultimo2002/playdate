@@ -111,8 +111,7 @@ def get_steam_tags(appid):
 
     # When visited too many times, Steam will block the request
     if response.status_code == 429:
-        print("Too many requests. Waiting for 60 seconds...")
-        # wait for 30 seconds and try again
+        print("Too many requests. Waiting for 30 seconds...")
         time.sleep(30)
         return get_steam_tags(appid)
 
@@ -133,7 +132,7 @@ def get_steam_tags(appid):
             "sessionid": session_id,  # Use the session ID from cookies
             "ageDay": 5,
             "ageMonth": "March",
-            "ageYear": "1999",  # Over 18
+            "ageYear": "1999",
         }
 
         # Send the age verification request

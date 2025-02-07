@@ -29,3 +29,29 @@ def similarity_score(s1, s2):
     if max_len == 0:
         return 100
     return (1 - levenshtein_distance(s1.lower(), s2.lower()) / max_len) * 100
+
+
+def _most_similar(target_name: str, items, key: str):
+    """Find the most similar item in a list based on similarity score.
+
+    :param target_name: The string name to compare.
+    :param items: The list of items to search through.
+    :param key: The attribute of the item to compare.
+    :return: (item, score) The most similar item and its similarity score, or None.
+    """
+    target_name = target_name.strip().lower()
+    most_similar_item = None
+    highest_similarity = 0
+
+    for item in items:
+        name = getattr(item, key)
+        similarity = max(similarity_score(target_name, name), jaccard_similarity(target_name, name))
+
+        if similarity > highest_similarity:
+            highest_similarity = similarity
+            most_similar_item = item
+
+    if most_similar_item:
+        return most_similar_item, round(highest_similarity, 2)
+
+    return None, None
