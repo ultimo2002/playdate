@@ -9,26 +9,6 @@ Engine = None
 SessionLocal = None
 Base = None
 
-
-# def is_database_online(tries: int = 7, wait_time: int = 2) -> bool:
-#     """ Check if the database is online within the given number of tries.
-#     Returns: bool: True if the database is online, False otherwise.
-#     """
-#     start_time = time.time()
-#
-#     timeout = wait_time * tries
-#
-#     while (time.time() - start_time) < timeout:
-#         try:
-#
-#         except Exception:
-#             print(f"Database not reachable, {TextStyles.grey}({time.time() - start_time:.2f}s) {TextStyles.yellow}retrying in 2 seconds...{TextStyles.reset} max tries: {timeout // wait_time}, Current try: {int((time.time() - start_time) // wait_time) + 1}")
-#             time.sleep(wait_time)  # Wait before retrying
-#
-#     print("Database did not respond within the timeout period.")
-#     print(f"{TextStyles.magenta}{TextStyles.bold}Database is offline or the connection parameters (.env file) are incorrect.{TextStyles.reset}")
-#     return False
-
 def set_database_url():
     """Set the database URL based on the environment variables."""
     load_env() # load the environment variables from the .env file
@@ -41,9 +21,6 @@ def set_database_engine():
     """Set the database engine, session and base."""
     set_database_url()
 
-    # if not is_database_online():
-    #     raise Exception("Database is not online, please check the connection parameters.")
-
     global Engine, SessionLocal, Base
     Engine = create_engine(URL_DATABASE)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=Engine)
@@ -52,5 +29,4 @@ def set_database_engine():
     print(f"Set database session to: {SessionLocal}")
     print(f"Set database base to: {Base}")
 
-# if __name__ == "__main__":
 set_database_engine()

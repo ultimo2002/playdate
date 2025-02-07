@@ -58,7 +58,14 @@ class API:
             )
 
         @self.app.get("/apps")
-        def read_apps(db=self.db_dependency):
+        def read_apps(db=self.db_dependency, all_fields: bool = False, target_name: str = None):
+            if target_name:
+                return find_similar_named_apps(target_name, db)
+            if all_fields:
+                apps = db.query(models.App).all()
+                return apps
+                # return [{"id": app.id, "name": app.name, "developer": app.developer, "price": app.price, "header_image": app.header_image, "background_image": app.background_image, "short_description": app.short_description} for app in apps]
+
             apps = db.query(models.App.id, models.App.name).all()
             return [{"id": app.id, "name": app.name} for app in apps]
 
@@ -106,14 +113,14 @@ class API:
                 raise HTTPException(status_code=404, detail="App not found")
 
         @self.app.post("/app")
-        def add_app(name: str, appid: int, db=self.db_dependency):
+        def add_app(name: str, appid: int, short_description: str = "", price: str = "", developer: str = "Seger", header_image: str = "", background_image: str = "", db=self.db_dependency):
             if not os.environ.get("PYCHARM_HOSTED"):
                 raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
 
             name = name.replace("%20", " ")
             name.strip()
 
-            app = models.App(name=name, id=appid)
+            app = models.App(name=name, id=appid, short_description=short_description, price=price, developer=developer, header_image=header_image, background_image=background_image)
             db.add(app)
             db.commit()
             db.refresh(app)
@@ -125,8 +132,15 @@ class API:
                 raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
 
             app = db.query(models.App).filter(models.App.id == appid).first()
+
             if app:
+                # delete also the app-category and app-genre app-tag relations
+                db.query(models.AppCategory).filter(models.AppCategory.app_id == appid).delete()
+                db.query(models.AppGenre).filter(models.AppGenre.app_id == appid).delete()
+                db.query(models.AppTags).filter(models.AppTags.app_id == appid).delete()
+
                 db.delete(app)
+
                 db.commit()
                 return {"message": f"App {appid} deleted"}
             else:
@@ -144,7 +158,7 @@ class API:
 
             return app
 
-        @self.app.get("/developer/{target_name}")
+        @self.app.get("/apps/developer/{target_name}")
         def get_developer_games(target_name: str, db=self.db_dependency):
             target_name = target_name.strip().lower()
 
@@ -404,9 +418,6 @@ class API:
 
             for app in app_list:
                 apps_looped += 1
-                # APPS_LOOPED_COUNT = 1000
-                # if apps_looped > APPS_LOOPED_COUNT: # limit for testing
-                #     break
 
                 try:
                     appid = int(app["appid"])
