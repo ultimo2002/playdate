@@ -101,12 +101,12 @@ from bs4 import BeautifulSoup
 import requests
 
 def get_steam_tags(appid, tries: int = 0):
-    if tries >= 3:
-        print(f"Too many requests for appid: {appid}. Waiting for 15 seconds...")
-        time.sleep(15)
-    elif tries >= 5:
+    if tries >= 5:
         print(f"Too many requests. Skipping tag request for appid: {appid}")
         return None
+    elif tries >= 3:
+        print(f"Too many requests for appid: {appid}. Waiting for 15 seconds...")
+        time.sleep(15)
 
     session = requests.Session()
     url = f"https://store.steampowered.com/app/{appid}/"
