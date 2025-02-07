@@ -90,6 +90,21 @@ class API:
 
             return related_data
 
+        @self.app.get("/tags")
+        def read_tags(db=self.db_dependency):
+            tags = db.query(models.Tags).all()
+            return tags
+
+        @self.app.get("/categories")
+        def read_categories(db=self.db_dependency):
+            categories = db.query(models.Category).all()
+            return categories
+
+        @self.app.get("/genres")
+        def read_genres(db=self.db_dependency):
+            genres = db.query(models.Genre).all()
+            return genres
+
         @self.app.get("/app/{appid}/categories")
         def read_app_categories(appid: str, db=self.db_dependency):
             return get_app_related_data(appid, db, models.Category, models.AppCategory)
