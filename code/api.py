@@ -58,13 +58,18 @@ class API:
             )
 
         @self.app.get("/apps")
-        def read_apps(db=self.db_dependency, all_fields: bool = False, target_name: str = None):
+        def read_apps(db=self.db_dependency, all_fields: bool = False, target_name: str = None, like: str = None):
             if target_name:
                 return find_similar_named_apps(target_name, db)
+            elif like:
+                like = like.strip().lower()
+                apps = db.query(models.App).filter(models.App.name.ilike(f"%{like}%")).all()
+                if not apps:
+                    raise HTTPException(status_code=404, detail=f"No apps found with name like '{like}'")
+                return apps
             if all_fields:
                 apps = db.query(models.App).all()
                 return apps
-                # return [{"id": app.id, "name": app.name, "developer": app.developer, "price": app.price, "header_image": app.header_image, "background_image": app.background_image, "short_description": app.short_description} for app in apps]
 
             apps = db.query(models.App.id, models.App.name).all()
             return [{"id": app.id, "name": app.name} for app in apps]
@@ -194,7 +199,6 @@ class API:
 
             return None
 
-        @self.app.get("/similar_name/{target_name}")
         def find_similar_named_apps(target_name: str, db=self.db_dependency):
             target_name = target_name.strip().lower()
 
@@ -290,8 +294,8 @@ class API:
             return {"message": "Deleted all tags and app-tag relations from the database. A clean start..."}
 
         async def run_fill_tags_table(db):
-            # get the apps that do not have tags yet
-            apps = db.query(models.App).filter(~models.App.tags.any()).all()
+            # get the apps that do not have tags related to them yet
+            apps = db.query(models.App).filter(~models.App.id.in_(db.query(models.AppTags.app_id))).all()
 
             current_index = 0
             len_apps = len(apps)
@@ -370,6 +374,8 @@ class API:
                 except KeyError:
                     pass
 
+                print(f"Processing appid {appid}: {name}")
+
                 app = models.App(id=appid, name=name, developer=developer, header_image=header_image, price=price, background_image=background_image, short_description=short_description)
                 db.add(app)
                 db.commit()
@@ -432,7 +438,7 @@ class API:
                     if not name:
                         continue
 
-                    if 'DLC' in name:
+                    if 'DLC' in name.lower() or 'trailer' in name.lower():
                         continue
 
                 except (KeyError, ValueError):

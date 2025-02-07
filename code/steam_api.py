@@ -100,7 +100,14 @@ def get_current_player_count(appid):
 from bs4 import BeautifulSoup
 import requests
 
-def get_steam_tags(appid):
+def get_steam_tags(appid, tries: int = 0):
+    if tries >= 3:
+        print(f"Too many requests for appid: {appid}. Waiting for 30 seconds...")
+        time.sleep(30)
+    elif tries >= 5:
+        print(f"Too many requests. Skipping tag request for appid: {appid}")
+        return None
+
     session = requests.Session()
     url = f"https://store.steampowered.com/app/{appid}/"
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"}
@@ -113,7 +120,8 @@ def get_steam_tags(appid):
     if response.status_code == 429:
         print("Too many requests. Waiting for 30 seconds...")
         time.sleep(30)
-        return get_steam_tags(appid)
+        tries += 1
+        return get_steam_tags(appid, tries)
 
     if response.status_code != 200:
         return None
@@ -143,7 +151,9 @@ def get_steam_tags(appid):
         # Send the age verification request
         session.post(age_gate_url, headers=headers, data=payload)
 
-        return get_steam_tags(appid) # Try again after age verification
+        tries += 1
+
+        return get_steam_tags(appid, tries) # Try again after age verification
 
     # Parse the updated page
     soup = BeautifulSoup(response.text, "html.parser")
