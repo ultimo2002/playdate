@@ -1,5 +1,5 @@
 import os
-import time
+import asyncio
 
 from fastapi import FastAPI, Depends, Request, BackgroundTasks, HTTPException
 import uvicorn
@@ -267,7 +267,7 @@ class API:
                 print(f"Inserted {len(app_categories)} app-{'genre' if genre else 'category'} relations.")
 
         @self.app.get("/fill_tags_table")
-        def fill_tags_table(background_tasks: BackgroundTasks, db=self.db_dependency):
+        async def fill_tags_table(background_tasks: BackgroundTasks, db=self.db_dependency):
             if not os.environ.get("PYCHARM_HOSTED"):
                 raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
 
@@ -275,7 +275,7 @@ class API:
             background_tasks.add_task(run_fill_tags_table, db)
             return {"message": "The tags table filling task has started in the background."}
 
-        def run_fill_tags_table(db):
+        async def run_fill_tags_table(db):
             # Remove all existing tags
             # db.query(models.AppTags).delete()
             # db.query(models.Tags).delete()
@@ -284,12 +284,14 @@ class API:
             db.execute(text(f"TRUNCATE TABLE {models.Tags.__tablename__}, {models.AppTags.__tablename__} RESTART IDENTITY CASCADE"))
             db.commit()
 
-            time.sleep(15)
+            print("Deleted all tags and app-tag relations from the database. A clean start.")
+
+            await asyncio.sleep(5)
 
             # For each app in the database, get the tags and add them to the database if they don't exist yet
             apps = db.query(models.App.id).all()
             for app in apps:
-                time.sleep(0.25)
+                await asyncio.sleep(0.25)
                 tags = get_steam_tags(app.id)
                 if tags:
                     # check if tags already exist in the database
@@ -318,7 +320,7 @@ class API:
 
         # Endpoint to fill the app table with all apps from the Steam API
         @self.app.get("/fill_app_table")
-        def fill_app_table(background_tasks: BackgroundTasks, db=self.db_dependency):
+        async def fill_app_table(background_tasks: BackgroundTasks, db=self.db_dependency):
             if not os.environ.get("PYCHARM_HOSTED"):
                 raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
 
@@ -326,7 +328,7 @@ class API:
             background_tasks.add_task(run_fill_app_table, db)
             return {"message": "The app table filling task has started in the background."}
 
-        def run_fill_app_table(db):
+        async def run_fill_app_table(db):
             # return # Remove this line when the function is implemented
 
             apps_looped = 0
@@ -380,7 +382,7 @@ class API:
                 with open(ADDED_GAMES_LIST_CACHE_FILE, 'a') as file:
                     file.write(f"{appid}\n")
 
-                MIN_PLAYER_COUNT = 500
+                MIN_PLAYER_COUNT = 400
 
                 player_count = get_current_player_count(appid)
 
@@ -423,7 +425,7 @@ class API:
 
                 added_apps += 1
 
-                time.sleep(0.25)
+                await asyncio.sleep(0.25)
 
             print(f"Total apps added: {added_apps}")
 
