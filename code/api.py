@@ -276,9 +276,6 @@ class API:
 
         @self.app.get("/fill_tags_table")
         async def fill_tags_table(background_tasks: BackgroundTasks, db=self.db_dependency):
-            if not os.environ.get("PYCHARM_HOSTED"):
-                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
-
             # Call the function to run in the background
             background_tasks.add_task(run_fill_tags_table, db)
             return {"message": "The tags table filling task has started in the background."}
