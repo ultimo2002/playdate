@@ -8,6 +8,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+from sqlalchemy.sql import text
+
 from algoritms import similarity_score, jaccard_similarity
 from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE, TextStyles
 from steam_api import get_app_details, fetch_app_list, get_current_player_count, get_steam_tags
@@ -275,9 +277,14 @@ class API:
 
         def run_fill_tags_table(db):
             # Remove all existing tags
-            db.query(models.AppTags).delete()
-            db.query(models.Tags).delete()
+            # db.query(models.AppTags).delete()
+            # db.query(models.Tags).delete()
+            # db.flush()
+            # db.execute(text(f"ALTER SEQUENCE {models.Tags.__tablename__}_id_seq RESTART WITH 1"))
+            db.execute(text(f"TRUNCATE TABLE {models.Tags.__tablename__}, {models.AppTags.__tablename__} RESTART IDENTITY CASCADE"))
             db.commit()
+
+            time.sleep(15)
 
             # For each app in the database, get the tags and add them to the database if they don't exist yet
             apps = db.query(models.App.id).all()
@@ -295,15 +302,17 @@ class API:
                     if new_tags:
                         db.add_all(new_tags)
                         db.commit()
-                        print(f"Inserted {len(new_tags)} new tags.")
+
+                    print(f"Inserted {len(new_tags)} new tags.")
 
                     # Insert the app-tag relations
                     app_tags = [
                         models.AppTags(app_id=app.id, tag_id=tag.id)
                         for tag in db.query(models.Tags).filter(models.Tags.name.in_(tags)).all()
                     ]
-                    db.add_all(app_tags)
-                    db.commit()
+                    if app_tags:
+                        db.add_all(app_tags)
+                        db.commit()
 
                     print(f"Inserted {len(app_tags)} app-tag relations for app {app.id}.")
 
@@ -327,6 +336,9 @@ class API:
 
             os.makedirs(os.path.dirname(ADDED_GAMES_LIST_CACHE_FILE), exist_ok=True)
 
+            database_games = db.query(models.App.id).all()
+            print(f"Total games in the database: {len(database_games)}")
+
             # Read the already added games from file
             added_games = set()
             try:
@@ -349,6 +361,9 @@ class API:
                     appid = int(app["appid"])
                     # Skip if the app is already in the file
                     if f"{appid}\n" in added_games:
+                        continue
+
+                    if appid in [game.id for game in database_games]:
                         continue
 
                     name = str(app["name"])

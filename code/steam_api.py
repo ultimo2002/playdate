@@ -3,8 +3,7 @@ import os
 
 import time
 
-from config import STEAMAPI_BASE_URL, STEAMSTORE_BASE_URL, fetch_from_api, APPS_LIST_CACHE_FILE, CACHE_EXPIRATION_TIME, \
-    ADDED_GAMES_LIST_CACHE_FILE
+from config import STEAMAPI_BASE_URL, STEAMSTORE_BASE_URL, fetch_from_api, APPS_LIST_CACHE_FILE, CACHE_EXPIRATION_TIME
 
 
 def get_app_details(appid):
@@ -98,10 +97,8 @@ def get_current_player_count(appid):
 
     return 0
 
-import time
 from bs4 import BeautifulSoup
 import requests
-
 
 def get_steam_tags(appid):
     session = requests.Session()
@@ -111,6 +108,14 @@ def get_steam_tags(appid):
 
     # First request to get the session ID and cookies
     response = session.get(url, headers=headers)
+
+    # When visited too many times, Steam will block the request
+    if response.status_code == 429:
+        print("Too many requests. Waiting for 60 seconds...")
+        # wait for 30 seconds and try again
+        time.sleep(30)
+        return get_steam_tags(appid)
+
     if response.status_code != 200:
         return None
 
@@ -134,8 +139,7 @@ def get_steam_tags(appid):
         # Send the age verification request
         session.post(age_gate_url, headers=headers, data=payload)
 
-        # Fetch the game page again after verifying age
-        response = session.get(url, headers=headers)
+        return get_steam_tags(appid) # Try again after age verification
 
     # Parse the updated page
     soup = BeautifulSoup(response.text, "html.parser")
@@ -160,13 +164,3 @@ if __name__ == "__main__":
         print(tags)
     except Exception as e:
         print(e)
-
-    # example: go through app list and get tags for each game
-    apps = fetch_app_list()
-    for app in apps:
-        try:
-            tags = get_steam_tags(app["appid"])
-            print(f"Tags for {app['name']}: {tags}")
-        except Exception as e:
-            print(e)
-        time.sleep(1)
