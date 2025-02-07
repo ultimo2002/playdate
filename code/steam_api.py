@@ -150,8 +150,12 @@ def get_steam_tags(appid, tries: int = 0):
 
         # Send the age verification request
         session.post(age_gate_url, headers=headers, data=payload)
-        
+
         response = session.get(url, headers=headers)
+
+        if response.status_code != 200:
+            tries += 1
+            return get_steam_tags(appid, tries)
 
     # Parse the updated page
     soup = BeautifulSoup(response.text, "html.parser")
