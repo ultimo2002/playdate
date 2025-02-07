@@ -274,6 +274,23 @@ class API:
                 db.commit()
                 print(f"Inserted {len(app_categories)} app-{'genre' if genre else 'category'} relations.")
 
+        @self.app.get("/apps/tag/{target_name}")
+        def get_apps_based_on_tag_name(target_name: str, db=self.db_dependency):
+            target_name = target_name.strip().lower()
+
+            tags = db.query(models.Tags).with_entities(models.Tags.name).all()
+
+            # get similar tag name
+            most_similar_tag, similarity = _most_similar(target_name, tags, "name")
+
+            if most_similar_tag:
+                apps = db.query(models.App).join(models.AppTags).join(models.Tags).filter(models.Tags.name == most_similar_tag.name).all()
+                if not apps:
+                    raise HTTPException(status_code=404, detail=f"No apps found with tag name like '{most_similar_tag.name}'")
+                return apps
+            else:
+                raise HTTPException(status_code=404, detail="Tag not found")
+
         @self.app.get("/fill_tags_table")
         async def fill_tags_table(background_tasks: BackgroundTasks, db=self.db_dependency):
             # Call the function to run in the background
