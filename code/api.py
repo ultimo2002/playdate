@@ -128,6 +128,46 @@ class API:
         def read_app(appid: str, fuzzy: bool = True, db=self.db_dependency):
             return app_data_from_id_or_name(appid, db, fuzzy)
 
+        @self.app.put("/app/{appid}/tag/{tagid}")
+        def add_app_category(appid: int, tagid: int, db=self.db_dependency):
+            if not os.environ.get("PYCHARM_HOSTED"):
+                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
+            elif not tagid or not appid:
+                raise HTTPException(status_code=400, detail="Tag and app id required.")
+
+            app = db.query(models.App).filter(models.App.id == appid).first()
+            tag = db.query(models.Tags).filter(models.Tags.id == tagid).first()
+
+            # check if the app not already has this tag
+            app_tag = db.query(models.AppTags).filter(models.AppTags.app_id == appid, models.AppTags.tag_id == tagid).first()
+            if app_tag:
+                raise HTTPException(status_code=409, detail="App already has this tag.")
+
+            if app and tag:
+                print(f"Adding tag {tagid} to app {appid}")
+                app_tag = models.AppTags(app_id=appid, tag_id=tagid)
+                db.add(app_tag)
+                db.commit()
+                db.refresh(app_tag)
+                return app_tag
+            else:
+                raise HTTPException(status_code=404, detail="App or category not found")
+
+        @self.app.delete("/app/{appid}/tag/{tagid}")
+        def delete_app_category(appid: int, tagid: int, db=self.db_dependency):
+            if not os.environ.get("PYCHARM_HOSTED"):
+                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
+            elif not tagid or not appid:
+                raise HTTPException(status_code=400, detail="Tag and app id required.")
+
+            app_tag = db.query(models.AppTags).filter(models.AppTags.app_id == appid, models.AppTags.tag_id == tagid).first()
+            if app_tag:
+                db.delete(app_tag)
+                db.commit()
+                return {"message": f"Tag {tagid} deleted from app {appid}"}
+            else:
+                raise HTTPException(status_code=404, detail="App-tag relation not found")
+
         @self.app.put("/app/{appid}")
         def update_app(appid: int, name: str, db=self.db_dependency):
             app = db.query(models.App).filter(models.App.id == appid).first()
@@ -331,9 +371,10 @@ class API:
                     raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found with tag id {tag}")
 
             if fuzzy:
-                print(f"Searching for similar tag name to '{target_name}'")
+                print(f"Searching for similar tag name for '{target_name}'")
                 tags = db.query(models.Tags.name).all()
                 most_similar_tag, _ = _most_similar(target_name, tags, "name")
+                print(f"Most similar tag for '{target_name}' is '{most_similar_tag.name}'")
                 tag = most_similar_tag.name if most_similar_tag else target_name
 
             try:
