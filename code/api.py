@@ -310,33 +310,36 @@ class API:
         @self.app.get("/apps/tag/{target_name}")
         def get_apps_based_on_tag_name(target_name: str, fuzzy: bool = True, all_fields: bool = False, db=self.db_dependency):
             target_name = target_name.strip()
-            if not target_name.isupper():
-                target_name = target_name.strip().capitalize()
-            tag = target_name
+            tag = target_name.capitalize() if not target_name.isupper() else target_name
+
+            def _fetch_apps(filter_condition):
+                query = db.query(models.App) if all_fields else db.query(models.App.id, models.App.name)
+                query = query.join(models.AppTags).join(models.Tags).filter(filter_condition)
+
+                apps = query.all()
+                if not all_fields:
+                    apps = [{"id": app.id, "name": app.name} for app in apps]
+
+                if not apps:
+                    raise HTTPException(status_code=404, detail=f"No apps found for tag {tag}")
+                return apps
+
+            if tag.isdigit():
+                try:
+                    return _fetch_apps(models.Tags.id == int(tag))
+                except AttributeError:
+                    raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found with tag id {tag}")
 
             if fuzzy:
                 print(f"Searching for similar tag name to '{target_name}'")
-                tags = db.query(models.Tags).with_entities(models.Tags.name).all()
-
-                # get similar tag name
-                most_similar_tag, similarity = _most_similar(target_name, tags, "name")
-
+                tags = db.query(models.Tags.name).all()
+                most_similar_tag, _ = _most_similar(target_name, tags, "name")
                 tag = most_similar_tag.name if most_similar_tag else target_name
 
-            if tag:
-                try:
-                    if all_fields:
-                        apps = db.query(models.App).join(models.AppTags).join(models.Tags).filter(models.Tags.name == tag).all()
-                    else:
-                        apps = db.query(models.App.id, models.App.name).join(models.AppTags).join(models.Tags).filter(models.Tags.name == tag).all()
-                        apps = [{"id": app.id, "name": app.name} for app in apps]
-                except AttributeError:
-                    raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found with tag name like '{tag}'")
-                if not apps:
-                    raise HTTPException(status_code=404, detail=f"No apps found with tag name like '{tag}'")
-                return apps
-            else:
-                raise HTTPException(status_code=404, detail="Tag not found")
+            try:
+                return _fetch_apps(models.Tags.name == tag)
+            except AttributeError:
+                raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found with tag name '{tag}'")
 
         @self.app.get("/fill_tags_table")
         async def fill_tags_table(background_tasks: BackgroundTasks, db=self.db_dependency):
