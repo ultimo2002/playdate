@@ -313,11 +313,11 @@ class API:
             tag = target_name.capitalize() if not target_name.isupper() else target_name
 
             def _fetch_apps(filter_condition):
-                query = db.query(models.App) if all_fields else db.query(models.App.id, models.App.name)
-                query = query.join(models.AppTags).join(models.Tags).filter(filter_condition)
-
-                apps = query.all()
-                if not all_fields:
+                if all_fields:
+                    apps = db.query(models.App).join(models.AppTags).join(models.Tags).filter(filter_condition).all()
+                else:
+                    apps = db.query(models.App.id, models.App.name).join(models.AppTags).join(models.Tags).filter(
+                        filter_condition).all()
                     apps = [{"id": app.id, "name": app.name} for app in apps]
 
                 if not apps:
