@@ -97,6 +97,15 @@ class API:
 
             return related_data
 
+        @self.app.get("/cats")
+        def read_cats(db=self.db_dependency):
+            """Get all categories, genres and tags in one request."""
+            return {
+                "tags": db.query(models.Tags).all(),
+                "categories": db.query(models.Category).all(),
+                "genres": db.query(models.Genre).all(),
+            }
+
         @self.app.get("/tags")
         def read_tags(db=self.db_dependency):
             tags = db.query(models.Tags).all()
