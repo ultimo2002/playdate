@@ -129,7 +129,7 @@ class API:
             return app_data_from_id_or_name(appid, db, fuzzy)
 
         @self.app.put("/app/{appid}/tag/{tagid}")
-        def add_app_category(appid: int, tagid: int, db=self.db_dependency):
+        def add_app_tag(appid: int, tagid: int, db=self.db_dependency):
             if not os.environ.get("PYCHARM_HOSTED"):
                 raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
             elif not tagid or not appid:
@@ -154,7 +154,7 @@ class API:
                 raise HTTPException(status_code=404, detail="App or category not found")
 
         @self.app.delete("/app/{appid}/tag/{tagid}")
-        def delete_app_category(appid: int, tagid: int, db=self.db_dependency):
+        def delete_app_tag(appid: int, tagid: int, db=self.db_dependency):
             if not os.environ.get("PYCHARM_HOSTED"):
                 raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
             elif not tagid or not appid:
@@ -222,6 +222,7 @@ class API:
                 if fuzzy:
                     similar_app = most_similar_named_app(app_id_or_name, db)
                     if similar_app and isinstance(similar_app.get("id"), int):
+                        print(f"Most similar app for '{app_id_or_name}' is '{similar_app['name']}' with similarity: {similar_app['similarity']}")
                         app = db.query(models.App).filter(models.App.id == similar_app["id"]).first()
                 else:
                     app_id_or_name = app_id_or_name.strip().capitalize()
