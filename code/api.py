@@ -242,7 +242,7 @@ class API:
             return app
 
         @self.app.get("/apps/developer/{target_name}")
-        def get_developer_games(target_name: str, fuzzy: bool = True, db=self.db_dependency):
+        def get_developer_games(target_name: str, fuzzy: bool = True, all_fields: bool = False, db=self.db_dependency):
             target_name = target_name.strip().capitalize()
 
             similar_developer = target_name
@@ -252,7 +252,11 @@ class API:
             if similar_developer:
                 developer = str(similar_developer)
                 try:
-                    games = db.query(models.App).filter(models.App.developer == developer).all()
+                    if all_fields:
+                        games = db.query(models.App).filter(models.App.developer == developer).all()
+                    else:
+                        games = db.query(models.App.id, models.App.name).filter(models.App.developer == developer).all()
+                        games = [{"id": game.id, "name": game.name} for game in games]
                 except AttributeError:
                     raise HTTPException(status_code=404, detail=f"(AttributeError) No games found for developer {developer}")
                 if games:
