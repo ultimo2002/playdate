@@ -7,6 +7,7 @@ import uvicorn
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.testclient import TestClient
 
 from sqlalchemy.sql import text
 
@@ -23,15 +24,16 @@ class API:
 
     templates = Jinja2Templates(directory="templates")
 
+    app = FastAPI()
+
     def __init__(self):
-        self.app = FastAPI()
+        self.client = TestClient(self.app)
 
         self.app.mount("/static", StaticFiles(directory="static"), name="static")
 
         models.Base.metadata.create_all(bind=Engine)
 
         self.db_dependency = Depends(self.get_db)
-
 
     def run(self):
         self.register_endpoints()
