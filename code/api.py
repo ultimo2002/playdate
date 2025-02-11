@@ -27,8 +27,6 @@ class API:
     app = FastAPI()
 
     def __init__(self):
-        self.client = TestClient(self.app)
-
         self.app.mount("/static", StaticFiles(directory="static"), name="static")
 
         models.Base.metadata.create_all(bind=Engine)
