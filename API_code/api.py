@@ -11,12 +11,13 @@ from fastapi.testclient import TestClient
 
 from sqlalchemy.sql import text
 
-from algoritms import similarity_score, jaccard_similarity, _most_similar
-from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE, TextStyles
-from steam_api import get_app_details, fetch_app_list, get_current_player_count, get_steam_tags
 
-import models
-from database import Engine, SessionLocal
+from API_code.algoritms import similarity_score, jaccard_similarity, _most_similar
+from API_code.config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE, TextStyles
+from API_code.steam_api import get_app_details, fetch_app_list, get_current_player_count, get_steam_tags
+
+import API_code.models as models
+from API_code.database import Engine, SessionLocal
 
 
 class API:
