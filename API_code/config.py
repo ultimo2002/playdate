@@ -62,7 +62,7 @@ def get_git_author(filename, lineno):
 
 
 def womp_exception_hook(exc_type, exc_value, exc_traceback):
-    """Custom exception hook to add womp womp and the git author name from the error causing code."""
+    """Custom exception hook to add womp womp and the git author name from the error causing API_code."""
     tb = traceback.format_exception(exc_type, exc_value, exc_traceback)
 
     # Extract the last traceback entry (filename + line number)
@@ -123,7 +123,7 @@ set_womp_exception(True)
 
 load_env()
 
-# Only execute this code when this script is run directly, not when it's imported
+# Only execute this API_code when this script is run directly, not when it's imported
 # We don't want ZeroDivisionError when this file is imported
 if __name__ == "__main__":
     print(1 / 0)  # This will trigger a ZeroDivisionError
