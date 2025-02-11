@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommended Games</title>
+</head>
+
+<body>
+    <h1>Recommended Games</h1>
+    {{message}}
+    {{apps}}
+    {% for app in apps %}
+    <p>{{app.name}}</p>
+    {% endfor %}
+</body>
+</html>
