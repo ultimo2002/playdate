@@ -142,7 +142,7 @@ class API:
             data = app_data_from_id_or_name(game_input, db, True)
 
             return self.templates.TemplateResponse(
-                request=request, name="game_output.html", context={"games":data, "message": "Hoi"}
+                request=request, name="game_output.html", context={"apps":[data]}
             )
         @self.app.put("/app/{appid}/tag/{tagid}")
         def add_app_tag(appid: int, tagid: int, db=self.db_dependency):

@@ -8,10 +8,11 @@
 
 <body>
     <h1>Recommended Games</h1>
-    {{message}}
-    {{apps}}
     {% for app in apps %}
     <p>{{app.name}}</p>
+    <p>{{app.developer}}</p>
+    <p>{{app.short_description}}</p>
+    <p>{{app.price}}</p>
     {% endfor %}
 </body>
 </html>
