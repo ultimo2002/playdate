@@ -10,6 +10,7 @@ body {
     font-size: 20px;
     font-family: "Motiva Sans", Sans-serif;
     font-weight: 500;
+
 }
 
 .container {
@@ -33,6 +34,7 @@ body {
     text-align: center;
     border-radius: 10px;
     opacity: 80%;
+    color: #FFFFFF;
 }
 
 
