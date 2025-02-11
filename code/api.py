@@ -1,7 +1,7 @@
 import os
 import asyncio
 
-from fastapi import FastAPI, Depends, Request, BackgroundTasks, HTTPException
+from fastapi import FastAPI, Depends, Request, BackgroundTasks, HTTPException, Form
 import uvicorn
 
 from fastapi.templating import Jinja2Templates
@@ -136,6 +136,10 @@ class API:
         @self.app.get("/app/{appid}")
         def read_app(appid: str, fuzzy: bool = True, db=self.db_dependency):
             return app_data_from_id_or_name(appid, db, fuzzy)
+
+        @self.app.post("/app_input")
+        def handle_form(game_input: str = Form(...)):
+            return {"message": game_input}
 
         @self.app.put("/app/{appid}/tag/{tagid}")
         def add_app_tag(appid: int, tagid: int, db=self.db_dependency):
