@@ -8,19 +8,23 @@
 </head>
 
 <body>
-    <h1>Recommended Games</h1>
-
     <div class="container">
         <div class="columnl">
+            <h1>Selected Game</h1>
             {% for app in apps %}
-            <img src="{{app.header_image}}" alt="Logo of {{app.name}}">
-            <p>{{app.name}}</p>
-            <p>{{app.developer}}</p>
-            <p>{{app.short_description}}</p>
-            <p>{{app.price}}</p>
+            <div class="card">
+                <img src="{{app.header_image}}" alt="Logo of {{app.name}}" class="game-image">
+                <div class="game-info">
+                    <h2 class="game-title">{{app.name}}</h2>
+                    <p class="game-developer">Developed by <strong>{{app.developer}}</strong></p>
+                    <p class="game-description">{{app.short_description}}</p>
+                    <p class="game-price">{{app.price}}</p>
+                </div>
+            </div>
             {% endfor %}
+
         </div>
-        <div class="columnr">Column 2</div>
+        <div class="columnr"><h1>Recommended Games</h1></div>
     </div>
 
     <style>

@@ -1,5 +1,9 @@
 body {
-    background: #f4fff4;
+    /*background-image: url('images/steam_bg.jpg');*/
+    /*background-size: cover;*/
+    /*background-position: center;*/
+    /*background-repeat: no-repeat;*/
+    background-color: cadetblue;
     margin: 0 auto;
     width: 80%;
     padding: 10px;
@@ -28,4 +32,47 @@ body {
     border-radius: 10px;
     opacity: 80%;
     border: 3px solid #103a58;
+}
+
+
+/*_____CARD_____*/
+.card {
+    width: 300px;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.game-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.game-title {
+    color: #444;
+}
+
+.game-info {
+    padding: 15px;
+}
+
+.game-developer {
+    font-size: 14px;
+    color: #666;
+}
+
+.game-description {
+    font-size: 14px;
+    color: #444;
+    margin: 10px 0;
+}
+
+.game-price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #27ae60;
+    margin-top: 10px;
 }
