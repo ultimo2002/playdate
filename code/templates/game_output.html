@@ -14,5 +14,13 @@
     <p>{{app.short_description}}</p>
     <p>{{app.price}}</p>
     {% endfor %}
+    <style>
+        body {
+            background-image: url("{{apps[0].background_image}}");
+            background-size: auto;
+            background-repeat: no-repeat;
+            color: white;
+        }
+    </style>
 </body>
 </html>
