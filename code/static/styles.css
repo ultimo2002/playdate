@@ -1,7 +1,27 @@
 body {
     background: #f4fff4;
-
     margin: 0 auto;
     width: 80%;
     padding: 10px;
+}
+
+.container {
+    display: flex;
+    gap: 10px; /* Space between columns */
+}
+
+.columnl {
+    flex: 1;
+    padding: 20px;
+    background-color: #f4f4f4;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.columnr {
+    flex: 1;
+    padding: 20px;
+    background-color: #f4f4f4;
+    border: 1px solid #ccc;
+    text-align: center;
 }
