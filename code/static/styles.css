@@ -7,6 +7,9 @@ body {
     margin: 0 auto;
     width: 80%;
     padding: 10px;
+    font-size: 20px;
+    font-family: "Motiva Sans", Sans-serif;
+    font-weight: 500;
 }
 
 .container {
@@ -15,23 +18,21 @@ body {
 }
 
 .columnl {
-    flex: 1;
+    flex: 0 0 20%;
     padding: 20px;
-    background-color: #154c79;
+    background-color: #0e263a;
     text-align: center;
     border-radius: 10px;
     opacity: 80%;
-    border: 3px solid #103a58;
 }
 
 .columnr {
     flex: 1;
     padding: 20px;
-    background-color: #154c79;
+    background-color: #0e263a;
     text-align: center;
     border-radius: 10px;
     opacity: 80%;
-    border: 3px solid #103a58;
 }
 
 
