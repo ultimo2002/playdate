@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommended Games</title>
+    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+</head>
+
+<body>
+    <h1>Recommended Games</h1>
+    {% for app in apps %}
+    <img src="{{app.header_image}}" alt="Logo of {{app.name}}">
+    <p>{{app.name}}</p>
+    <p>{{app.developer}}</p>
+    <p>{{app.short_description}}</p>
+    <p>{{app.price}}</p>
+    {% endfor %}
+    <style>
+        img {
+            border-radius: 10px;
+        }
+        body {
+            background-image: url("{{apps[0].background_image}}");
+            background-color: #1b2838;
+            background-size: auto;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+        }
+    </style>
+</body>
+</html>

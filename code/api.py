@@ -1,7 +1,7 @@
 import os
 import asyncio
 
-from fastapi import FastAPI, Depends, Request, BackgroundTasks, HTTPException
+from fastapi import FastAPI, Depends, Request, BackgroundTasks, HTTPException, Form
 import uvicorn
 
 from fastapi.templating import Jinja2Templates
@@ -137,6 +137,13 @@ class API:
         def read_app(appid: str, fuzzy: bool = True, db=self.db_dependency):
             return app_data_from_id_or_name(appid, db, fuzzy)
 
+        @self.app.post("/app_input", response_class=HTMLResponse)
+        def handle_form(request: Request, game_input: str = Form(...), db=self.db_dependency):
+            data = app_data_from_id_or_name(game_input, db, True)
+
+            return self.templates.TemplateResponse(
+                request=request, name="game_output.html", context={"apps":[data]}
+            )
         @self.app.put("/app/{appid}/tag/{tagid}")
         def add_app_tag(appid: int, tagid: int, db=self.db_dependency):
             if not os.environ.get("PYCHARM_HOSTED"):

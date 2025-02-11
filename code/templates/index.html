@@ -1,13 +1,19 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spellen vergelijken</title>
+    <title>Game Tinder</title>
     <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
 </head>
+
 <body>
-    <h1>Spellen vergelijker</h1>
-    <p>{{message}}</p>
+    <h1>Game Tinder</h1>
+    <form action="/app_input" method="post">
+        <label for="game_input">Name:</label>
+        <input type="text" id="game_input" name="game_input" required>
+        <button type="submit">Submit</button>
+    </form>
 </body>
 </html>
