@@ -137,8 +137,8 @@ class API:
         def read_app(appid: str, fuzzy: bool = True, db=self.db_dependency):
             return app_data_from_id_or_name(appid, db, fuzzy)
 
-        @self.app.post("/app_input", response_class=HTMLResponse)
-        def handle_form(request: Request, game_input: str = Form(...), db=self.db_dependency):
+        @self.app.get("/app_input", response_class=HTMLResponse)
+        def handle_form(request: Request, game_input: str, db=self.db_dependency):
             data = app_data_from_id_or_name(game_input, db, True)
 
             return self.templates.TemplateResponse(
