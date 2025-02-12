@@ -154,9 +154,18 @@ class API:
                     request=request, name="404.html", context={"message": f"Game {game_input} not found."}
                 )
 
+            tags = db.query(models.Tags).join(models.AppTags).filter(models.AppTags.app_id == data.id).all()
+            genres = db.query(models.Genre).join(models.AppGenre).filter(models.AppGenre.app_id == data.id).all()
+            categories = db.query(models.Category).join(models.AppCategory).filter(models.AppCategory.app_id == data.id).all()
+
+            data.tags = tags
+            data.genres = genres
+            data.categories = categories
+
             return self.templates.TemplateResponse(
                 request=request, name="game_output.html", context={"apps":[data]}
             )
+
         @self.app.put("/app/{appid}/tag/{tagid}")
         def add_app_tag(appid: int, tagid: int, db=self.db_dependency):
             if not os.environ.get("PYCHARM_HOSTED"):
