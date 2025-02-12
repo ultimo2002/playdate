@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from sqlalchemy.sql import text
 
-from algoritms import similarity_score, jaccard_similarity, _most_similar
+from algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
 from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE, TextStyles
 from steam_api import get_app_details, fetch_app_list, get_current_player_count, get_steam_tags
 

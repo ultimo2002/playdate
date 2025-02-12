@@ -1,3 +1,5 @@
+# All functions in this file are for the fuzzy algorithm to find the most similar item in a list based on a calculated similarity score.
+
 def levenshtein_distance(s1, s2):
     if len(s1) < len(s2):
         return levenshtein_distance(s2, s1)
