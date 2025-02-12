@@ -1,6 +1,3 @@
-import os
-import asyncio
-
 from fastapi import FastAPI, Depends, Request, BackgroundTasks, HTTPException, Form
 import uvicorn
 
@@ -8,11 +5,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from sqlalchemy.sql import text
-
 from algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
 from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE, TextStyles
-from steam_api import get_app_details, fetch_app_list, get_current_player_count, get_steam_tags
 
 import models
 from database import Engine, SessionLocal
@@ -24,6 +18,9 @@ class API:
     templates = Jinja2Templates(directory="templates")
 
     def __init__(self):
+        """
+        The constructor of this API class. executed when app = API() is called. in the main.py file.
+        """
         self.app = FastAPI()
 
         self.app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -34,6 +31,11 @@ class API:
 
 
     def run(self):
+        """"
+        Function to run the API. This function will register all the endpoints and start the API server with uvicorn.
+
+        Using the API_HOST_URL and API_HOST_PORT from the config.py file or the values set in .env
+        """
         self.register_endpoints()
 
         print("Run API")
@@ -41,7 +43,9 @@ class API:
         uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False)
 
     def get_db(self):
-        """Get db dependency, don't touch!"""
+        """Get db dependency, don't touch!
+        This makes a new database session for the request and closes it after the request is done.
+        """
         db = SessionLocal()
         try:
             yield db
@@ -50,15 +54,31 @@ class API:
 
 
     def register_endpoints(self):
+        """"
+        Function to define all the endpoints for the API.
+        """
+
         @self.app.get("/", response_class=HTMLResponse)
         def root(request: Request):
-            # return {"message": "Hello World, auto deploy is working!"}
+            """"
+            The root endpoint of the API when visiting the website.
+            :return: The HTML response from the index.html template.
+            """
+
             return self.templates.TemplateResponse(
                 request=request, name="index.html", context={"message": "Hello world!"}
             )
 
         @self.app.get("/apps")
         def read_apps(db=self.db_dependency, all_fields: bool = False, target_name: str = None, like: str = None):
+            """
+            Get a JSON / dictionary with all the apps in the database.
+
+            :param all_fields: If True, return all fields of the app, otherwise only the id and name of the app.
+            :param target_name: Find the most similar named apps for this name.
+            :param like: Find apps with names like this, Uses %string% for SQL LIKE query.
+            :return: List of apps in JSON/dictionary format.
+            """
             if target_name:
                 return find_similar_named_apps(target_name, db)
             elif like:
@@ -75,7 +95,17 @@ class API:
             return [{"id": app.id, "name": app.name} for app in apps]
 
         def get_app_related_data(appid: str, db, model_class, relationship_class, fuzzy: bool = True):
-            """Get the related data for the app, like categories, genres or tags."""
+            """
+            Helper function to get the related data for an app. For example, categories, genres or tags. (Not a direct endpoint)
+            Based on the model_class and relationship_class provided.
+
+            :param appid: The appid or name of the game to get the related data for.
+            :param db: The database dependency.
+            :param model_class: The model class to get the related data for. For example, models.Category.
+            :param relationship_class: The relationship class which connects the app and the model_class. For example, models.AppCategory.
+            :param fuzzy: If True, try to find the app by name even when the grammar is not correct using my fuzzy algorithm ^Seger. It skips this always when the appid is a number.
+            :return: List of related data.
+            """
             if appid.isdigit():
                 appid = int(appid)
             else:
@@ -99,7 +129,10 @@ class API:
 
         @self.app.get("/cats")
         def read_cats(db=self.db_dependency):
-            """Get all categories, genres and tags in one request."""
+            """
+            Get all categories, genres and tags in one request.
+            :return: JSON / dictionary with all existing categories, genres and tags with their id and name.
+            """
             return {
                 "tags": db.query(models.Tags).all(),
                 "categories": db.query(models.Category).all(),
@@ -108,37 +141,82 @@ class API:
 
         @self.app.get("/tags")
         def read_tags(db=self.db_dependency):
+            """"
+            Get all existing tags in the database.
+            :return: List of tags in JSON/dictionary format with id and name.
+            """
             tags = db.query(models.Tags).all()
             return tags
 
         @self.app.get("/categories")
         def read_categories(db=self.db_dependency):
+            """"
+            Get all existing categories in the database.
+            :return: List of categories in JSON/dictionary format with id and name.
+            """
             categories = db.query(models.Category).all()
             return categories
 
         @self.app.get("/genres")
         def read_genres(db=self.db_dependency):
+            """
+            Get all existing genres in the database.
+            :return: List of genres in JSON/dictionary format with id and name.
+            """
             genres = db.query(models.Genre).all()
             return genres
 
         @self.app.get("/app/{appid}/categories")
         def read_app_categories(appid: str, fuzzy: bool = True, db=self.db_dependency):
+            """"
+            Get all the categories for a specific app.
+
+            :param appid: The appid or name of the game to get the categories for.
+            :param fuzzy: If True, try to find the app by name even when the grammar is not correct using my fuzzy algorithm ^Seger. It skips this always when the appid is a number.
+            :return: List of categories for the app.
+            """
             return get_app_related_data(appid, db, models.Category, models.AppCategory, fuzzy)
 
         @self.app.get("/app/{appid}/genres")
         def read_app_genres(appid: str, fuzzy: bool = True, db=self.db_dependency):
+            """"
+            Get all the genres for a specific app.
+
+            :param appid: The appid or name of the game to get the genres for.
+            :param fuzzy: If True, try to find the app by name even when the grammar is not correct using my fuzzy algorithm ^Seger. It skips this always when the appid is a number.
+            :return: List of genres for the app.
+            """
             return get_app_related_data(appid, db, models.Genre, models.AppGenre, fuzzy)
 
         @self.app.get("/app/{appid}/tags")
         def read_app_tags(appid: str, fuzzy: bool = True, db=self.db_dependency):
+            """
+            Get all the tags for a specific app.
+
+            :param appid: The appid or name of the game to get the tags for.
+            :param fuzzy: If True, try to find the app by name even when the grammar is not correct using my fuzzy algorithm ^Seger. It skips this always when the appid is a number.
+            """
             return get_app_related_data(appid, db, models.Tags, models.AppTags, fuzzy)
 
         @self.app.get("/app/{appid}")
         def read_app(appid: str, fuzzy: bool = True, db=self.db_dependency):
+            """
+            Endpoint to get the data for a specific app.
+
+            :param appid: The appid or name of the game to get the data for.
+            :param fuzzy: If True, try to find the app by name even when the grammar is not correct using my fuzzy algorithm ^Seger. It skips this always when the appid is a number.
+            """
             return app_data_from_id_or_name(appid, db, fuzzy)
 
         @self.app.get("/app_input", response_class=HTMLResponse)
         def handle_form(request: Request, game_input: str = "", db=self.db_dependency):
+            """"
+            Handle the GET request for the HTML <form> to search for a game.
+
+            :param request: The request object auto given by FastAPI.
+            :param game_input: The name or id of the game to search for. Always uses fuzzy search.
+            :return: The HTML response with the results in the context.
+            """
             if not game_input:
                 return self.templates.TemplateResponse(
                     request=request, name="index.html", context={"message": "Please enter a game name or id."}
@@ -158,92 +236,16 @@ class API:
                 request=request, name="game_output.html", context={"apps":[selected_app]}
             )
 
-        @self.app.put("/app/{appid}/tag/{tagid}")
-        def add_app_tag(appid: int, tagid: int, db=self.db_dependency):
-            if not os.environ.get("PYCHARM_HOSTED"):
-                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
-            elif not tagid or not appid:
-                raise HTTPException(status_code=400, detail="Tag and app id required.")
+        def app_data_from_id_or_name(app_id_or_name: str, db, fuzzy: bool = True, categories: bool = False):
+            """"
+            Helper function to get the data for a specific app. (Not a direct endpoint)
 
-            app = db.query(models.App).filter(models.App.id == appid).first()
-            tag = db.query(models.Tags).filter(models.Tags.id == tagid).first()
-
-            # check if the app not already has this tag
-            app_tag = db.query(models.AppTags).filter(models.AppTags.app_id == appid, models.AppTags.tag_id == tagid).first()
-            if app_tag:
-                raise HTTPException(status_code=409, detail="App already has this tag.")
-
-            if app and tag:
-                print(f"Adding tag {tagid} to app {appid}")
-                app_tag = models.AppTags(app_id=appid, tag_id=tagid)
-                db.add(app_tag)
-                db.commit()
-                db.refresh(app_tag)
-                return app_tag
-            else:
-                raise HTTPException(status_code=404, detail="App or category not found")
-
-        @self.app.delete("/app/{appid}/tag/{tagid}")
-        def delete_app_tag(appid: int, tagid: int, db=self.db_dependency):
-            if not os.environ.get("PYCHARM_HOSTED"):
-                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
-            elif not tagid or not appid:
-                raise HTTPException(status_code=400, detail="Tag and app id required.")
-
-            app_tag = db.query(models.AppTags).filter(models.AppTags.app_id == appid, models.AppTags.tag_id == tagid).first()
-            if app_tag:
-                db.delete(app_tag)
-                db.commit()
-                return {"message": f"Tag {tagid} deleted from app {appid}"}
-            else:
-                raise HTTPException(status_code=404, detail="App-tag relation not found")
-
-        @self.app.put("/app/{appid}")
-        def update_app(appid: int, name: str, db=self.db_dependency):
-            app = db.query(models.App).filter(models.App.id == appid).first()
-            if app:
-                app.name = name
-                db.commit()
-                db.refresh(app)
-                return app
-            else:
-                raise HTTPException(status_code=404, detail="App not found")
-
-        @self.app.post("/app")
-        def add_app(name: str, appid: int, short_description: str = "", price: str = "", developer: str = "Seger", header_image: str = "", background_image: str = "", db=self.db_dependency):
-            if not os.environ.get("PYCHARM_HOSTED"):
-                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
-
-            name = name.replace("%20", " ")
-            name.strip()
-
-            app = models.App(name=name, id=appid, short_description=short_description, price=price, developer=developer, header_image=header_image, background_image=background_image)
-            db.add(app)
-            db.commit()
-            db.refresh(app)
-            return app
-
-        @self.app.delete("/app/{appid}")
-        def delete_app(appid: int, db=self.db_dependency):
-            if not os.environ.get("PYCHARM_HOSTED"):
-                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
-
-            app = db.query(models.App).filter(models.App.id == appid).first()
-
-            if app:
-                # delete also the app-category and app-genre app-tag relations
-                db.query(models.AppCategory).filter(models.AppCategory.app_id == appid).delete()
-                db.query(models.AppGenre).filter(models.AppGenre.app_id == appid).delete()
-                db.query(models.AppTags).filter(models.AppTags.app_id == appid).delete()
-
-                db.delete(app)
-
-                db.commit()
-                return {"message": f"App {appid} deleted"}
-            else:
-                raise HTTPException(status_code=404, detail=f"App {appid} not found")
-
-        def app_data_from_id_or_name(app_id_or_name: str, db=self.db_dependency, fuzzy: bool = True, categories: bool = False):
+            :param app_id_or_name: The appid or name of the game to get the data for.
+            :param db: The database dependency.
+            :param fuzzy: If True, try to find the app by name even when the grammar is not correct using my fuzzy algorithm ^Seger. It skips this always when the appid is a number.
+            :param categories: If True, also get the categories, genres and tags for the app in the App object as response.
+            :return: JSON / dictionary with all the data for the app.
+            """
             app = None
 
             if app_id_or_name.isdigit():
@@ -273,6 +275,14 @@ class API:
 
         @self.app.get("/apps/developer/{target_name}")
         def get_developer_games(target_name: str, fuzzy: bool = True, all_fields: bool = False, db=self.db_dependency):
+            """"
+            Function to get all games for a specific developer.
+
+            :param target_name: The name of the developer to get the games for.
+            :param fuzzy: When True, try to find the most similar named developer in the database. Using my fuzzy algorithm
+            :param all_fields: When True, return all fields of the app, otherwise only the id and name of the app will be returned.
+            :return: JSON / dictionary with all the games for the given developer.
+            """
             target_name = target_name.strip().capitalize()
 
             similar_developer = target_name
@@ -295,8 +305,14 @@ class API:
             else:
                 raise HTTPException(status_code=404, detail="Developer not found")
 
-        def most_similar_named_developer(target_name: str, db=self.db_dependency):
-            """Find the most similar named developer in the database."""
+        def most_similar_named_developer(target_name: str, db):
+            """
+            Helper function to find the most similar named developer in the database.
+
+            :param target_name: The name of the developer to find the most similar named developer for.
+            :param db: The database dependency.
+            :return: String "name" of the most similar named developer.
+            """
             developers = db.query(models.App).with_entities(models.App.developer).distinct().all()
             most_similar_dev, similarity = _most_similar(target_name, developers, "developer")
 
@@ -306,8 +322,14 @@ class API:
 
             return None
 
-        def most_similar_named_app(target_name: str, db=self.db_dependency):
-            """Find the most similar named app in the database."""
+        def most_similar_named_app(target_name: str, db):
+            """
+            Helper function to find the most similar named app in the database.
+
+            :param target_name: The name of the app to find the most similar named app for.
+            :param db: The database dependency.
+            :return: Dictionary / JSON with the (id, name and similarity) of the app.
+            """
             apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
             most_similar_app, similarity = _most_similar(target_name, apps, "name")
 
@@ -316,7 +338,14 @@ class API:
 
             return None
 
-        def find_similar_named_apps(target_name: str, db=self.db_dependency):
+        def find_similar_named_apps(target_name: str, db):
+            """
+            Helper function to find the most similar named apps in the database.
+
+            :param target_name: The name of the app to find the most similar named apps for.
+            :param db: The database dependency.
+            :return: Dictionary of multiple apps matching the target_name with their (id, name and similarity.)
+            """
             target_name = target_name.strip().lower()
 
             apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
@@ -337,6 +366,14 @@ class API:
 
         @self.app.get("/apps/tag/{target_name}")
         def get_apps_based_on_tag_name(target_name: str, fuzzy: bool = True, all_fields: bool = False, db=self.db_dependency):
+            """
+            Get all apps based on the tag name.
+
+            :param target_name: The name or id of the tag to get the apps for.
+            :param fuzzy: If True, try to find the most similar named tag in the database. Using my fuzzy algorithm ^Seger.
+            :param all_fields: If True, return all fields of the app, otherwise only the (id, name) of the app will be returned.
+            :return: List of apps in JSON/dictionary format.
+            """
             target_name = target_name.strip()
             tag = target_name.capitalize() if not target_name.isupper() else target_name
 
