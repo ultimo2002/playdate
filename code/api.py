@@ -138,8 +138,21 @@ class API:
             return app_data_from_id_or_name(appid, db, fuzzy)
 
         @self.app.get("/app_input", response_class=HTMLResponse)
-        def handle_form(request: Request, game_input: str, db=self.db_dependency):
+        def handle_form(request: Request, game_input: str = "", db=self.db_dependency):
+            if not game_input:
+                return self.templates.TemplateResponse(
+                    request=request, name="index.html", context={"message": "Please enter a game name or id."}
+                )
+            # clean up the input to prevent XSS attacks
+            game_input = game_input.strip()
+            game_input = game_input.replace("<", "").replace(">", "")
+
             data = app_data_from_id_or_name(game_input, db, True)
+
+            if not data:
+                return self.templates.TemplateResponse(
+                    request=request, name="404.html", context={"message": f"Game {game_input} not found."}
+                )
 
             return self.templates.TemplateResponse(
                 request=request, name="game_output.html", context={"apps":[data]}
