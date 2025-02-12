@@ -18,7 +18,9 @@
                     <h2 class="game-title">{{app.name}}</h2>
                     <p class="game-developer">Developed by <strong>{{app.developer}}</strong></p>
                     <p class="game-description">{{app.short_description}}</p>
-                    <p class="game-genres"><strong>Genres:</strong> {{ app.genres | join(", ") }}</p>
+                    <p class="game-genres"><strong>Genres:</strong> {{ app.genres | map(attribute="name") | join(", ") }}</p>
+                    <p class="game-genres"><strong>Tags:</strong> {{ app.tags | map(attribute="name") | join(", ") }}</p>
+                    <p class="game-genres"><strong>Categories:</strong> {{ app.categories | map(attribute="name") | join(", ") }}</p>
                     <p class="game-price">{{app.price}}</p>
                 </div>
             </div>
