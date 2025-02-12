@@ -38,6 +38,7 @@ jobs:
     - name: Test with pytest
       run: |
         cd code
+        echo ls
         pytest
     - name: Connect to server and execute start script
       run: |

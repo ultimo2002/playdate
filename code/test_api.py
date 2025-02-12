@@ -13,6 +13,6 @@ client = TestClient(api_instance.app)
 
 
 
-def test_main():
+def test_home():
     response = client.get("/")
     assert response.status_code == 200
