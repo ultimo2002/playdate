@@ -12,11 +12,11 @@
         <div class="columnl">
             <h1>Selected Game</h1>
             {% for app in apps %}
-            <div class="card">
+            <div class="card" id="appid-{{app.id}}">
                 <img src="{{app.header_image}}" alt="Logo of {{app.name}}" class="game-image">
                 <div class="game-info">
                     <h2 class="game-title">{{app.name}}</h2>
-                    <p class="game-developer">Developed by <strong>{{app.developer}}</strong></p>
+                    <p class="game-developer">Developed by <a href="/apps/developer/{{ app.developer }}"><strong>{{app.developer}}</strong></a></p>
                     <p class="game-description">{{app.short_description}}</p>
                     <p class="game-genres"><strong>Genres:</strong> {{ app.genres | map(attribute="name") | join(", ") }}</p>
                     <p class="game-genres"><strong>Tags:</strong> {{ app.tags | map(attribute="name") | join(", ") }}</p>
