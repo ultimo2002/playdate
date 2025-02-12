@@ -1,11 +1,14 @@
 body {
-    background: #f4fff4;
-
+    /*background-image: url('images/steam_bg.jpg');*/
+    /*background-size: cover;*/
+    /*background-position: center;*/
+    /*background-repeat: no-repeat;*/
+    background-color: cadetblue;
     margin: 0 auto;
     width: 80%;
     padding: 10px;
     font-size: 20px;
-    font-family: "Motiva Sans", system-ui, Sans-serif;
+    font-family: "Motiva Sans", Sans-serif;
     font-weight: 500;
 
 }
@@ -13,10 +16,6 @@ body {
 .container {
     display: flex;
     gap: 10px;
-
-    @media (max-width: 768px) {
-        flex-direction: column;
-    }
 }
 
 .columnl {
