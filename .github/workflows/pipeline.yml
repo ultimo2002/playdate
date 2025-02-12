@@ -28,7 +28,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Create .env file
       run: |
-        echo "${{ secrets.DOTENV }}" > .env
+        echo "${{ secrets.DOTENV }}" > API_code/.env
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
