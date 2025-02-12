@@ -88,3 +88,8 @@ body {
     color: #27ae60;
     margin-top: 10px;
 }
+
+/* Easter Eggs */
+body:has(#appid-3314060) {
+    font-family: "Comic Sans MS", cursive, system-ui, sans-serif;
+}
