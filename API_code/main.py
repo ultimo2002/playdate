@@ -8,7 +8,7 @@ from fastapi import FastAPI
 
 #run de api
 def run():
-    api.register_endpoints(app)
+
 
     print("Run API")
 
@@ -17,6 +17,8 @@ def run():
 
 # maak app FastAPI instance
 app = FastAPI()
+api.register_endpoints(app)
  # ?? CSS ofzo?
 app.mount("/static", StaticFiles(directory="static"), name="static")
-run()
+if __name__ == "__main__":
+    run()
