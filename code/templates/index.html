@@ -4,16 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Tinder</title>
+    <title>Game Recommender</title>
     <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
 </head>
 
 <body>
-    <h1>Game Tinder</h1>
-    <form action="/app_input" method="get">
-        <label for="game_input">Name:</label>
-        <input type="text" id="game_input" name="game_input" required>
-        <button type="submit">Submit</button>
-    </form>
+    <h1>Game Recommender</h1>
+
+        <div class="container">
+            <div class="columnr">
+                 <form action="/app_input" method="post">
+                 <label for="game_input">Game:</label>
+                 <input type="text" id="game_input" name="game_input" required>
+                 <button type="submit">Search</button>
+                 </form>
+            </div>
+        </div>
+
 </body>
 </html>
