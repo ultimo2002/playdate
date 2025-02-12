@@ -22,16 +22,7 @@ body {
     }
 }
 
-.columnl {
-    flex: 0 0 20%;
-    padding: 20px;
-    background-color: #0e263a;
-    text-align: center;
-    border-radius: 10px;
-    opacity: 80%;
-}
-
-.columnr {
+.column {
     flex: 1;
     padding: 20px;
     background-color: #0e263a;
@@ -39,6 +30,17 @@ body {
     border-radius: 10px;
     opacity: 80%;
     color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.columnl {
+    flex: 0 0 20%;
+}
+
+.columnr {
+    flex: 1;
 }
 
 
@@ -50,12 +52,15 @@ body {
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     text-align: center;
+    color: #444;
 }
 
 .game-image {
     width: 100%;
     height: 150px;
     object-fit: cover;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
 }
 
 .game-title {
@@ -77,9 +82,20 @@ body {
     margin: 10px 0;
 }
 
+.game-genres {
+    font-size: 14px;
+    color: #444;
+    margin: 10px 0;
+}
+
 .game-price {
     font-size: 18px;
     font-weight: bold;
     color: #27ae60;
     margin-top: 10px;
+}
+
+/* Easter Eggs */
+body:has(#appid-3314060) {
+    font-family: "Comic Sans MS", cursive, system-ui, sans-serif;
 }
