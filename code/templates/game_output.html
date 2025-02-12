@@ -18,6 +18,7 @@
                     <h2 class="game-title">{{app.name}}</h2>
                     <p class="game-developer">Developed by <strong>{{app.developer}}</strong></p>
                     <p class="game-description">{{app.short_description}}</p>
+                    <p class="game-genres"><strong>Genres:</strong> {{ app.genres | join(", ") }}</p>
                     <p class="game-price">{{app.price}}</p>
                 </div>
             </div>
