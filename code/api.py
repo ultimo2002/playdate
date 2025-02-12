@@ -147,23 +147,15 @@ class API:
             game_input = game_input.strip()
             game_input = game_input.replace("<", "").replace(">", "")
 
-            data = app_data_from_id_or_name(game_input, db, True)
+            selected_app = app_data_from_id_or_name(game_input, db, True, True)
 
-            if not data:
+            if not selected_app or not selected_app.id:
                 return self.templates.TemplateResponse(
                     request=request, name="404.html", context={"message": f"Game {game_input} not found."}
                 )
 
-            tags = db.query(models.Tags).join(models.AppTags).filter(models.AppTags.app_id == data.id).all()
-            genres = db.query(models.Genre).join(models.AppGenre).filter(models.AppGenre.app_id == data.id).all()
-            categories = db.query(models.Category).join(models.AppCategory).filter(models.AppCategory.app_id == data.id).all()
-
-            data.tags = tags
-            data.genres = genres
-            data.categories = categories
-
             return self.templates.TemplateResponse(
-                request=request, name="game_output.html", context={"apps":[data]}
+                request=request, name="game_output.html", context={"apps":[selected_app]}
             )
 
         @self.app.put("/app/{appid}/tag/{tagid}")
@@ -251,7 +243,7 @@ class API:
             else:
                 raise HTTPException(status_code=404, detail=f"App {appid} not found")
 
-        def app_data_from_id_or_name(app_id_or_name: str, db=self.db_dependency, fuzzy: bool = True):
+        def app_data_from_id_or_name(app_id_or_name: str, db=self.db_dependency, fuzzy: bool = True, categories: bool = False):
             app = None
 
             if app_id_or_name.isdigit():
@@ -267,6 +259,15 @@ class API:
                     app = db.query(models.App).filter(models.App.name == app_id_or_name).first()
                     if not app:
                         raise HTTPException(status_code=404, detail=f"App {app_id_or_name} not found")
+
+            if categories and app and app.id:
+                tags = db.query(models.Tags).join(models.AppTags).filter(models.AppTags.app_id == app.id).all()
+                genres = db.query(models.Genre).join(models.AppGenre).filter(models.AppGenre.app_id == app.id).all()
+                categories = db.query(models.Category).join(models.AppCategory).filter(models.AppCategory.app_id == app.id).all()
+
+                app.tags = tags
+                app.genres = genres
+                app.categories = categories
 
             return app
 
