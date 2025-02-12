@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-from config import DB_CONFIG, load_env
+from code.config import DB_CONFIG, load_env
 
 URL_DATABASE = 'postgresql://user:password@localhost:5432/database'
 

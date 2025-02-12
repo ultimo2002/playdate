@@ -5,11 +5,11 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
-from config import API_HOST_URL, API_HOST_PORT, ADDED_GAMES_LIST_CACHE_FILE, TextStyles
+from code.algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
+from code.config import API_HOST_URL, API_HOST_PORT
 
-import models
-from database import Engine, SessionLocal
+import code.models as models
+from code.database import Engine, SessionLocal
 
 
 class API:
