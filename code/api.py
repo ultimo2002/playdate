@@ -5,8 +5,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+from sqlalchemy.sql import exists
 from sqlalchemy.sql.expression import func
-from sqlalchemy.orm import aliased
 
 from code.algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
 from code.config import API_HOST_URL, API_HOST_PORT
@@ -72,15 +72,14 @@ class API:
             background_image = (
                 db.query(models.App.background_image, models.App.name)
                 .filter(
-                    ~db.query(models.AppTags)
-                    .join(models.Tags)
-                    .filter(
-                        models.AppTags.app_id == models.App.id,
-                        models.Tags.name.in_(["NSFW", "Nudity", "Mature"])  # Exclude these tags
+                    ~exists().where(
+                        (models.AppTags.app_id == models.App.id) &
+                        (models.AppTags.tag_id == models.Tags.id) &
+                        (models.Tags.name.in_(["NSFW", "Nudity", "Mature"]))
                     )
-                    .exists()
                 )
                 .order_by(func.random())
+                .limit(1)
                 .first()
             )
             try:

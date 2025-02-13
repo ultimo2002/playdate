@@ -13,6 +13,13 @@ body {
 
 }
 
+h2 {
+    font-size: 2em;
+}
+h3 {
+    font-size: 1.5em;
+}
+
 .container {
     display: flex;
     gap: 10px;
