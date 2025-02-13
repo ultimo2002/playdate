@@ -286,6 +286,7 @@ class API:
 
             # get all games that are in the database
             games = db.query(models.App).limit(3).all()
+            game_tags_relation = db.query(models.AppTags.app_id, models.AppTags.tag_id).all()
 
             if not games:
                 raise HTTPException(status_code=404, detail="No games found in the database.")
@@ -294,7 +295,8 @@ class API:
 
             # Compare with every other game (O(n²))
             for game in games:
-                game.tags = read_app_tags(gameid, False, db)
+                game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation]
+
                 # game.genres = read_app_genres(gameid, False, db)
                 # game.categories = read_app_categories(gameid, False, db)
                 matching_games.append(game)
