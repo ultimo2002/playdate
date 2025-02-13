@@ -21,7 +21,11 @@
             </div>
         </div>
         {% if background_image %}
-            <div class="overlay">{{ background_image.name }}</div>
+            <div class="overlay">
+                <a href="/app_input?game_input={{ background_image.name }}">
+                {{ background_image.name }}
+                </a>
+            </div>
             <style>
                 body {
                     background-image: url("{{ background_image.background_image }}");
