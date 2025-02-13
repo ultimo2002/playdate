@@ -68,7 +68,25 @@ class API:
             """
 
             # Get a random background_image from the database
-            background_image = db.query(models.App.background_image, models.App.name).order_by(func.random()).first()
+            from sqlalchemy.orm import aliased
+            from sqlalchemy.sql import exists
+
+            TagAlias = aliased(models.Tags)
+
+            background_image = (
+                db.query(models.App.background_image, models.App.name)
+                .filter(
+                    ~db.query(models.AppTags)
+                    .join(TagAlias, models.AppTags.tag_id == TagAlias.id)
+                    .filter(
+                        models.AppTags.app_id == models.App.id,
+                        TagAlias.name.in_(["NSFW", "Nudity", "Mature"])  # Exclude these tags
+                    )
+                    .exists()
+                )
+                .order_by(func.random())
+                .first()
+            )
             try:
                 background_image = background_image if background_image else None
             except (TypeError, IndexError, KeyError):
