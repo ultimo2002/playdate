@@ -47,7 +47,7 @@
 
         {% for app in apps %}
             {% set app_tags = app.tags | map(attribute="name") | list %}
-            {% if "NSFW" in app_tags or "Nudity" in app_tags or "Mature" or "Sexual Content" or "Hentai" in app_tags %}
+            {% if "NSFW" in app_tags or "Nudity" in app_tags or "Mature" in app_tags or "Sexual Content" in app_tags or "Hentai" in app_tags %}
                 #appid-{{ app.id }} img {
                     filter: blur(5px);
                     transition: filter 1s;
