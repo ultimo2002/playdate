@@ -293,13 +293,11 @@ class API:
 
             matching_games = []
 
-            # Compare with every other game (O(n²))
+            # Compare with every other game must be (O(n²)) (two for loops in this)
             for game in games:
                 # check if game_tags_relation  gameid then add the tagid to the game.tags
                 game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation]
 
-                # game.genres = read_app_genres(gameid, False, db)
-                # game.categories = read_app_categories(gameid, False, db)
                 matching_games.append(game)
 
 
