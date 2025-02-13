@@ -70,7 +70,7 @@ class API:
 
             # Get a random background_image from the database
             background_image = (
-                db.query(models.App.background_image, models.App.name)
+                db.query(models.App.background_image, models.App.id, models.App.name)
                 .filter(
                     ~exists().where(
                         (models.AppTags.app_id == models.App.id) &

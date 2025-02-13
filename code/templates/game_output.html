@@ -25,7 +25,11 @@
                     <p class="game-developer">Developed by <a href="/apps/developer/{{ selected_app.developer }}"><strong>{{selected_app.developer}}</strong></a></p>
                     <p class="game-description">{{selected_app.short_description}}</p>
                     <p class="game-genres"><strong>Genres:</strong> {{ selected_app.genres | map(attribute="name") | join(", ") }}</p>
-                    <p class="game-genres"><strong>Tags:</strong> {{ selected_app.tags | map(attribute="name") | join(", ") }}</p>
+                    <p class="game-genres"><strong>Tags:</strong>
+                    {% for tag in selected_app.tags %}
+                        <a href="/apps/tag/{{ tag.name }}" class="tag">{{ tag.name }}</a>{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                    </p>
                     <p class="game-genres"><strong>Categories:</strong> {{ selected_app.categories | map(attribute="name") | join(", ") }}</p>
                     <a class="game-price" href="https://store.steampowered.com/app/{{ selected_app.id }}" target="_blank">Price: {{ selected_app.price if selected_app.price else "Free" }}</a>
                 </div>

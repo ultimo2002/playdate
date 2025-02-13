@@ -95,6 +95,16 @@ h3 {
     color: #444;
     margin: 10px 0;
 }
+.game-genres a {
+    color: #444;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+.game-genres a:hover {
+    color: #3498db;
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
+}
 
 .game-price {
     font-size: 18px;
