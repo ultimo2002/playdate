@@ -242,9 +242,7 @@ class API:
             :return: The HTML response with the results in the context.
             """
             if not game_input:
-                return self.templates.TemplateResponse(
-                    request=request, name="index.html", context={"message": "Please enter a game name or id."}
-                )
+                return root(request, db)
             # clean up the input to prevent XSS attacks
             game_input = game_input.strip()
             game_input = game_input.replace("<", "").replace(">", "")
