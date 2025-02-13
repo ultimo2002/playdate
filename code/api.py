@@ -79,6 +79,7 @@ class API:
                     )
                 )
                 .order_by(func.random())
+                .limit(1)
                 .first()
             )
             try:
