@@ -256,8 +256,16 @@ class API:
                     request=request, name="404.html", context={"message": f"Game {game_input} not found."}
                 )
 
+
+            nsfw = False
+
+            for tag in selected_app.tags:
+                if tag.name in ["NSFW", "Nudity", "Mature"]:
+                    nsfw = True
+                    break
+
             return self.templates.TemplateResponse(
-                request=request, name="game_output.html", context={"apps":[selected_app]}
+                request=request, name="game_output.html", context={"apps":[selected_app], "nsfw": nsfw}
             )
 
         def app_data_from_id_or_name(app_id_or_name: str, db, fuzzy: bool = True, categories: bool = False):

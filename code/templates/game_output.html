@@ -7,7 +7,7 @@
     <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
 </head>
 
-<body>
+<body class="{% if nsfw %}nsfw{% endif %}">
     <div class="container">
         <div class="column columnl">
             <h1>Selected Game</h1>
@@ -42,22 +42,13 @@
             background-attachment: fixed;
             color: white;
         }
+
         {% for app in apps %}
-        {% if "NSFW" or "Nudity" or "Mature" in app.tags | map(attribute="name") %}
-        #appid-{{app.id}} img { filter: blur(5px); }
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: inherit;
-            filter: blur(15px);
-            z-index: -1;
-            min-height: 100vh;
-        }
-        {% endif %}
+            {% if "NSFW" or "Nudity" or "Mature" in app.tags | map(attribute="name") %}
+                #appid-{{app.id}} img {
+                  filter: blur(5px);
+                }
+            {% endif %}
         {% endfor %}
     </style>
 
