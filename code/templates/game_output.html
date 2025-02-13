@@ -31,8 +31,8 @@
                 </div>
             </div>
             {% endif %}
-
         </div>
+        {% if apps %}
         <div class="column columnr">
             <h2>Recommended Games</h2>
             {% for app in apps %}
@@ -49,6 +49,7 @@
                 </div>
             {% endfor %}
         </div>
+        {% endif %}
     </div>
 
     <style>
