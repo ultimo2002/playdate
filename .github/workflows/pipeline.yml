@@ -37,7 +37,6 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        cd code
         echo $(ls)
         pytest
     - name: Connect to server and execute start script
