@@ -69,15 +69,14 @@ class API:
             """
 
             # Get a random background_image from the database
-            TagAlias = aliased(models.Tags)
             background_image = (
                 db.query(models.App.background_image, models.App.name)
                 .filter(
                     ~db.query(models.AppTags)
-                    .join(TagAlias, models.AppTags.tag_id == TagAlias.id)
+                    .join(models.Tags)
                     .filter(
                         models.AppTags.app_id == models.App.id,
-                        TagAlias.name.in_(["NSFW", "Nudity", "Mature"])  # Exclude these tags
+                        models.Tags.name.in_(["NSFW", "Nudity", "Mature"])  # Exclude these tags
                     )
                     .exists()
                 )
