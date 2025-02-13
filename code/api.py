@@ -92,6 +92,7 @@ class API:
                 context={"message": "", "background_image": background_image}
             )
 
+
         @self.app.get("/apps")
         def read_apps(db=self.db_dependency, all_fields: bool = False, target_name: str = None, like: str = None):
             """
@@ -247,6 +248,7 @@ class API:
             game_input = game_input.replace("<", "").replace(">", "")
 
             selected_app = app_data_from_id_or_name(game_input, db, True, True)
+            apps = find_similar_games(selected_app, db)
 
             if not selected_app or not selected_app.id:
                 return self.templates.TemplateResponse(
@@ -262,8 +264,44 @@ class API:
                     break
 
             return self.templates.TemplateResponse(
-                request=request, name="game_output.html", context={"apps":[selected_app], "nsfw": nsfw}
+                request=request, name="game_output.html", context={"selected_app":selected_app, "apps": apps,"nsfw": nsfw}
             )
+
+        def find_similar_games(selected_app, db):
+            """Finds games with the most similar tags to the given game.
+
+            :param selected_app: The app object from the DB to filter on.
+            :param db: The database object
+            :return: The matching games filtered on matching tags of the input "selected_app"
+            """
+            gameid = str(selected_app.id)
+            gamename = selected_app.name
+
+            tags = selected_app.tags
+            genres = selected_app.genres
+            categories = selected_app.categories
+
+            if not tags or not genres or not categories:
+                raise HTTPException(status_code=404, detail="No tags or genres or categories found for app")
+
+            # get all games that are in the database
+            games = db.query(models.App).limit(3).all()
+            game_tags_relation = db.query(models.AppTags.app_id, models.AppTags.tag_id).all()
+
+            if not games:
+                raise HTTPException(status_code=404, detail="No games found in the database.")
+
+            matching_games = []
+
+            # Compare with every other game must be (O(n²)) (two for loops in this)
+            for game in games:
+                # check if game_tags_relation  gameid then add the tagid to the game.tags
+                game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation]
+
+                matching_games.append(game)
+
+
+            return matching_games
 
         def app_data_from_id_or_name(app_id_or_name: str, db, fuzzy: bool = True, categories: bool = False):
             """"
