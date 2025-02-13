@@ -5,6 +5,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+from sqlalchemy.sql.expression import func
+
 from code.algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
 from code.config import API_HOST_URL, API_HOST_PORT
 
@@ -58,15 +60,19 @@ class API:
         Function to define all the endpoints for the API.
         """
 
-        @self.app.get("/", response_class=HTMLResponse)
-        def root(request: Request):
+        @self.app.get("/")
+        def root(request: Request, db=self.db_dependency):
             """"
             The root endpoint of the API when visiting the website.
             :return: The HTML response from the index.html template.
             """
 
+            # Get a random background_image from the database
+            background_image = db.query(models.App.background_image).order_by(func.random()).first()
+
             return self.templates.TemplateResponse(
-                request=request, name="index.html", context={"message": "Hello world!"}
+                request=request, name="index.html",
+                context={"message": "Hello world!", "background_image": background_image[0]}
             )
 
         @self.app.get("/apps")

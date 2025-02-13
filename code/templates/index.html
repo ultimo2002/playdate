@@ -20,6 +20,17 @@
                  </form>
             </div>
         </div>
-
+        {% if background_image %}
+            <style>
+                body {
+                    background-image: url("{{ background_image }}");
+                    background-color: #1b2838;
+                    background-size: auto;
+                    background-position: center;
+                    background-attachment: fixed;
+                    color: white;
+                }
+            </style>
+        {% endif %}
 </body>
 </html>
