@@ -64,6 +64,15 @@
             background-attachment: fixed;
             color: white;
         }
+        {% if selected_app %}
+            {% set app_tags = selected_app.tags | map(attribute="name") | list %}
+            {% if "NSFW" in app_tags or "Nudity" in app_tags or "Mature" in app_tags or "Sexual Content" in app_tags or "Hentai" in app_tags %}
+                body.nsfw img {
+                    filter: blur(5px);
+                    transition: filter 1s;
+                }
+            {% endif %}
+        {% endif %}
 
         {% for app in apps %}
             {% set app_tags = app.tags | map(attribute="name") | list %}
