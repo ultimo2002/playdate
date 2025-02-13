@@ -11,7 +11,7 @@ from sqlalchemy.sql.expression import func
 from algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
 from config import API_HOST_URL, API_HOST_PORT
 
-import models as models
+import models
 from database import Engine, SessionLocal
 
 
