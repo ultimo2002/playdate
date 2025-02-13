@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from sqlalchemy.sql.expression import func
+from sqlalchemy.orm import aliased
 
 from code.algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
 from code.config import API_HOST_URL, API_HOST_PORT
@@ -68,11 +69,7 @@ class API:
             """
 
             # Get a random background_image from the database
-            from sqlalchemy.orm import aliased
-            from sqlalchemy.sql import exists
-
             TagAlias = aliased(models.Tags)
-
             background_image = (
                 db.query(models.App.background_image, models.App.name)
                 .filter(
