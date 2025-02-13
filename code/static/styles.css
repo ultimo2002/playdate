@@ -1,8 +1,7 @@
 body {
-    /*background-image: url('images/steam_bg.jpg');*/
-    /*background-size: cover;*/
-    /*background-position: center;*/
-    /*background-repeat: no-repeat;*/
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     background-color: cadetblue;
     margin: 0 auto;
     width: 80%;
