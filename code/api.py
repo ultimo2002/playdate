@@ -9,7 +9,7 @@ from sqlalchemy.sql import exists
 from sqlalchemy.sql.expression import func
 
 from algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
-from config import API_HOST_URL, API_HOST_PORT
+from config import API_HOST_URL, API_HOST_PORT, SEXUAL_CONTENT_TAGS
 
 import models
 from database import Engine, SessionLocal
@@ -75,7 +75,7 @@ class API:
                     ~exists().where(
                         (models.AppTags.app_id == models.App.id) &
                         (models.AppTags.tag_id == models.Tags.id) &
-                        (models.Tags.name.in_(["NSFW", "Nudity", "Mature"]))
+                        (models.Tags.name.in_(SEXUAL_CONTENT_TAGS))
                     )
                 )
                 .order_by(func.random())
@@ -257,7 +257,7 @@ class API:
             nsfw = False
 
             for tag in selected_app.tags:
-                if tag.name in ["NSFW", "Nudity", "Mature"]:
+                if tag.name in SEXUAL_CONTENT_TAGS:
                     nsfw = True
                     break
 
