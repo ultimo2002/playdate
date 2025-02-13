@@ -8,6 +8,11 @@
 </head>
 
 <body class="{% if nsfw %}nsfw{% endif %}">
+    <form action="/app_input" method="get" style="margin: 30px 0;">
+        <label for="game_input">Select game:</label>
+        <input type="text" id="game_input" name="game_input" required>
+        <button type="submit">Search</button>
+    </form>
     <div class="container">
         <div class="column columnl">
             <h2>Selected Game</h2>
