@@ -101,6 +101,13 @@ h3 {
     font-weight: bold;
     color: #27ae60;
     margin-top: 10px;
+    text-decoration: none;
+    transition: color 0.5s;
+}
+a.game-price:hover {
+    color: #2ecc71;
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
 }
 
 /* Overlay for background image name */
