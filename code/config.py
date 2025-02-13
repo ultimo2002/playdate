@@ -41,53 +41,6 @@ class TextStyles:
     inverse = "\u001b[7m"
     reset = "\u001b[0m"
 
-
-import sys
-import subprocess
-import traceback
-
-def get_git_author(filename, lineno):
-    """Try to get the author of a specific line using `git blame`.
-    :return: Author name if successful, otherwise an empty string.
-    """
-    try:
-        git_blame_output = subprocess.check_output(
-            ["git", "blame", f"-L{lineno},{lineno}", filename],
-            stderr=subprocess.DEVNULL,
-            text=True
-        )
-        return git_blame_output.split('(')[1].split()[0]  # Extract author name
-    except Exception:
-        return ''  # If blame fails, return empty string
-
-
-def womp_exception_hook(exc_type, exc_value, exc_traceback):
-    """Custom exception hook to add womp womp and the git author name from the error causing code."""
-    tb = traceback.format_exception(exc_type, exc_value, exc_traceback)
-
-    # Extract the last traceback entry (filename + line number)
-    last_call = traceback.extract_tb(exc_traceback)[-1]
-    filename = last_call.filename
-    lineno = last_call.lineno
-
-    # Try to get the author of the error line
-    author = get_git_author(filename, lineno)
-
-    # Print original traceback except last line
-    sys.stderr.write("".join(tb[:-1]))
-
-    if author:
-        sys.stderr.write(f"Womp womp skill issue, from: {author}. {tb[-1]}")
-    else:
-        sys.stderr.write(f"Womp womp, error: {tb[-1]}")
-
-def set_womp_exception(enabled):
-    """Enable or disable the custom womp womp exception hook."""
-    if enabled:
-        sys.excepthook = womp_exception_hook
-    else:
-        sys.excepthook = sys.__excepthook__
-
 def load_env():
     """Load environment variables from the .env file."""
     with open(".env") as f:
@@ -118,12 +71,4 @@ DB_CONFIG = {
     "DB_PORT": None,
 }
 
-# Set the custom exception hook
-set_womp_exception(True)
-
 load_env()
-
-# Only execute this code when this script is run directly, not when it's imported
-# We don't want ZeroDivisionError when this file is imported
-if __name__ == "__main__":
-    print(1 / 0)  # This will trigger a ZeroDivisionError
