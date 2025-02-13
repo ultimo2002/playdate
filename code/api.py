@@ -69,10 +69,14 @@ class API:
 
             # Get a random background_image from the database
             background_image = db.query(models.App.background_image).order_by(func.random()).first()
+            try:
+                background_image = background_image[0] if background_image else None
+            except (TypeError, IndexError, KeyError):
+                background_image = None
 
             return self.templates.TemplateResponse(
                 request=request, name="index.html",
-                context={"message": "Hello world!", "background_image": background_image[0]}
+                context={"message": "Hello world!", "background_image": background_image}
             )
 
         @self.app.get("/apps")
