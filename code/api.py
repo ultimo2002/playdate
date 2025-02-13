@@ -89,7 +89,7 @@ class API:
 
             return self.templates.TemplateResponse(
                 request=request, name="index.html",
-                context={"message": "Hello world!", "background_image": background_image}
+                context={"message": "", "background_image": background_image}
             )
 
         @self.app.get("/apps")

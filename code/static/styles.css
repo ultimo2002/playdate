@@ -15,9 +15,11 @@ body {
 
 h2 {
     font-size: 2em;
+    margin-top: 10px;
 }
 h3 {
     font-size: 1.5em;
+    margin-top: 10px;
 }
 
 .container {
@@ -114,7 +116,7 @@ h3 {
     opacity: 0.8;
     border-top-left-radius: 10px;
 }
-.overlay a {
+.overlay a, form a {
     color: white;
     text-decoration: none;
     transition: color 0.1s;
