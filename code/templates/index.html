@@ -21,9 +21,20 @@
             </div>
         </div>
         {% if background_image %}
+            <div class="overlay">{{ background_image.name }}</div>
             <style>
+                .overlay {
+                    position: absolute;
+                    bottom: 0;
+                    right: 0;
+                    background-color: rgba(0, 0, 0, 0.2);
+                    color: white;
+                    padding: 10px;
+                    font-size: 15px;
+                    opacity: 0.8;
+                }
                 body {
-                    background-image: url("{{ background_image }}");
+                    background-image: url("{{ background_image.background_image }}");
                     background-color: #1b2838;
                     background-size: auto;
                     background-position: center;
