@@ -8,17 +8,17 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.sql import exists
 from sqlalchemy.sql.expression import func
 
-from algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
-from config import API_HOST_URL, API_HOST_PORT, SEXUAL_CONTENT_TAGS
+from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
+from .config import API_HOST_URL, API_HOST_PORT, SEXUAL_CONTENT_TAGS
 
-import models
-from database import Engine, SessionLocal
+import code.models as models
+from .database import Engine, SessionLocal
 
 
 class API:
     db_dependency = None
 
-    templates = Jinja2Templates(directory="templates")
+    templates = Jinja2Templates(directory="code/templates")
 
     def __init__(self):
         """
@@ -26,7 +26,7 @@ class API:
         """
         self.app = FastAPI()
 
-        self.app.mount("/static", StaticFiles(directory="static"), name="static")
+        self.app.mount("/static", StaticFiles(directory="code/static"), name="static")
 
         models.Base.metadata.create_all(bind=Engine)
 
