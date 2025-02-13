@@ -12,6 +12,8 @@ APPS_LIST_CACHE_FILE = 'cache/apps_list.json'
 ADDED_GAMES_LIST_CACHE_FILE = 'cache/added_games_list.txt'
 CACHE_EXPIRATION_TIME = 604800  # Time in seconds (604800 seconds = 1 week)
 
+SEXUAL_CONTENT_TAGS = ["NSFW", "Nudity", "Mature", "Sexual Content", "Hentai"]
+
 def fetch_from_api(endpoint):
     """Make a GET request to the specified API endpoint and return the JSON data.
     :return: JSON data from the API, Exit when an error occurs.
