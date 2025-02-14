@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 from code.api import API
-from code.test_helpers import check_response, is_json, is_html, POSSIBLE_GET_ENDPOINTS
+from tests.test_helpers import check_response, is_json, is_html, POSSIBLE_GET_ENDPOINTS
 
 api_instance = API()
 api_instance.register_endpoints()

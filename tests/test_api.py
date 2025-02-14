@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 from code.api import API
-from code.test_helpers import check_response, is_json, check_list_of_items, check_app_response, is_html, TEST_APP_NAMES, \
+from tests.test_helpers import check_response, is_json, check_list_of_items, check_app_response, is_html, TEST_APP_NAMES, \
     ALL_APP_FIELDS, assert_common_app_tests
 
 api_instance = API()
