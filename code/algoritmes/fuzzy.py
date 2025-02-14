@@ -57,3 +57,51 @@ def _most_similar(target_name: str, items, key: str):
         return most_similar_item, round(highest_similarity, 2)
 
     return None, None
+
+import random
+
+def make_typo(text, appid=0, apps=None):
+    """Introduce small typos or grammatical errors into a string."""
+    if len(text) > 3:
+        random_list = ["swap", "remove", "duplicate", "misspell"]
+        if appid != 0:
+            random_list.append("appid")
+        if text.count(" ") > 1:
+            random_list.append("plusses")
+            random_list.append("nospaces")
+
+        typo_type = random.choice(random_list)
+
+        if typo_type == "appid":
+            return str(appid)
+
+        for _ in range(3):
+            typo_type = random.choice(random_list)
+            if typo_type == "swap":
+                i = random.randint(0, len(text) - 2)
+                text = text[:i] + text[i + 1] + text[i] + text[i + 2:]
+            elif typo_type == "plusses":
+                text = text.replace(" ", "+")
+            elif typo_type == "nospaces":
+                text = text.replace(" ", "")
+            elif typo_type == "remove":
+                i = random.randint(0, len(text) - 1)
+                text = text[:i] + text[i + 1:]
+            elif typo_type == "duplicate":
+                i = random.randint(0, len(text) - 1)
+                text = text[:i] + text[i] + text[i:]
+            elif typo_type == "misspell":
+                common_misspellings = {"their": "thier", "receive": "recieve", "app": "ap", "random": "randum", "from": "form", "is": "si", "an": "and", "with": "wiht", "for": "fro", "you": "u"}
+                words = text.split()
+                text = " ".join([common_misspellings.get(word, word) for word in words])
+
+        # check if the fuzzy algorithm still working on this text, else there is a possibility that the test will fail
+        if apps:
+            most_similar_app, score = _most_similar(text, apps, "name")
+            if most_similar_app and score > 50:
+                return text
+            else:
+                return str(appid)
+
+
+    return text

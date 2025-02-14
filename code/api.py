@@ -1,4 +1,5 @@
 import os
+import random
 
 from fastapi import FastAPI, Depends, Request, HTTPException
 import uvicorn
@@ -11,7 +12,7 @@ from sqlalchemy.sql import exists
 from sqlalchemy.sql.expression import func
 
 from code.algoritmes.cache import cache_background_image
-from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
+from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
 from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
 
 import code.database.models as models
@@ -494,6 +495,25 @@ class API:
                 return _fetch_apps(models.Tags.name == tag)
             except AttributeError:
                 raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found with tag name '{tag}'")
+
+        @self.app.get("/random_apps")
+        def get_random_apps(count: int = 15, db=self.db_dependency):
+            """
+            Get a dictionary with random apps from the database. With typo's in the names.
+            :param count: The amount of random apps to return.
+            :return: Dictionary with given count random apps with their id and name.
+            """
+            # maximal 75 apps, minimal 1 app, clamp the count
+            count = max(1, min(count, 75))
+            print(f"Getting {count} random apps from the database.")
+
+            all_apps = db.query(models.App.name).all() # get all app names that are in the database, needed to check fuzzy in
+            random_apps = db.query(models.App).order_by(func.random()).limit(count).all()
+
+            return {
+                make_typo(app.name, app.id, all_apps): {"expected_appid": app.id, "expected_name": app.name}
+                for app in random_apps
+            }
 
 if __name__ == "__main__":
     api = API()
