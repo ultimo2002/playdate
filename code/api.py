@@ -14,8 +14,8 @@ from code.algoritmes.cache import cache_background_image
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
 from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
 
-import code.models as models
-from .database import Engine, SessionLocal
+import code.database.models as models
+from code.database.database import Engine, SessionLocal
 
 
 class API:
@@ -237,7 +237,10 @@ class API:
             :param appid: The appid or name of the game to get the data for.
             :param fuzzy: If True, try to find the app by name even when the grammar is not correct using my fuzzy algorithm ^Seger. It skips this always when the appid is a number.
             """
-            return app_data_from_id_or_name(appid, db, fuzzy)
+            app = app_data_from_id_or_name(appid, db, fuzzy, False)
+            if not app:
+                raise HTTPException(status_code=404, detail="App not found.")
+            return app
 
         @self.app.get("/app_input", response_class=HTMLResponse)
         def handle_form(request: Request, game_input: str = "", db=self.db_dependency):
@@ -349,7 +352,8 @@ class API:
             if categories and app and app.id:
                 tags = db.query(models.Tags).join(models.AppTags).filter(models.AppTags.app_id == app.id).all()
                 genres = db.query(models.Genre).join(models.AppGenre).filter(models.AppGenre.app_id == app.id).all()
-                categories = db.query(models.Category).join(models.AppCategory).filter(models.AppCategory.app_id == app.id).all()
+                categories = db.query(models.Category).join(models.AppCategory).filter(
+                    models.AppCategory.app_id == app.id).all()
 
                 app.tags = tags
                 app.genres = genres

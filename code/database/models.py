@@ -1,5 +1,5 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, PrimaryKeyConstraint
-from .database import Base
+from code.database.database import Base
 
 class App(Base):
     __tablename__ = "apps"
