@@ -387,10 +387,10 @@ class API:
                         games = db.query(models.App.id, models.App.name).filter(models.App.developer == developer).all()
                         games = [{"id": game.id, "name": game.name} for game in games]
                 except AttributeError:
-                    raise HTTPException(status_code=404, detail=f"(AttributeError) No games found for developer {developer}")
+                    raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found for developer {developer}")
                 if games:
                     return games
-                raise HTTPException(status_code=404, detail=f"No games found for developer {developer}")
+                raise HTTPException(status_code=404, detail=f"No apps found for developer {developer}")
             else:
                 raise HTTPException(status_code=404, detail="Developer not found")
 
@@ -503,8 +503,8 @@ class API:
             :param count: The amount of random apps to return.
             :return: Dictionary with given count random apps with their id and name.
             """
-            # maximal 75 apps, minimal 1 app, clamp the count
-            count = max(1, min(count, 75))
+            # maximal 25 apps, minimal 1 app, clamp the count
+            count = max(1, min(count, 25))
             print(f"Getting {count} random apps from the database.")
 
             all_apps = db.query(models.App.name).all() # get all app names that are in the database, needed to check fuzzy in
