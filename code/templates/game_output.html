@@ -31,7 +31,7 @@
                     {% endfor %}
                     </p>
                     <p class="game-genres"><strong>Categories:</strong> {{ selected_app.categories | map(attribute="name") | join(", ") }}</p>
-                    <a class="game-price" href="https://store.steampowered.com/app/{{ selected_app.id }}" target="_blank">Price: {{ selected_app.price if selected_app.price else "Free" }}</a>
+                    <a class="game-price" href="https://store.steampowered.com/app/{{ selected_app.id }}" target="_blank" ref="noopener noreferrer">Price: {{ selected_app.price if selected_app.price else "Free" }}</a>
                 </div>
             </div>
             {% endif %}
