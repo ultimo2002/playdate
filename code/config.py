@@ -1,4 +1,5 @@
 import os
+import sys
 
 import requests
 
@@ -64,6 +65,17 @@ def load_env():
                     except ValueError:
                         print(f"Invalid API_HOST_PORT value. Using default port 8000.")
                         API_HOST_PORT = 8000
+    # Detect docker environment on Linux, because the API_HOST_URL should be 0.0.0.0 in Docker
+    if sys.platform.startswith("linux"):
+        print('Detected Linux platform (possibly Docker). Setting API_HOST_URL to "0.0.0.0" and API_HOST_PORT to 8000.')
+        API_HOST_URL = "0.0.0.0"
+        # Used to set DB_HOST to "host.docker.internal" to connect to a locally running PostgreSQL database.
+        # e.g: docker run -d --name fastapi -it -p 8000:8000 -e NETWORK_URL=host.docker.internal fastapi
+        network_url = os.getenv("NETWORK_URL", None)
+        if network_url and isinstance(network_url, str):
+            print(f"Detected NETWORK_URL, setting DB_HOST to {network_url}")
+            DB_CONFIG["DB_HOST"] = network_url
+
 
 DB_CONFIG = {
     "DB_USER": None,
@@ -72,5 +84,3 @@ DB_CONFIG = {
     "DB_HOST": None,
     "DB_PORT": None,
 }
-
-load_env()
