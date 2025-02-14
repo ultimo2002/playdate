@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, Depends, Request, HTTPException
 import uvicorn
 
@@ -8,8 +10,9 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.sql import exists
 from sqlalchemy.sql.expression import func
 
+from code.algoritmes.cache import cache_background_image
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
-from .config import API_HOST_URL, API_HOST_PORT, SEXUAL_CONTENT_TAGS
+from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
 
 import code.models as models
 from .database import Engine, SessionLocal
@@ -75,7 +78,7 @@ class API:
                     ~exists().where(
                         (models.AppTags.app_id == models.App.id) &
                         (models.AppTags.tag_id == models.Tags.id) &
-                        (models.Tags.name.in_(SEXUAL_CONTENT_TAGS))
+                        (models.Tags.name.in_(BLOCKED_CONTENT_TAGS))
                     )
                 )
                 .order_by(func.random())
@@ -86,6 +89,10 @@ class API:
                 background_image = background_image if background_image else None
             except (TypeError, IndexError, KeyError):
                 background_image = None
+
+            if os.getenv("CACHE_IMAGES") and background_image:
+                background_image = cache_background_image(background_image)
+
 
             return self.templates.TemplateResponse(
                 request=request, name="index.html",
@@ -261,9 +268,17 @@ class API:
             nsfw = False
 
             for tag in selected_app.tags:
-                if tag.name in SEXUAL_CONTENT_TAGS:
+                if tag.name in BLOCKED_CONTENT_TAGS:
                     nsfw = True
                     break
+
+            # chache the background image
+            if os.getenv("CACHE_IMAGES") and selected_app.background_image:
+                cached = cache_background_image(selected_app)
+                try:
+                    selected_app.background_image = cached["background_image"] if cached else selected_app.background_image
+                except (TypeError, KeyError):
+                    selected_app.background_image = selected_app.background_image
 
             return self.templates.TemplateResponse(
                 request=request, name="game_output.html", context={"selected_app":selected_app, "apps": apps,"nsfw": nsfw}

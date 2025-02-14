@@ -12,8 +12,17 @@ STEAMSTORE_BASE_URL = 'https://store.steampowered.com/api/'
 APPS_LIST_CACHE_FILE = 'cache/apps_list.json'
 ADDED_GAMES_LIST_CACHE_FILE = 'cache/added_games_list.txt'
 CACHE_EXPIRATION_TIME = 604800  # Time in seconds (604800 seconds = 1 week)
+IMAGE_CACHE_PATH = "code/static/cache"
 
-SEXUAL_CONTENT_TAGS = ["NSFW", "Nudity", "Mature", "Sexual Content", "Hentai"]
+BLOCKED_CONTENT_TAGS = ["NSFW", "Nudity", "Mature", "Sexual Content", "Hentai"]
+
+DB_CONFIG = {
+    "DB_USER": None,
+    "DB_PASSWORD": None,
+    "DB_NAME": None,
+    "DB_HOST": None,
+    "DB_PORT": None,
+}
 
 def fetch_from_api(endpoint):
     """Make a GET request to the specified API endpoint and return the JSON data.
@@ -46,41 +55,54 @@ class TextStyles:
 
 def load_env():
     """Load environment variables from the .env file."""
+    # Read the .env file and process lines
     with open(".env") as f:
         for line in f:
-            if line.strip() and not line.startswith("#"):  # Ignore empty lines and comments
-                key, value = line.strip().split("=", 1)
+            line = line.strip()
+            if line and not line.startswith("#"):  # Ignore empty lines and comments
+                key, value = line.split("=", 1)
                 os.environ[key] = value
-                # update DB_CONFIG
+
+                # Update DB_CONFIG if necessary
                 if key in DB_CONFIG:
                     DB_CONFIG[key] = value
 
-                if key == "API_HOST_URL":
-                    global API_HOST_URL
-                    API_HOST_URL = value
-                elif key == "API_HOST_PORT":
-                    global API_HOST_PORT
-                    try:
-                        API_HOST_PORT = int(value)
-                    except ValueError:
-                        print(f"Invalid API_HOST_PORT value. Using default port 8000.")
-                        API_HOST_PORT = 8000
-    # Detect docker environment on Linux, because the API_HOST_URL should be 0.0.0.0 in Docker
+                # Handle specific environment variables
+                handle_specific_env_vars(key, value)
+
+    # Docker-specific adjustments (Linux platform)
     if sys.platform.startswith("linux"):
-        print('Detected Linux platform (possibly Docker). Setting API_HOST_URL to "0.0.0.0" and API_HOST_PORT to 8000.')
+        print('Detected Linux platform (possibly Docker). Setting API_HOST_URL to "0.0.0.0".')
+        global API_HOST_URL
         API_HOST_URL = "0.0.0.0"
-        # Used to set DB_HOST to "host.docker.internal" to connect to a locally running PostgreSQL database.
-        # e.g: docker run -d --name fastapi -it -p 8000:8000 -e NETWORK_URL=host.docker.internal fastapi
-        network_url = os.getenv("NETWORK_URL", None)
-        if network_url and isinstance(network_url, str):
-            print(f"Detected NETWORK_URL, setting DB_HOST to {network_url}")
-            DB_CONFIG["DB_HOST"] = network_url
+        configure_docker_network()
 
+    # Cache images from environment
+    set_cache_images()
 
-DB_CONFIG = {
-    "DB_USER": None,
-    "DB_PASSWORD": None,
-    "DB_NAME": None,
-    "DB_HOST": None,
-    "DB_PORT": None,
-}
+def handle_specific_env_vars(key, value):
+    """Handle specific environment variables with custom logic."""
+    global API_HOST_URL, API_HOST_PORT
+    if key == "API_HOST_URL":
+        API_HOST_URL = value
+    elif key == "API_HOST_PORT":
+        try:
+            API_HOST_PORT = int(value)
+        except ValueError:
+            print(f"Invalid API_HOST_PORT value. Using default port 8000.")
+            API_HOST_PORT = 8000
+
+def configure_docker_network():
+    """Configure Docker network settings."""
+    network_url = os.getenv("NETWORK_URL")
+    if network_url:
+        print(f"Detected NETWORK_URL, setting DB_HOST to {network_url}")
+        DB_CONFIG["DB_HOST"] = network_url
+
+def set_cache_images():
+    """Set cache images from the environment."""
+    cache_env = os.getenv("CACHE_IMAGES")
+    if cache_env:
+        caching = cache_env.strip().lower()[0] in ("t", "1", "y")
+        os.environ["CACHE_IMAGES"] = str(caching).lower() if caching else ""
+        print(f"CACHE_IMAGES set to {caching}")

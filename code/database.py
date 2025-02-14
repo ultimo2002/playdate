@@ -15,7 +15,7 @@ def set_database_url():
 
     global URL_DATABASE
     URL_DATABASE = f"postgresql://{DB_CONFIG['DB_USER']}:{DB_CONFIG['DB_PASSWORD']}@{DB_CONFIG['DB_HOST']}:{DB_CONFIG['DB_PORT']}/{DB_CONFIG['DB_NAME']}"
-    print(f"Set database URL to: {URL_DATABASE}")
+    # print(f"Set database URL to: {URL_DATABASE}") # For security, don't print the URL
 
 def set_database_engine():
     """Set the database engine, session and base."""
@@ -26,7 +26,7 @@ def set_database_engine():
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=Engine)
     Base = declarative_base()
     print(f"Set database engine to: {Engine}")
-    print(f"Set database session to: {SessionLocal}")
-    print(f"Set database base to: {Base}")
+    # print(f"Set database session to: {SessionLocal}")
+    # print(f"Set database base to: {Base}")
 
 set_database_engine()
