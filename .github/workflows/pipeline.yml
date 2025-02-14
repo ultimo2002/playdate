@@ -38,7 +38,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Run tests
       run: |
-          PYTHONPATH=.. pytest
+          PYTHONPATH=.. pytest -v
     - name: Connect to server and execute start script
       run: |
         sudo apt-get update
