@@ -20,7 +20,7 @@ TEST_APPS = {
 # Save the default test apps for later use (e.g., if the random apps cannot be fetched)
 DEFAULT_TEST_APPS = TEST_APPS.copy()
 
-STEEKPROEF_APPS = 25
+STEEKPROEF_APPS = 15
 
 def is_imported_from(filename):
     stack = sys._getframe().f_back

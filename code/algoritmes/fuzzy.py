@@ -71,7 +71,7 @@ def make_typo(text, appid=0, apps=None):
     """Introduce small typos or grammatical errors into a string."""
     modified_text = text
 
-    typos_amount = random.randint(1, 2) # The amount of typos to make on the string
+    typos_amount = random.randint(1, 3) # The amount of typos to make on the string
 
     for _ in range(typos_amount):
         typo_type = random.choice(typo_types)
@@ -79,20 +79,19 @@ def make_typo(text, appid=0, apps=None):
             typo_type = random.choice([t for t in typo_types if t != "remove_special_chars"])
 
         if typo_type == "duplicate":
-            # duplicate 1 letter to a neighbour letter ro replace that do this a few times
-            for i in range(2):
-                index = random.randint(0, len(text) - 2)
-                modified_text = text[:index] + text[index] + text[index:]
+            # Duplicate a random neighbour character in the string
+            index = random.randint(0, len(text) - 2)
+            modified_text = text[:index] + text[index] + text[index] + text[index + 1:]
 
             print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}duplicate chars from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
         elif typo_type == "nospaces" or typo_type == "plusses":
             # Remove spaces with empty strings or replace for plusses
             modified_text = text.replace(" ", "") if typo_type == "nospaces" else text.replace(" ", "+")
-            spaces_or_plusses = "spaces" if typo_type == "nospaces" else "plusses"
+            spaces_or_plusses = "nospaces" if typo_type == "nospaces" else "plusses"
             print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}replace spaces with {spaces_or_plusses} from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
         elif typo_type == "capitalize":
             # capitalize a random letter in the string
-            for i in range(2):
+            for i in range(3):
                 index = random.randint(0, len(text) - 1)
                 modified_text = text[:index] + text[index].upper() + text[index + 1:]
             print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}capitalize a random letter from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
@@ -100,9 +99,9 @@ def make_typo(text, appid=0, apps=None):
             # remove special characters from the string
             modified_text = "".join(c for c in text if c.isalnum() or c.isspace())
             print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}remove special characters from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
-        elif typo_type == "id":
+        elif typo_type == "id" and text == modified_text: # Only do this if the text hasn't been modified yet, for computational efficiency
             # return the appid as a string
-            print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}return the appid as a string from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{appid}{TextStyles.reset}")
+            print(f"{TextStyles.green}{TextStyles.bold}FOUND & Doing typo: {TextStyles.reset}{TextStyles.pink}return the appid as a string from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{appid}{TextStyles.reset}")
             return str(appid)
 
     # Check if the typo is valid (avoiding test failures)

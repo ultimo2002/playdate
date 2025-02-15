@@ -38,6 +38,9 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Run tests
       run: |
+          # -v means verbose (display PASSed functions/tests), -s means print the print() to the console
+          PYTHONPATH=.. pytest -v -s
+          # run again without -s
           PYTHONPATH=.. pytest -v
     - name: Connect to server and execute start script
       run: |
