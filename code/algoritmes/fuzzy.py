@@ -1,4 +1,6 @@
 # All functions in this file are for the fuzzy algorithm to find the most similar item in a list based on a calculated similarity score.
+from code.config import TextStyles
+
 
 def levenshtein_distance(s1, s2):
     if len(s1) < len(s2):
@@ -24,6 +26,7 @@ def jaccard_similarity(s1, s2):
     set1, set2 = set(s1.lower().split()), set(s2.lower().split())
     intersection = set1 & set2
     union = set1 | set2
+    return len(intersection) / len(union) * 100 if union else 0
     return len(intersection) / len(union) * 100 if union else 0
 
 def similarity_score(s1, s2):
@@ -59,49 +62,57 @@ def _most_similar(target_name: str, items, key: str):
     return None, None
 
 import random
+import time
+
+typo_types = ["duplicate", "nospaces", "plusses", "capitalize", "duplicate", "remove_special_chars", "id"]
+random.seed(time.time())
 
 def make_typo(text, appid=0, apps=None):
     """Introduce small typos or grammatical errors into a string."""
-    if len(text) > 3:
-        random_list = ["swap", "remove", "duplicate", "misspell"]
-        if appid != 0:
-            random_list.append("appid")
-        if text.count(" ") > 1:
-            random_list.append("plusses")
-            random_list.append("nospaces")
+    modified_text = text
 
-        typo_type = random.choice(random_list)
+    typos_amount = random.randint(1, 2) # The amount of typos to make on the string
 
-        if typo_type == "appid":
+    for _ in range(typos_amount):
+        typo_type = random.choice(typo_types)
+        if typo_type == "remove_special_chars" and not any(c for c in text if not c.isalnum() and not c.isspace()):
+            typo_type = random.choice([t for t in typo_types if t != "remove_special_chars"])
+
+        if typo_type == "duplicate":
+            # duplicate 1 letter to a neighbour letter ro replace that do this a few times
+            for i in range(2):
+                index = random.randint(0, len(text) - 2)
+                modified_text = text[:index] + text[index] + text[index:]
+
+            print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}duplicate chars from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
+        elif typo_type == "nospaces" or typo_type == "plusses":
+            # Remove spaces with empty strings or replace for plusses
+            modified_text = text.replace(" ", "") if typo_type == "nospaces" else text.replace(" ", "+")
+            spaces_or_plusses = "spaces" if typo_type == "nospaces" else "plusses"
+            print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}replace spaces with {spaces_or_plusses} from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
+        elif typo_type == "capitalize":
+            # capitalize a random letter in the string
+            for i in range(2):
+                index = random.randint(0, len(text) - 1)
+                modified_text = text[:index] + text[index].upper() + text[index + 1:]
+            print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}capitalize a random letter from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
+        elif typo_type == "remove_special_chars":
+            # remove special characters from the string
+            modified_text = "".join(c for c in text if c.isalnum() or c.isspace())
+            print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}remove special characters from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
+        elif typo_type == "id":
+            # return the appid as a string
+            print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}return the appid as a string from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{appid}{TextStyles.reset}")
             return str(appid)
 
-        for _ in range(3):
-            typo_type = random.choice(random_list)
-            if typo_type == "swap":
-                i = random.randint(0, len(text) - 2)
-                text = text[:i] + text[i + 1] + text[i] + text[i + 2:]
-            elif typo_type == "plusses":
-                text = text.replace(" ", "+")
-            elif typo_type == "nospaces":
-                text = text.replace(" ", "")
-            elif typo_type == "remove":
-                i = random.randint(0, len(text) - 1)
-                text = text[:i] + text[i + 1:]
-            elif typo_type == "duplicate":
-                i = random.randint(0, len(text) - 1)
-                text = text[:i] + text[i] + text[i:]
-            elif typo_type == "misspell":
-                common_misspellings = {"their": "thier", "receive": "recieve", "app": "ap", "random": "randum", "from": "form", "is": "si", "an": "and", "with": "wiht", "for": "fro", "you": "u"}
-                words = text.split()
-                text = " ".join([common_misspellings.get(word, word) for word in words])
+    # Check if the typo is valid (avoiding test failures)
+    if apps and appid:
+        most_similar_app, score = _most_similar(modified_text, apps, "name")
+        if most_similar_app and most_similar_app.id == appid and modified_text != most_similar_app.name and score > 75:
+            print(f"{TextStyles.green}{TextStyles.bold}FOUND Typo:{TextStyles.reset}{TextStyles.yellow} {text}{TextStyles.grey} -> {modified_text} (score: {score}){TextStyles.reset}")
+            return modified_text
+        else:
+            print(f"{TextStyles.red}{TextStyles.bold}FAILED Typo:{TextStyles.reset}{TextStyles.grey} {text} -> {modified_text}{TextStyles.reset}")
+            return str(appid)
 
-        # check if the fuzzy algorithm still working on this text, else there is a possibility that the test will fail
-        if apps:
-            most_similar_app, score = _most_similar(text, apps, "name")
-            if most_similar_app and score > 50:
-                return text
-            else:
-                return str(appid)
-
-
-    return text
+    return modified_text

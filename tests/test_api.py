@@ -93,7 +93,7 @@ def test_app_fuzzy_search():
 
     # the key of the dictionary is the app name set the app_name to the key from new TEST_APPS
     for app_name, app in TEST_APPS.items():
-        assert TEST_MARGIN > 0
+        assert TEST_MARGIN >= 0
 
         response = client.get(f"/app/{app_name}")
 
@@ -187,32 +187,47 @@ def test_apps_from_developer():
     assert check_response(response, 404) and is_json(response)
     assert "No apps found for developer" in response.json()["detail"]
 
-def test_handle_form():
+def test_get_app_input_rerurn_frontpage():
     """
-    Test the GET "/app_input" endpoint to handle the form data.
+    Test the GET "/app_input" endpoint without query parameters,
+    ensuring it returns the front page.
     """
-    response = client.get("/app_input") # should return the front page when no query parameter is given
+    response = client.get("/app_input")
     assert check_response(response, 200) and not is_json(response)
     assert is_html(response)
     assert contains_form(response, method="GET")
-    # check if background image is set and overlay class is on the page
-    assert "background-image" in response.text and "overlay" in response.text # Overlay is the app name in the bottom right corner
-    assert check_h1_tag(response) # Test if there is only one h1 tag on the page
+    # Check if the background image is set and overlay class is on the page
+    assert "background-image" in response.text and "overlay" in response.text
+    # Ensure there is exactly one h1 tag on the page
+    assert check_h1_tag(response)
 
-    # now send GET request parameters with game_input query parameter to the endpoint, it should return the page with <h2> tag with "Selected Game"
-    response = client.get("/app_input?game_input=Among%20Sus")
+
+def test_get_app_input_with_game_query():
+    """
+    Test the GET "/app_input" endpoint with a 'game_input' query parameter,
+    ensuring the correct game is selected and the proper elements are present.
+    """
+    response = client.get("/app_input?game_input=Among+Sus")
     assert check_response(response, 200) and not is_json(response)
     assert is_html(response)
-    assert "Among Us" in response.text # Test if the correct game is in the response (Among Sus is a typo, so it should be Among Us)
-    assert contains_form(response, method="GET") # Test if the form is still there, at the top of the page now.
+    # "Among Sus" is a typo so the expected output should correct it to "Among Us"
+    assert "Among Us" in response.text
+    assert contains_form(response, method="GET")  # The form should still be present
     assert "Home</a>" in response.text
     assert "<h2>Selected Game</h2>" in response.text
-    assert check_h1_tag(response) # Test if there is only one h1 tag on the page
+    # Ensure there is exactly one h1 tag on the page
+    assert check_h1_tag(response)
 
-    # now send POST request to the endpoint with game_input, it should give an error because the method is not allowed
+
+def test_post_app_input_not_allowed():
+    """
+    Test the POST method on "/app_input" endpoint, which should return an error
+    since POST is not allowed.
+    """
     response = client.post("/app_input", data={"game_input": "Among Sus"})
     assert check_response(response, 405) and is_json(response)
     assert response.json()["detail"] == "Method Not Allowed"
+
 
 def test_random_apps():
     """

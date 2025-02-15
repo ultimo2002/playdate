@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from code.api import API
 from code.config import TextStyles
 import code.database.models as models
+import sys
 
 POSSIBLE_GET_ENDPOINTS = ["/apps", "/categories", "/tags", "/genres", "/app/{appid}", "/cats", "/apps/developer/{target_name}", "/apps/tag/{target_name}"]
 ALL_APP_FIELDS = [field.name for field in models.App.__table__.columns]
@@ -21,10 +22,24 @@ DEFAULT_TEST_APPS = TEST_APPS.copy()
 
 STEEKPROEF_APPS = 25
 
+def is_imported_from(filename):
+    stack = sys._getframe().f_back
+    while stack:
+        if stack.f_code.co_filename.endswith(filename):
+            return True
+        stack = stack.f_back
+    return False
+
 api_instance = API()
 api_instance.register_endpoints()
 client = TestClient(api_instance.app)
 try:
+    # only fetch random apps if this file is imported from test_api.py, else it is not good for testing performance
+    # if the test_helpers.py file is imported from another file
+    if not is_imported_from("test_api.py"):
+        print(f"{TextStyles.bold}Fetching random apps for testing...{TextStyles.reset}")
+        raise Exception("Not imported from test_api.py")
+
     # Fill the TEST_APPS with random apps
     # Om een steekproef te nemen van een aantal willekeurige apps, Die worden gebruikt in de test van "test_api.py"
     reponse_random_apps = client.get(f"/random_apps?count={STEEKPROEF_APPS}")
@@ -36,7 +51,7 @@ try:
     print(f"{TextStyles.bold}Total test apps: {TextStyles.reset}{TextStyles.green}{TextStyles.bold}{len(TEST_APPS)} apps{TextStyles.reset}")
     del reponse_random_apps
 except Exception as e:
-    print(f"{TextStyles.bold}{TextStyles.red}Error fetching random apps: {TextStyles.reset}{e}")
+    print(f"{TextStyles.bold}Error fetching random apps: {TextStyles.reset}{e}")
     print("Setting TEST_APPS to the DEFAULT_TEST_APPS.")
     TEST_APPS = DEFAULT_TEST_APPS
 finally:

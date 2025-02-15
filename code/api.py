@@ -507,8 +507,8 @@ class API:
             count = max(1, min(count, 25))
             print(f"Getting {count} random apps from the database.")
 
-            all_apps = db.query(models.App.name).all() # get all app names that are in the database, needed to check fuzzy in
-            random_apps = db.query(models.App).order_by(func.random()).limit(count).all()
+            all_apps = db.query(models.App.id, models.App.name).all() # get all app names that are in the database, needed to check fuzzy in
+            random_apps = db.query(models.App).with_entities(models.App.id, models.App.name).order_by(func.random()).limit(count).all()
 
             return {
                 make_typo(app.name, app.id, all_apps): {"expected_appid": app.id, "expected_name": app.name}

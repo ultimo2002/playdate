@@ -48,6 +48,7 @@ class TextStyles:
     cyan = "\u001b[0;36m"
     white = "\u001b[0;37m"
     grey = "\u001b[0;90m"
+    pink = "\u001b[0;95m"
     underline = "\u001b[4m"
     bold = "\u001b[1m"
     inverse = "\u001b[7m"
