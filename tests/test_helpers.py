@@ -4,7 +4,7 @@ from code.config import TextStyles
 import code.database.models as models
 import sys
 
-POSSIBLE_GET_ENDPOINTS = ["/apps", "/categories", "/tags", "/genres", "/app/{appid}", "/cats", "/apps/developer/{target_name}", "/apps/tag/{target_name}"]
+POSSIBLE_GET_ENDPOINTS = ["/", "/apps", "/categories", "/tags", "/genres", "/app/{appid}", "/cats", "/apps/developer/{target_name}", "/apps/tag/{target_name}"]
 ALL_APP_FIELDS = [field.name for field in models.App.__table__.columns]
 
 # Default test apps with app names and app IDs and typos (to be later appended with random apps (als steekproef))
@@ -37,12 +37,11 @@ try:
     # only fetch random apps if this file is imported from test_api.py, else it is not good for testing performance
     # if the test_helpers.py file is imported from another file
     if not is_imported_from("test_api.py"):
-        print(f"{TextStyles.bold}Fetching random apps for testing...{TextStyles.reset}")
         raise Exception("Not imported from test_api.py")
 
     # Fill the TEST_APPS with random apps
     # Om een steekproef te nemen van een aantal willekeurige apps, Die worden gebruikt in de test van "test_api.py"
-    reponse_random_apps = client.get(f"/random_apps?count={STEEKPROEF_APPS}")
+    reponse_random_apps = client.get(f"/apps/random?count={STEEKPROEF_APPS}")
 
     if reponse_random_apps.status_code == 200 and "application/json" in reponse_random_apps.headers["content-type"]:
         for app_name_key, app in reponse_random_apps.json().items():

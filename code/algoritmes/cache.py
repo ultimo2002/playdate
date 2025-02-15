@@ -37,3 +37,23 @@ def cache_background_image(app):
     # Adjust the path as needed and return the background image info
     background_image_path = image_path.split("/", 1)[1]
     return {"id": app.id, "name": app.name, "background_image": background_image_path}
+
+def cache_header_image(app):
+    if not app or not hasattr(app, "header_image") or not app.header_image:
+        return None
+
+    image_url = app.header_image
+    ext = image_url.split(".")[-1].split("?")[0]
+    image_path = f"{IMAGE_CACHE_PATH}/hi_{app.id}.{ext}" # hi is short for header_image
+
+    if not os.path.exists(image_path):
+        if download_image(image_url, image_path):
+            print(f"Cached image: {image_path}")
+        else:
+            return None
+    else:
+        print(f"Image already cached: {image_path}")
+
+    # Adjust the path as needed and return the header image info
+    header_image_path = image_path.split("/", 1)[1]
+    return {"id": app.id, "name": app.name, "header_image": header_image_path}

@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.sql import exists
 from sqlalchemy.sql.expression import func
 
-from code.algoritmes.cache import cache_background_image
+from code.algoritmes.cache import cache_background_image, cache_header_image
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
 from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
 
@@ -243,6 +243,43 @@ class API:
                 raise HTTPException(status_code=404, detail="App not found.")
             return app
 
+        @self.app.get("/developers")
+        def read_developers(db=self.db_dependency, apps = False):
+            """
+            Get all developers in the database.
+            :param apps: If True, also return the apps for developers.
+            :return: List of developers in JSON/dictionary format with id and name.
+            """
+            if apps:
+                developers = db.query(
+                    models.App.developer,
+                    models.App.id,
+                    models.App.name,
+                ).order_by(models.App.id).all()
+
+                if not developers:
+                    raise HTTPException(status_code=404, detail="No developers found in the database.")
+
+                developers_result = {}
+                for dev in developers:
+                    if dev.developer not in developers_result:
+                        developers_result[dev.developer] = {"name": dev.developer, "apps": []}
+                    developers_result[dev.developer]["apps"].append({
+                        "id": dev.id,
+                        "name": dev.name
+                    })
+
+                if not developers_result:
+                    raise HTTPException(status_code=404, detail="No games found for developers in the database.")
+
+                return list(developers_result.values())
+
+            developers = db.query(models.App.developer).distinct().all()
+            if not developers:
+                raise HTTPException(status_code=404, detail="No developers found in the database.")
+
+            return [{"name": dev.developer} for dev in developers]
+
         @self.app.get("/app_input", response_class=HTMLResponse)
         def handle_form(request: Request, game_input: str = "", db=self.db_dependency):
             """"
@@ -283,6 +320,12 @@ class API:
                     selected_app.background_image = cached["background_image"] if cached else selected_app.background_image
                 except (TypeError, KeyError):
                     selected_app.background_image = selected_app.background_image
+
+                cached = cache_header_image(selected_app)
+                try:
+                    selected_app.header_image = cached["header_image"] if cached else selected_app.header_image
+                except (TypeError, KeyError):
+                    selected_app.header_image = selected_app.header_image
 
             return self.templates.TemplateResponse(
                 request=request, name="game_output.html", context={"selected_app":selected_app, "apps": apps,"nsfw": nsfw}
@@ -496,7 +539,7 @@ class API:
             except AttributeError:
                 raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found with tag name '{tag}'")
 
-        @self.app.get("/random_apps")
+        @self.app.get("/apps/random")
         def get_random_apps(count: int = 15, db=self.db_dependency):
             """
             Get a dictionary with random apps from the database. With typo's in the names.

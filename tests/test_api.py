@@ -228,6 +228,19 @@ def test_post_app_input_not_allowed():
     assert check_response(response, 405) and is_json(response)
     assert response.json()["detail"] == "Method Not Allowed"
 
+def test_developers():
+    """
+    Test the GET "/developers" endpoint for a list of all developers in the database. with name.
+    """
+    response = client.get("/developers")
+    assert check_response(response, 200) and is_json(response)
+    check_list_of_items(response, ["name"])
+
+    response = client.get("/developers?apps=true")
+    assert check_response(response, 200) and is_json(response)
+    # Test if the response contains a list of developers with the expected fields
+    assert all(key in response.json()[0] for key in ["name", "apps"])
+    assert all(key in response.json()[0]["apps"][0] for key in ["id", "name"])
 
 def test_random_apps():
     """
@@ -235,7 +248,7 @@ def test_random_apps():
     """
     NUMBER_OF_RANDOM_APPS = 3
 
-    response = client.get(f"/random_apps?count={NUMBER_OF_RANDOM_APPS}")
+    response = client.get(f"/apps/random?count={NUMBER_OF_RANDOM_APPS}")
     assert check_response(response, 200) and is_json(response)
 
     response_json = response.json()
@@ -261,11 +274,11 @@ def test_random_apps():
     assert all(isinstance(app["expected_appid"], int) and isinstance(app["expected_name"], str) for app in response_json.values())
 
     # test that if we ask for more than 1000 apps we only get 25 apps back
-    response = client.get("/random_apps?count=1000")
+    response = client.get("/apps/random?count=1000")
     assert check_response(response, 200) and is_json(response)
     assert len(response.json()) == 25
 
     # test that if we ask for less than 1 app we get 1 app back
-    response = client.get("/random_apps?count=0")
+    response = client.get("/apps/random?count=0")
     assert check_response(response, 200) and is_json(response)
     assert len(response.json()) == 1
