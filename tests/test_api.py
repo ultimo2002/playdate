@@ -146,6 +146,35 @@ def test_app_fuzzy_search_without_fuzzy():
             assert message and all(word in message for word in ["App", "not", "found"])
             print(f"{TextStyles.green}(good) 404 response for: {app_name}{TextStyles.reset}")
 
+def test_app_recommend_image_cache():
+    """
+    Test the GET "/recommend" endpoint for image caching.
+    """
+    # enable image caching temporarily for this test in the environment variables
+    import os
+    initial_env = os.environ.get("CACHE_IMAGES", "false")
+    os.environ["CACHE_IMAGES"] = "true"
+
+    response = client.get("/recommend?game=Among+Us")
+    assert check_response(response, 200) and not is_json(response)
+    assert is_html(response)
+
+    assert "background-image" in response.text
+    image_url = response.text.split("background-image: url(")[1].split(")")[0].strip()
+    assert "bg_" in image_url
+
+    assert "Logo of Among Us" in response.text
+    assert "game-image" in response.text
+    assert "hi_" in response.text
+
+    # reset the environment variable to the initial value, and delete imported modules from memory
+    os.environ["CACHE_IMAGES"] = initial_env
+
+    # delete the cached images
+    os.remove("code/static/cache/bg_945360.jpg")
+    os.remove("code/static/cache/hi_945360.jpg")
+    del os
+
 def test_apps_get_tags():
     """
     Test the GET "/apps/tag/{target_name}" endpoint for valid apps based on the tag name.

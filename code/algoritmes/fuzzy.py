@@ -110,11 +110,11 @@ def make_typo(text, appid=0, apps=None):
     # Check if the typo is valid (avoiding test failures)
     if apps and appid:
         most_similar_app, score = _most_similar(modified_text, apps, "name")
-        if most_similar_app and most_similar_app.id == appid and modified_text != most_similar_app.name and score > 75:
+        if most_similar_app and most_similar_app.id == appid and modified_text != most_similar_app.name and score > 60:
             print(f"{TextStyles.green}{TextStyles.bold}FOUND Typo:{TextStyles.reset}{TextStyles.yellow} {original_text}{TextStyles.grey} -> {modified_text} (score: {score}){TextStyles.reset}")
             return modified_text
         else:
-            print(f"{TextStyles.red}{TextStyles.bold}FAILED Typo: Setting to appid: {TextStyles.reset}{TextStyles.grey} {modified_text} -> {appid}{TextStyles.reset}")
+            print(f"{TextStyles.red}{TextStyles.bold}NOT FOUND Typo: Setting to appid: {TextStyles.reset}{TextStyles.grey} {modified_text} -> {appid}{TextStyles.reset}")
             return str(appid)
 
     return modified_text

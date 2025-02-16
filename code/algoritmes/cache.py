@@ -18,13 +18,13 @@ def download_image(image_url, image_path):
         return False
 
 
-def cache_background_image(app):
-    if not app or not hasattr(app, "background_image") or not app.background_image:
+def cache_image(app, image_attr, prefix):
+    if not app or not hasattr(app, image_attr) or not getattr(app, image_attr):
         return None
 
-    image_url = app.background_image
+    image_url = getattr(app, image_attr)
     ext = image_url.split(".")[-1].split("?")[0]
-    image_path = f"{IMAGE_CACHE_PATH}/bg_{app.id}.{ext}"
+    image_path = f"{IMAGE_CACHE_PATH}/{prefix}_{app.id}.{ext}"
 
     if not os.path.exists(image_path):
         if download_image(image_url, image_path):
@@ -34,26 +34,12 @@ def cache_background_image(app):
     else:
         print(f"Image already cached: {image_path}")
 
-    # Adjust the path as needed and return the background image info
-    background_image_path = image_path.split("/", 1)[1]
-    return {"id": app.id, "name": app.name, "background_image": background_image_path}
+    # Adjust the path and return image info
+    relative_path = image_path.split("/", 1)[1]
+    return {"id": app.id, "name": app.name, image_attr: relative_path}
+
+def cache_background_image(app):
+    return cache_image(app, "background_image", "bg")
 
 def cache_header_image(app):
-    if not app or not hasattr(app, "header_image") or not app.header_image:
-        return None
-
-    image_url = app.header_image
-    ext = image_url.split(".")[-1].split("?")[0]
-    image_path = f"{IMAGE_CACHE_PATH}/hi_{app.id}.{ext}" # hi is short for header_image
-
-    if not os.path.exists(image_path):
-        if download_image(image_url, image_path):
-            print(f"Cached image: {image_path}")
-        else:
-            return None
-    else:
-        print(f"Image already cached: {image_path}")
-
-    # Adjust the path as needed and return the header image info
-    header_image_path = image_path.split("/", 1)[1]
-    return {"id": app.id, "name": app.name, "header_image": header_image_path}
+    return cache_image(app, "header_image", "hi")
