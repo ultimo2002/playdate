@@ -69,6 +69,7 @@ random.seed(time.time())
 
 def make_typo(text, appid=0, apps=None):
     """Introduce small typos or grammatical errors into a string."""
+    original_text = text
     modified_text = text
 
     typos_amount = random.randint(1, 3) # The amount of typos to make on the string
@@ -99,19 +100,21 @@ def make_typo(text, appid=0, apps=None):
             # remove special characters from the string
             modified_text = "".join(c for c in text if c.isalnum() or c.isspace())
             print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}remove special characters from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
-        elif typo_type == "id" and text == modified_text: # Only do this if the text hasn't been modified yet, for computational efficiency
+        elif typo_type == "id" and original_text == modified_text: # Only do this if the text hasn't been modified yet, for computational efficiency
             # return the appid as a string
             print(f"{TextStyles.green}{TextStyles.bold}FOUND & Doing typo: {TextStyles.reset}{TextStyles.pink}return the appid as a string from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{appid}{TextStyles.reset}")
             return str(appid)
+
+        text = modified_text
 
     # Check if the typo is valid (avoiding test failures)
     if apps and appid:
         most_similar_app, score = _most_similar(modified_text, apps, "name")
         if most_similar_app and most_similar_app.id == appid and modified_text != most_similar_app.name and score > 75:
-            print(f"{TextStyles.green}{TextStyles.bold}FOUND Typo:{TextStyles.reset}{TextStyles.yellow} {text}{TextStyles.grey} -> {modified_text} (score: {score}){TextStyles.reset}")
+            print(f"{TextStyles.green}{TextStyles.bold}FOUND Typo:{TextStyles.reset}{TextStyles.yellow} {original_text}{TextStyles.grey} -> {modified_text} (score: {score}){TextStyles.reset}")
             return modified_text
         else:
-            print(f"{TextStyles.red}{TextStyles.bold}FAILED Typo:{TextStyles.reset}{TextStyles.grey} {text} -> {modified_text}{TextStyles.reset}")
+            print(f"{TextStyles.red}{TextStyles.bold}FAILED Typo: Setting to appid: {TextStyles.reset}{TextStyles.grey} {modified_text} -> {appid}{TextStyles.reset}")
             return str(appid)
 
     return modified_text

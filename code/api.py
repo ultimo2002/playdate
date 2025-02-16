@@ -314,18 +314,20 @@ class API:
                     break
 
             # chache the background image
-            if os.getenv("CACHE_IMAGES") and selected_app.background_image:
-                cached = cache_background_image(selected_app)
-                try:
-                    selected_app.background_image = cached["background_image"] if cached else selected_app.background_image
-                except (TypeError, KeyError):
-                    selected_app.background_image = selected_app.background_image
+            if os.getenv("CACHE_IMAGES"):
+                if selected_app.background_image:
+                    cached = cache_background_image(selected_app)
+                    try:
+                        selected_app.background_image = cached["background_image"] if cached else selected_app.background_image
+                    except (TypeError, KeyError):
+                        selected_app.background_image = selected_app.background_image
 
-                cached = cache_header_image(selected_app)
-                try:
-                    selected_app.header_image = cached["header_image"] if cached else selected_app.header_image
-                except (TypeError, KeyError):
-                    selected_app.header_image = selected_app.header_image
+                if selected_app.header_image:
+                    cached = cache_header_image(selected_app)
+                    try:
+                        selected_app.header_image = cached["header_image"] if cached else selected_app.header_image
+                    except (TypeError, KeyError):
+                        selected_app.header_image = selected_app.header_image
 
             return self.templates.TemplateResponse(
                 request=request, name="game_output.html", context={"selected_app":selected_app, "apps": apps,"nsfw": nsfw}
