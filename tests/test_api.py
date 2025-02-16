@@ -173,6 +173,11 @@ def test_app_recommend_image_cache():
     # delete the cached images
     os.remove("code/static/cache/bg_945360.jpg")
     os.remove("code/static/cache/hi_945360.jpg")
+    try:
+        # remove the cache directory if it is empty
+        os.rmdir("code/static/cache")
+    except OSError:
+        pass # directory is not empty so we can't remove it
     del os
 
 def test_apps_get_tags():
@@ -253,7 +258,7 @@ def test_get_app_recommend_input_with_game_query():
     assert check_h1_tag(response)
 
 
-def test_post_app_recommend_input_recommend_not_allowed():
+def test_post_app_recommend_post_input_not_allowed():
     """
     Test the POST method on "/recommend" endpoint, which should return an error
     since POST is not allowed.
