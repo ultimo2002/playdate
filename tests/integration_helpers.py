@@ -34,13 +34,13 @@ api_instance = API()
 api_instance.register_endpoints()
 client = TestClient(api_instance.app)
 try:
-    # only fetch random apps if this file is imported from test_api.py, else it is not good for testing performance
-    # if the test_helpers.py file is imported from another file
-    if not is_imported_from("test_api.py"):
-        raise Exception("Not imported from test_api.py")
+    # only fetch random apps if this file is imported from integration_test.py, else it is not good for testing performance
+    # if the integration_helpers.py file is imported from another file
+    if not is_imported_from("integration_test.py"):
+        raise Exception("Not imported from integration_test.py")
 
     # Fill the TEST_APPS with random apps
-    # Om een steekproef te nemen van een aantal willekeurige apps, Die worden gebruikt in de test van "test_api.py"
+    # Om een steekproef te nemen van een aantal willekeurige apps, Die worden gebruikt in de test van "integration_test.py"
     reponse_random_apps = client.get(f"/apps/random?count={STEEKPROEF_APPS}")
 
     if reponse_random_apps.status_code == 200 and "application/json" in reponse_random_apps.headers["content-type"]:
