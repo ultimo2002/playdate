@@ -280,8 +280,8 @@ class API:
 
             return [{"name": dev.developer} for dev in developers]
 
-        @self.app.get("/app_input", response_class=HTMLResponse)
-        def handle_form(request: Request, game_input: str = "", db=self.db_dependency):
+        @self.app.get("/recommend", response_class=HTMLResponse)
+        def handle_form(request: Request, game: str = "", db=self.db_dependency):
             """"
             Handle the GET request for the HTML <form> to search for a game.
 
@@ -289,11 +289,13 @@ class API:
             :param game_input: The name or id of the game to search for. Always uses fuzzy search.
             :return: The HTML response with the results in the context.
             """
-            if not game_input:
+            if not game:
                 return root(request, db)
             # clean up the input to prevent XSS attacks
+            game_input = game.strip()
             game_input = game_input.strip()
             game_input = game_input.replace("<", "").replace(">", "")
+            del game
 
             selected_app = app_data_from_id_or_name(game_input, db, True, True)
 

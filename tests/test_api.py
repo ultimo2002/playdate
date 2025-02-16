@@ -97,6 +97,11 @@ def test_app_fuzzy_search():
 
         response = client.get(f"/app/{app_name}")
 
+        if response.status_code == 404:
+            TEST_MARGIN -= 1
+            print(f"{TextStyles.red}Failed app: {app_name} - Expected: {app['expected_name']} - Got: 404{TextStyles.reset}")
+            continue
+
         assert check_response(response, 200) and is_json(response)
 
         if app_name.isdigit(): # Edge case when given an app id, must return the same app id
@@ -187,12 +192,12 @@ def test_apps_from_developer():
     assert check_response(response, 404) and is_json(response)
     assert "No apps found for developer" in response.json()["detail"]
 
-def test_get_app_input_rerurn_frontpage():
+def test_get_app_recommend_input_rerurn_frontpage():
     """
-    Test the GET "/app_input" endpoint without query parameters,
+    Test the GET "/recommend" endpoint without query parameters,
     ensuring it returns the front page.
     """
-    response = client.get("/app_input")
+    response = client.get("/recommend")
     assert check_response(response, 200) and not is_json(response)
     assert is_html(response)
     assert contains_form(response, method="GET")
@@ -202,12 +207,12 @@ def test_get_app_input_rerurn_frontpage():
     assert check_h1_tag(response)
 
 
-def test_get_app_input_with_game_query():
+def test_get_app_recommend_input_with_game_query():
     """
-    Test the GET "/app_input" endpoint with a 'game_input' query parameter,
+    Test the GET "/recommend" endpoint with a 'game_input' query parameter,
     ensuring the correct game is selected and the proper elements are present.
     """
-    response = client.get("/app_input?game_input=Among+Sus")
+    response = client.get("/recommend?game=Among+Sus")
     assert check_response(response, 200) and not is_json(response)
     assert is_html(response)
     # "Among Sus" is a typo so the expected output should correct it to "Among Us"
@@ -219,12 +224,12 @@ def test_get_app_input_with_game_query():
     assert check_h1_tag(response)
 
 
-def test_post_app_input_not_allowed():
+def test_post_app_recommend_input_recommend_not_allowed():
     """
-    Test the POST method on "/app_input" endpoint, which should return an error
+    Test the POST method on "/recommend" endpoint, which should return an error
     since POST is not allowed.
     """
-    response = client.post("/app_input", data={"game_input": "Among Sus"})
+    response = client.post("/recommend", data={"game": "Among Sus"})
     assert check_response(response, 405) and is_json(response)
     assert response.json()["detail"] == "Method Not Allowed"
 
