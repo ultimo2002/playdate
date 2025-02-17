@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Recommender</title>
+    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+</head>
+
+<body>
+        <h1>Game Recommender</h1>
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}
+        <div class="container">
+            <div class="columnr">
+                 <form action="/recommend" method="get">
+                 <label for="game">Game:</label>
+                 <input type="text" id="game" name="game" required>
+                 <button type="submit">Search</button>
+                 </form>
+            </div>
+        </div>
+        {% if background_image %}
+            <div class="overlay">
+                <a href="/recommend?game={{ background_image.id }}">
+                {{ background_image.name }}
+                </a>
+            </div>
+            <style>
+                body {
+                    background-image: url("{{ background_image.background_image }}");
+                    background-color: #1b2838;
+                    background-size: cover;
+                    background-position: center;
+                    background-attachment: fixed;
+                    color: white;
+                }
+            </style>
+        {% endif %}
+</body>
+</html>

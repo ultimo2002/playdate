@@ -130,6 +130,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.env_old
 env/
 venv/
 ENV/
@@ -173,3 +174,4 @@ cython_debug/
 .idea/
 
 cache/
+static/cache/

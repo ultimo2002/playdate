@@ -1,6 +1,5 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, PrimaryKeyConstraint
-from sqlalchemy.orm import relationship
-from database import Base
+from sqlalchemy import Column, ForeignKey, Integer, String, PrimaryKeyConstraint
+from code.database.database import Base
 
 class App(Base):
     __tablename__ = "apps"
@@ -45,4 +44,20 @@ class AppGenre(Base):
 
     __table_args__ = (
         PrimaryKeyConstraint("app_id", "genre_id"),  # Composite primary key
+    )
+
+class Tags(Base):
+    __tablename__ = "tags"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+
+class AppTags(Base):
+    __tablename__ = "app_tags"
+
+    app_id = Column(Integer, ForeignKey("apps.id"), index=True)
+    tag_id = Column(Integer, ForeignKey("tags.id"), index=True)
+
+    __table_args__ = (
+        PrimaryKeyConstraint("app_id", "tag_id"),  # Composite primary key
     )

@@ -2,13 +2,11 @@ name: Pipeline
 
 on:
   push:
-    branches: 
-      - "main"
-      - "dev"
+    branches:
+      - "*"
   pull_request:
-    branches: 
-      - "main"
-      - "dev"
+    branches:
+      - "*"
 
 permissions:
   contents: read
@@ -28,15 +26,20 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Create .env file
+      run: |
+        echo "${{ secrets.DOTENV }}" > code/.env
+        echo "${{ secrets.DOTENV }}" > .env
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
+    - name: Run tests
       run: |
-        pytest
+          # -v means verbose (display PASSed functions/tests)
+          PYTHONPATH=.. pytest -v
     - name: Connect to server and execute start script
       run: |
         sudo apt-get update
@@ -47,4 +50,3 @@ jobs:
         SERVER_USER: ${{ secrets.SERVER_USER }}
         SERVER_HOST: ${{ secrets.SERVER_HOST }}
         SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
-
