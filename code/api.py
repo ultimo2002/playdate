@@ -15,8 +15,11 @@ from code.algoritmes.cache import cache_background_image, cache_header_image
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
 from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
 
+from .routes.apps import router as apps_router
+
+
 import code.database.models as models
-from code.database.database import Engine, SessionLocal
+from code.database.database import Engine, SessionLocal, get_db
 
 
 class API:
@@ -34,7 +37,7 @@ class API:
 
         models.Base.metadata.create_all(bind=Engine)
 
-        self.db_dependency = Depends(self.get_db)
+        self.db_dependency = Depends(get_db)
 
 
     def run(self):
@@ -49,21 +52,14 @@ class API:
 
         uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False)
 
-    def get_db(self):
-        """Get db dependency, don't touch!
-        This makes a new database session for the request and closes it after the request is done.
-        """
-        db = SessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
-
-
     def register_endpoints(self):
         """"
         Function to define all the endpoints for the API.
         """
+
+        # register routers, only when in PYCHARM or Pytest
+        if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING"): # We dont wont users on production to modify the database with the CRUD endpoints.
+            self.app.include_router(apps_router)
 
         @self.app.get("/")
         def root(request: Request, db=self.db_dependency):
