@@ -31,6 +31,17 @@ def delete_app(item_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=f"App {app} not found")
     return {"message": "App deleted successfully"}
 
+@router.post("/app/")
+def create_app(
+    name: str,
+    description: str,
+    developer: str,
+    header_image: str,
+    background_image: str,
+    price: str,
+    db: Session = Depends(get_db)
+    ):
+    return crud.create(db, models.App, name=name, description=description, developer=developer, header_image=header_image, background_image=background_image, price=price)
 
 def most_similar_named_app(target_name: str, db):
     """

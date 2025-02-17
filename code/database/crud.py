@@ -2,11 +2,20 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-def get_all(db: Session, model):
-    return db.query(model).all()
+# def get_all(db: Session, model):
+#     return db.query(model).all()
 
 def get_by_id(db: Session, model, record_id: int):
-    return db.query(model).filter(model.id == record_id).first()
+    try:
+        return db.query(model).filter(model.id == record_id).first()
+    except (AttributeError, KeyError):
+        return None
+
+def get_by_name(db: Session, model, name: str):
+    try:
+        return db.query(model).filter(model.name == name).first()
+    except (AttributeError, KeyError):
+        return None
 
 def create(db: Session, model, **kwargs):
     new_record = model(**kwargs)
@@ -17,7 +26,7 @@ def create(db: Session, model, **kwargs):
         return new_record
     except IntegrityError:
         db.rollback()
-        return None  # Handle duplicate errors, if needed
+        return None  # Handle duplicate
 
 def update(db: Session, model, record_id: int, **kwargs):
     record = db.query(model).filter(model.id == record_id).first()

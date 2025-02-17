@@ -13,6 +13,7 @@ from .config import API_HOST_URL, API_HOST_PORT
 
 from .routes.apps import router as apps_router, app_data_from_id_or_name
 from .routes.frontend import router as frontend_router
+from .routes.categories import router as categories_router
 
 import code.database.models as models
 from code.database.database import Engine, get_db
@@ -53,6 +54,7 @@ class API:
         """
 
         self.app.include_router(frontend_router)
+        self.app.include_router(categories_router)
 
         # register routers, only when in PYCHARM or Pytest
         if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING"): # We dont wont users on production to modify the database with the CRUD endpoints.
@@ -115,45 +117,6 @@ class API:
                 raise HTTPException(status_code=404, detail=f"App and/or {model_class.__name__.lower()} not found")
 
             return related_data
-
-        @self.app.get("/cats")
-        def read_cats(db=self.db_dependency):
-            """
-            Get all categories, genres and tags in one request.
-            :return: JSON / dictionary with all existing categories, genres and tags with their id and name.
-            """
-            return {
-                "tags": db.query(models.Tags).all(),
-                "categories": db.query(models.Category).all(),
-                "genres": db.query(models.Genre).all(),
-            }
-
-        @self.app.get("/tags")
-        def read_tags(db=self.db_dependency):
-            """"
-            Get all existing tags in the database.
-            :return: List of tags in JSON/dictionary format with id and name.
-            """
-            tags = db.query(models.Tags).all()
-            return tags
-
-        @self.app.get("/categories")
-        def read_categories(db=self.db_dependency):
-            """"
-            Get all existing categories in the database.
-            :return: List of categories in JSON/dictionary format with id and name.
-            """
-            categories = db.query(models.Category).all()
-            return categories
-
-        @self.app.get("/genres")
-        def read_genres(db=self.db_dependency):
-            """
-            Get all existing genres in the database.
-            :return: List of genres in JSON/dictionary format with id and name.
-            """
-            genres = db.query(models.Genre).all()
-            return genres
 
         @self.app.get("/app/{appid}/categories")
         def read_app_categories(appid: str, fuzzy: bool = True, db=self.db_dependency):
@@ -236,42 +199,6 @@ class API:
                 raise HTTPException(status_code=404, detail="No developers found in the database.")
 
             return [{"name": dev.developer} for dev in developers]
-
-        def find_similar_games(selected_app, db):
-            """Finds games with the most similar tags to the given game.
-
-            :param selected_app: The app object from the DB to filter on.
-            :param db: The database object
-            :return: The matching games filtered on matching tags of the input "selected_app"
-            """
-            gameid = str(selected_app.id)
-            gamename = selected_app.name
-
-            tags = selected_app.tags
-            genres = selected_app.genres
-            categories = selected_app.categories
-
-            if not tags or not genres or not categories:
-                raise HTTPException(status_code=404, detail="No tags or genres or categories found for app")
-
-            # get all games that are in the database
-            games = db.query(models.App).limit(3).all()
-            game_tags_relation = db.query(models.AppTags.app_id, models.AppTags.tag_id).all()
-
-            if not games:
-                raise HTTPException(status_code=404, detail="No games found in the database.")
-
-            matching_games = []
-
-            # Compare with every other game must be (O(n²)) (two for loops in this)
-            for game in games:
-                # check if game_tags_relation  gameid then add the tagid to the game.tags
-                game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation]
-
-                matching_games.append(game)
-
-
-            return matching_games
 
         @self.app.get("/apps/developer/{target_name}")
         def get_developer_games(target_name: str, fuzzy: bool = True, all_fields: bool = False, db=self.db_dependency):
