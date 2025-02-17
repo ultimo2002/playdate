@@ -177,4 +177,8 @@ cache/
 static/cache/
 
 #terraform
+terraform.tfvars
+variables.tf
 .tfvars
+.tfvars/
+*.tfvars
