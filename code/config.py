@@ -26,7 +26,7 @@ DB_CONFIG = {
 
 def fetch_from_api(endpoint):
     """Make a GET request to the specified API endpoint and return the JSON data.
-    :return: JSON data from the API, Exit when an error occurs.
+    :return: JSON data from the API or None if an error occurred.
     """
     try:
         response = requests.get(endpoint, timeout=10)
@@ -34,7 +34,6 @@ def fetch_from_api(endpoint):
         return response.json()
     except Exception:
         print("Error fetching data from the API. Is your internet connection working?")
-        # exit("Exiting the application.")
 
     return None
 
@@ -55,13 +54,18 @@ class TextStyles:
     reset = "\u001b[0m"
 
 def load_env():
-    """Load environment variables from the .env file."""
+    """Load environment variables from the .env file and environment variables."""
+
+    # set DB_CONFIG based on environment variables
+    set_db_config()
+
     # Read the .env file and process lines
     with open(".env") as f:
         for line in f:
             line = line.strip()
             if line and not line.startswith("#"):  # Ignore empty lines and comments
                 key, value = line.split("=", 1)
+                # set to environment variables
                 os.environ[key] = value
 
                 # Update DB_CONFIG if necessary
@@ -80,6 +84,12 @@ def load_env():
 
     # Cache images from environment
     set_cache_images()
+
+def set_db_config():
+    """Set the database configuration from environment variables."""
+    global DB_CONFIG
+    for key in DB_CONFIG:
+        DB_CONFIG[key] = os.getenv(key)
 
 def handle_specific_env_vars(key, value):
     """Handle specific environment variables with custom logic."""

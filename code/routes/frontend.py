@@ -17,8 +17,10 @@ templates = Jinja2Templates(directory="code/templates")
 
 router = APIRouter()
 
+db_dependency = Depends(get_db)
+
 @router.get("/", response_class=HTMLResponse)
-def root(request: Request, db=Depends(get_db)):
+def root(request: Request, db=db_dependency):
     """"
     The root endpoint of the API when visiting the website.
     :return: The HTML response from the index.html template.
@@ -54,7 +56,7 @@ def root(request: Request, db=Depends(get_db)):
 
 
 @router.get("/recommend", response_class=HTMLResponse)
-def handle_form(request: Request, game: str = "", db=Depends(get_db)):
+def handle_form(request: Request, game: str = "", db=db_dependency):
     """"
     Handle the GET request for the HTML <form> to search for a game.
 

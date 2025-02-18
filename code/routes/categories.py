@@ -7,33 +7,37 @@ from code.database.database import get_db
 
 router = APIRouter()
 
+db_dependency = Depends(get_db)
+
 @router.put("/category/", response_model=dict)
-def update_category(id: int, name: str = Query(None), db: Session = Depends(get_db)):
+def update_category(id: int, name: str = Query(None), db: Session = db_dependency):
     return handle_update(db, models.Category, id, name)
 
 @router.delete("/category/{id}", response_model=dict)
-def delete_category(id: int, db: Session = Depends(get_db)):
+def delete_category(id: int, db: Session = db_dependency):
     return handle_delete(db, models.Category, id)
 
 @router.put("/genre/", response_model=dict)
-def update_genre(id: int, name: str = Query(None), db: Session = Depends(get_db)):
+def update_genre(id: int, name: str = Query(None), db: Session = db_dependency):
     return handle_update(db, models.Genre, id, name)
 
 @router.delete("/genre/{id}", response_model=dict)
-def delete_genre(id: int, db: Session = Depends(get_db)):
+def delete_genre(id: int, db: Session = db_dependency):
     return handle_delete(db, models.Genre, id)
 
 @router.put("/tag/", response_model=dict)
-def update_tag(id: int, name: str = Query(None), db: Session = Depends(get_db)):
+def update_tag(id: int, name: str = Query(None), db: Session = db_dependency):
     return handle_update(db, models.Tags, id, name)
 
 @router.delete("/tag/{id}", response_model=dict)
-def delete_tag(id: int, db: Session = Depends(get_db)):
+def delete_tag(id: int, db: Session = db_dependency):
     return handle_delete(db, models.Tags, id)
 
 
+# GET requests endpoints below:
+
 @router.get("/tags")
-def read_tags(db: Session = Depends(get_db)):
+def read_tags(db: Session = db_dependency):
     """"
     Get all existing tags in the database.
     :return: List of tags in JSON/dictionary format with id and name.
@@ -43,7 +47,7 @@ def read_tags(db: Session = Depends(get_db)):
 
 
 @router.get("/categories")
-def read_categories(db: Session = Depends(get_db)):
+def read_categories(db: Session = db_dependency):
     """"
     Get all existing categories in the database.
     :return: List of categories in JSON/dictionary format with id and name.
@@ -53,7 +57,7 @@ def read_categories(db: Session = Depends(get_db)):
 
 
 @router.get("/genres")
-def read_genres(db: Session = Depends(get_db)):
+def read_genres(db: Session = db_dependency):
     """
     Get all existing genres in the database.
     :return: List of genres in JSON/dictionary format with id and name.
@@ -63,7 +67,7 @@ def read_genres(db: Session = Depends(get_db)):
 
 
 @router.get("/cats")
-def read_cats(db: Session = Depends(get_db)):
+def read_cats(db: Session = db_dependency):
     """
     Get all categories, genres and tags in one request.
     :return: JSON / dictionary with all existing categories, genres and tags with their id and name.
