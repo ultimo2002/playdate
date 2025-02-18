@@ -8,6 +8,8 @@ from code.database.database import get_db
 
 router = APIRouter()
 
+# The endpoints defined in this file are only accessible when in development. (Executed in PyCharm)
+
 @router.put("/app/", response_model=dict)
 def update_app(
     item_id: int,

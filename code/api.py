@@ -13,7 +13,7 @@ from .config import API_HOST_URL, API_HOST_PORT
 
 from .routes.apps import router as apps_router, app_data_from_id_or_name
 from .routes.frontend import router as frontend_router
-from .routes.categories import router as categories_router
+from .routes.categories import router as categories_router, router_development as categories_router_development
 
 import code.database.models as models
 from code.database.database import Engine, get_db
@@ -59,6 +59,7 @@ class API:
         # register routers, only when in PYCHARM or Pytest
         if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING"): # We dont wont users on production to modify the database with the CRUD endpoints.
             self.app.include_router(apps_router)
+            self.app.include_router(categories_router_development)
 
         @self.app.get("/apps")
         def read_apps(db=self.db_dependency, all_fields: bool = False, target_name: str = None, like: str = None):
