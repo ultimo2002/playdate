@@ -67,6 +67,21 @@ jobs:
         uses: azure/setup-kubectl@v1
         with:
             version: 'latest'
+
+      - name: Cleanup Old Images
+        run: |
+        # Delete images older than the most recent two images
+          DOCKER_REGISTRY="registry.digitalocean.com/timots/fast-api"
+        # Get a list of images, excluding the 'latest' tag
+          IMAGES=$(docker images --filter "reference=${DOCKER_REGISTRY}" --format "{{.Repository}}:{{.Tag}}" | grep -v ":latest" | sort -r)
+          
+          # Keep only the two most recent images
+          IMAGES_TO_DELETE=$(echo "$IMAGES" | tail -n +3)
+
+          # Delete older images
+          for IMAGE in $IMAGES_TO_DELETE; do
+            docker rmi $IMAGE || true
+          done
       - name: Configure kubeconfig
         env:
           KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
