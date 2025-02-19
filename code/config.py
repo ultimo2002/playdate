@@ -16,13 +16,6 @@ IMAGE_CACHE_PATH = "code/static/cache"
 
 BLOCKED_CONTENT_TAGS = ["NSFW", "Nudity", "Mature", "Sexual Content", "Hentai"]
 
-DB_CONFIG = {
-    "DB_USER": None,
-    "DB_PASSWORD": None,
-    "DB_NAME": None,
-    "DB_HOST": None,
-    "DB_PORT": None,
-}
 
 def fetch_from_api(endpoint):
     """Make a GET request to the specified API endpoint and return the JSON data.
@@ -54,23 +47,7 @@ class TextStyles:
     inverse = "\u001b[7m"
     reset = "\u001b[0m"
 
-def load_env():
-    """Load environment variables from the .env file."""
-    # Read the .env file and process lines
-    with open(".env") as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith("#"):  # Ignore empty lines and comments
-                key, value = line.split("=", 1)
-                os.environ[key] = value
-
-                # Update DB_CONFIG if necessary
-                if key in DB_CONFIG:
-                    DB_CONFIG[key] = value
-
-                # Handle specific environment variables
-                handle_specific_env_vars(key, value)
-
+def set_host():
     # Docker-specific adjustments (Linux platform)
     if sys.platform.startswith("linux"):
         print('Detected Linux platform (possibly Docker). Setting API_HOST_URL to "0.0.0.0".')
