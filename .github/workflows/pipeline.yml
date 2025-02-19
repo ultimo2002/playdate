@@ -74,7 +74,7 @@ jobs:
           # List all tags, sort them, and delete everything except the most recent one
           doctl registry repository list tags timots/fast-api --no-header | \
             sort -r | \
-            tail -n +2 | \
+            tail -n +1 | \
             awk '{print $1}' | \
             xargs -I {} doctl registry delete timots/fast-api:{} --force
 
