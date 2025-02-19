@@ -1,11 +1,11 @@
-import os
-
-from future.utils import implements_iterator
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import dotenv_values
+import dotenv
+import os
 import code.config as config
-
+load_dotenv()
+URL_DATABASE = os.getenv("URL_DATABASE")
 Engine = None
 SessionLocal = None
 Base = None
@@ -24,8 +24,7 @@ def set_database_engine():
     """Set the database engine, session and base."""
     config.set_host()
     global Engine, SessionLocal, Base
-    secrets = dotenv_values('.env')
-    Engine = create_engine(secrets['URL_DATABASE'])
+    Engine = create_engine(URL_DATABASE)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=Engine)
     Base = declarative_base()
     print(f"Set database engine to: {Engine}")
