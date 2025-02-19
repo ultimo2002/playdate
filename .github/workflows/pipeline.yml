@@ -32,10 +32,13 @@ jobs:
           echo "${{ secrets.DOTENV }}" > .env
       - name: Lint with flake8
         run: |
+          # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Run tests
         run: |
+          # -v means verbose (display PASSed functions/tests)
           PYTHONPATH=.. pytest -v
 
       # Log in to DigitalOcean Container Registry
@@ -46,65 +49,49 @@ jobs:
         run: |
           echo "${DIGITALOCEAN_ACCESS_TOKEN}" | docker login registry.digitalocean.com -u "${DIGITALOCEAN_USERNAME}" --password-stdin
 
-      # Install doctl to interact with the DigitalOcean API
-      - name: Install doctl
-        run: |
-          curl -sL https://github.com/digitalocean/doctl/releases/download/v1.87.0/doctl-1.87.0-linux-amd64.tar.gz | tar -xzv
-          sudo mv doctl /usr/local/bin
-
-      # Authenticate doctl with DigitalOcean API
-      - name: Authenticate doctl with DigitalOcean API
-        run: |
-          echo "${{ secrets.DIGITALOCEAN_API_TOKEN }}" | doctl auth init --access-token
-
-      # Clean up old images in DigitalOcean Registry
-      - name: Clean up old images in DigitalOcean Registry
-        run: |
-          REPO="timots/fast-api"
-          
-          # Get a list of all tags in the DigitalOcean registry
-          TAGS=$(doctl registry repository list-tags registry.digitalocean.com/$REPO --format "Tag" --no-header | sort -r)
-
-          # Keep the most recent image and delete the rest
-          TAGS_TO_DELETE=$(echo "$TAGS" | tail -n +2)
-          
-          # Loop through the tags to delete
-          for TAG in $TAGS_TO_DELETE; do
-            doctl registry repository delete-tag registry.digitalocean.com/$REPO --tag $TAG --force
-          done
-
-      # Build Docker image with Git commit hash as tag
+      # Build Docker Image with Git commit hash as tag
       - name: Build Docker image
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
           docker build -t registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} -t registry.digitalocean.com/devops-cicd/fast-api:latest .
 
-      # Push Docker image to DigitalOcean
+      # Push Docker Image
       - name: Push Docker image to DigitalOcean
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
           docker push --all-tags registry.digitalocean.com/timots/fast-api
 
-      # Set up kubectl
+      # Log in to DigitalOcean CLI (doctl)
+      - name: Log in to DigitalOcean CLI (doctl)
+        run: |
+          echo "${{ secrets.DIGITALOCEAN_API_TOKEN }}" | doctl auth init --access-token
+
+      # Delete old images and keep the latest one
+      - name: Clean up old Docker images in DigitalOcean Registry
+        run: |
+          doctl registry repository list tags timots/fast-api --no-header | \
+            tail -n +2 | \
+            awk '{print $1}' | \
+            xargs -I {} doctl registry delete timots/fast-api:{} --force
+
+      # Deploy to DigitalOcean Kubernetes
       - name: Set up kubectl
         uses: azure/setup-kubectl@v1
         with:
-            version: 'latest'
+          version: 'latest'
 
-      # Configure kubeconfig
       - name: Configure kubeconfig
         env:
           KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
         run: |
-              mkdir -p $HOME/.kube
-              echo "${KUBE_CONFIG_DATA}"
-              echo "${KUBE_CONFIG_DATA}" > $HOME/.kube/config
+          mkdir -p $HOME/.kube
+          echo "${KUBE_CONFIG_DATA}"
+          echo "${KUBE_CONFIG_DATA}" > $HOME/.kube/config
 
-      # Update Deployment with New Image
       - name: Update Deployment with New Image
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-            kubectl set image deployment/website website=registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} -n fastapi-app
+          kubectl set image deployment/website website=registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} -n fastapi-app
