@@ -1,3 +1,4 @@
+import dotenv
 from fastapi.testclient import TestClient
 
 from code.api import API
@@ -9,7 +10,7 @@ from tests.integration_helpers import check_response, is_json, check_list_of_ite
 api_instance = API()
 api_instance.register_endpoints()
 client = TestClient(api_instance.app)
-
+dotenv.load_dotenv()
 def test_root():
     response = client.get("/")
 

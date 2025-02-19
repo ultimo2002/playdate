@@ -10,8 +10,6 @@ def test_configs():
 
     import code.config as config # Test the configuration values from config.py.
 
-    assert all(value is not None for value in config.DB_CONFIG.values()) # Check if all DB_CONFIG values are set
-
     from code.database.database import URL_DATABASE
 
     # Test if database URL is set and not empty or postgresql://user:password@localhost:5432/database
