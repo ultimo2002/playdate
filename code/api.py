@@ -1,6 +1,6 @@
 import os
 
-from fastapi import FastAPI, Depends, Request, HTTPException
+from fastapi import FastAPI, Depends, HTTPException
 import uvicorn
 
 from fastapi.templating import Jinja2Templates
@@ -11,9 +11,9 @@ from sqlalchemy.sql.expression import func
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
 from .config import API_HOST_URL, API_HOST_PORT
 
-from .routes.apps import router as apps_router, app_data_from_id_or_name
+from code.routes.development.apps import router as apps_router, app_data_from_id_or_name
 from .routes.frontend import router as frontend_router
-from .routes.categories import router as categories_router, router_development as categories_router_development
+from code.routes.development.categories import router as categories_router, router_development as categories_router_development
 
 import code.database.models as models
 from code.database.database import Engine, get_db

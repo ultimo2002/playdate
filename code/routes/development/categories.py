@@ -9,6 +9,9 @@ router_development = APIRouter()
 
 db_dependency = Depends(get_db)
 
+# The endpoints defined in this file are only accessible when run in development.
+# (E.g Executed in PyCharm)
+
 @router_development.put("/category/", response_model=dict)
 def update_category(id: int, name: str = Query(None), db: Session = db_dependency):
     return handle_update(db, models.Category, id, name)

@@ -11,13 +11,16 @@ import code.database.models as models
 from code.algoritmes.cache import cache_background_image, cache_header_image
 from code.config import BLOCKED_CONTENT_TAGS
 from code.database.database import get_db
-from code.routes.apps import app_data_from_id_or_name
+from code.routes.development.apps import app_data_from_id_or_name
 
 templates = Jinja2Templates(directory="code/templates")
 
 router = APIRouter()
 
 db_dependency = Depends(get_db)
+
+# The endpoints defined in this file are accessible for everyone.
+# Not only in development mode. Unlike the other routers in app.py and categories.py
 
 @router.get("/", response_class=HTMLResponse)
 def root(request: Request, db=db_dependency):
