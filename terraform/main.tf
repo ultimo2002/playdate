@@ -64,9 +64,14 @@ resource "kubernetes_secret" "docker_registry" {
 
   data = {
     ".dockerconfigjson" = jsonencode({
-       auth = base64encode(var.docker_auth_token)
+      auths = {
+        "registry.digitalocean.com" = {
+          "username" = var.docker_username
+          "password" = var.docker_auth_token
+          "auth"     = base64encode("${var.docker_username}:${var.do_token}")
+        }
       }
-    )
+    })
   }
 }
 
