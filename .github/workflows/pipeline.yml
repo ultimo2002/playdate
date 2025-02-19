@@ -58,9 +58,10 @@ jobs:
 
       # Install doctl CLI
       - name: Install doctl CLI
-        run: |
-          curl -sL https://github.com/digitalocean/doctl/releases/latest/download/doctl-1.98.1-linux-amd64.tar.gz | tar -xzv
-          sudo mv doctl /usr/local/bin
+        uses: digitalocean/doctl-action@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+
 
       # Log in to DigitalOcean CLI (doctl)
       - name: Log in to DigitalOcean CLI (doctl)
