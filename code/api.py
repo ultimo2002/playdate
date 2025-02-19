@@ -13,7 +13,8 @@ from .config import API_HOST_URL, API_HOST_PORT
 
 from code.routes.development.apps import router as apps_router, app_data_from_id_or_name
 from .routes.frontend import router as frontend_router
-from code.routes.development.categories import router as categories_router, router_development as categories_router_development
+from code.routes.development.categories import router_development as categories_router_development
+from code.routes.categories import router as categories_router
 
 import code.database.models as models
 from code.database.database import Engine, get_db
