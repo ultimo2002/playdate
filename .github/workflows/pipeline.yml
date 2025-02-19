@@ -72,10 +72,11 @@ jobs:
           KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
         run: |
               mkdir -p $HOME/.kube
+              echo "${KUBE_CONFIG_DATA}"
               echo "${KUBE_CONFIG_DATA}" > $HOME/.kube/config
 
       - name: Update Deployment with New Image
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-            kubectl set image deployment/website website=registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} -n ns-website-db
+            kubectl set image deployment/website website=registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} -n fastapi-app
