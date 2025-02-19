@@ -56,13 +56,6 @@ jobs:
         run: |
           docker build -t registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} -t registry.digitalocean.com/devops-cicd/fast-api:latest .
 
-      # Push Docker Image
-      - name: Push Docker image to DigitalOcean
-        env:
-          COMMIT_HASH: ${{ github.sha }}
-        run: |
-          docker push --all-tags registry.digitalocean.com/timots/fast-api
-
       # Install doctl CLI
       - name: Install doctl CLI
         run: |
@@ -74,13 +67,22 @@ jobs:
         run: |
           echo "${{ secrets.DIGITALOCEAN_API_TOKEN }}" | doctl auth init --access-token
 
-      # Delete old images and keep the latest two
-      - name: Clean up old Docker images in DigitalOcean Registry
+      # Delete all but the most recent image
+      - name: Clean up all but the most recent Docker image in DigitalOcean Registry
         run: |
+          # List all tags, sort them, and delete everything except the most recent one
           doctl registry repository list tags timots/fast-api --no-header | \
-            tail -n +3 | \
+            sort -r | \
+            tail -n +2 | \
             awk '{print $1}' | \
             xargs -I {} doctl registry delete timots/fast-api:{} --force
+
+      # Push Docker Image
+      - name: Push Docker image to DigitalOcean
+        env:
+          COMMIT_HASH: ${{ github.sha }}
+        run: |
+          docker push --all-tags registry.digitalocean.com/timots/fast-api
 
       # Deploy to DigitalOcean Kubernetes
       - name: Set up kubectl
