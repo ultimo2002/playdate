@@ -25,7 +25,6 @@ def set_database_engine():
     config.set_host()
     global Engine, SessionLocal, Base
     secrets = dotenv_values('.env')
-    print(secrets)
     Engine = create_engine(secrets['URL_DATABASE'])
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=Engine)
     Base = declarative_base()

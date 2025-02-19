@@ -75,7 +75,6 @@ def configure_docker_network():
     network_url = os.getenv("NETWORK_URL")
     if network_url:
         print(f"Detected NETWORK_URL, setting DB_HOST to {network_url}")
-        DB_CONFIG["DB_HOST"] = network_url
 
 def set_cache_images():
     """Set cache images from the environment."""
