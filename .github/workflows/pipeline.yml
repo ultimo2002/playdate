@@ -66,7 +66,7 @@ jobs:
       # Log in to DigitalOcean CLI (doctl)
       - name: Log in to DigitalOcean CLI (doctl)
         run: |
-          echo "${{ secrets.DIGITALOCEAN_API_TOKEN }}" | doctl auth init --access-token
+          doctl auth init --access-token ${{ secrets.DIGITALOCEAN_API_TOKEN }}
 
       # Delete all but the most recent image
       - name: Clean up all but the most recent Docker image in DigitalOcean Registry
