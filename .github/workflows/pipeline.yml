@@ -40,7 +40,6 @@ jobs:
         run: |
           # -v means verbose (display PASSed functions/tests)
           PYTHONPATH=.. pytest -v
-
       # Log in to DigitalOcean Container Registry
       - name: Log in to DigitalOcean
         env:
@@ -48,59 +47,32 @@ jobs:
           DIGITALOCEAN_USERNAME: ${{ github.actor }}
         run: |
           echo "${DIGITALOCEAN_ACCESS_TOKEN}" | docker login registry.digitalocean.com -u "${DIGITALOCEAN_USERNAME}" --password-stdin
-
-      # Build Docker Image with Git commit hash as tag
+        # Build Docker Image with Git commit hash as tag
       - name: Build Docker image
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
           docker build -t registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} -t registry.digitalocean.com/devops-cicd/fast-api:latest .
-
-      # Install doctl CLI
-      - name: Install doctl CLI
-        uses: digitalocean/doctl-action@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
-
-
-      # Log in to DigitalOcean CLI (doctl)
-      - name: Log in to DigitalOcean CLI (doctl)
-        run: |
-          doctl auth init --access-token ${{ secrets.DIGITALOCEAN_API_TOKEN }}
-
-      # Delete all but the most recent image
-      - name: Clean up all but the most recent Docker image in DigitalOcean Registry
-        run: |
-          # List all tags, sort them, and delete everything except the most recent one
-          doctl registry repository list tags timots/fast-api --no-header | \
-            sort -r | \
-            tail -n +1 | \
-            awk '{print $1}' | \
-            xargs -I {} doctl registry delete timots/fast-api:{} --force
-
-      # Push Docker Image
+        # Push Docker Image
       - name: Push Docker image to DigitalOcean
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
           docker push --all-tags registry.digitalocean.com/timots/fast-api
-
-      # Deploy to DigitalOcean Kubernetes
+          # Deploy to DigitalOcean Kubernetes
       - name: Set up kubectl
         uses: azure/setup-kubectl@v1
         with:
-          version: 'latest'
-
+            version: 'latest'
       - name: Configure kubeconfig
         env:
           KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
         run: |
-          mkdir -p $HOME/.kube
-          echo "${KUBE_CONFIG_DATA}"
-          echo "${KUBE_CONFIG_DATA}" > $HOME/.kube/config
-
+              mkdir -p $HOME/.kube
+              echo "${KUBE_CONFIG_DATA}"
+              echo "${KUBE_CONFIG_DATA}" > $HOME/.kube/config
       - name: Update Deployment with New Image
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          kubectl set image deployment/website website=registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} -n fastapi-app
+            kubectl set image deployment/website website=registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} -n fastapi-app
