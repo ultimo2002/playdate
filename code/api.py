@@ -368,7 +368,8 @@ class API:
 
                 # Calculate the similarity score based on common tags
                 common_tags = set(selected_app.tags).intersection(set(game.tags))
-                game.similarity_score = len(common_tags)
+                total_tags = len(selected_app.tags)
+                game.similarity_score = ((len(common_tags) / total_tags) * 100).__round__()  # Convert to percentage
 
                 if game.similarity_score > 0:
                     matching_games.append((game, game.similarity_score))
