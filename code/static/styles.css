@@ -138,11 +138,6 @@ a.game-price:hover {
     border-radius: 10px;
 }
 
-.recommended-game-title {
-    font-size: 16px;
-    color: #444;
-}
-
 
 /* Overlay for background image name */
 .overlay {
