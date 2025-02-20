@@ -1,7 +1,4 @@
 body {
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
     background-color: cadetblue;
     margin: 0 auto;
     width: 80%;
@@ -9,27 +6,27 @@ body {
     font-size: 20px;
     font-family: "Motiva Sans", system-ui, Sans-serif;
     font-weight: 500;
-
 }
 
+
+/* Headers */
 h2 {
     font-size: 2em;
-    margin-top: 10px;
-}
-h3 {
-    font-size: 1.5em;
-    margin-top: 10px;
 }
 
+h3 {
+    font-size: 1.5em;
+}
+
+
+/* Containers */
 .container {
     display: flex;
     gap: 10px;
-
-    @media (max-width: 768px) {
-        flex-direction: column;
-    }
 }
 
+
+/* Columns */
 .column {
     flex: 1;
     padding: 20px;
@@ -51,8 +48,16 @@ h3 {
     flex: 1;
 }
 
+.recommended-columnl {
+    width: 30%;
+}
 
-/*_____CARD_____*/
+.recommended-columnr {
+    width: 70%;
+}
+
+
+/* Game Card */
 .card {
     width: 300px;
     background: white;
@@ -95,30 +100,39 @@ h3 {
     color: #444;
     margin: 10px 0;
 }
-.game-genres a {
-    color: #444;
-    text-decoration: none;
-    transition: color 0.3s;
-}
-.game-genres a:hover {
-    color: #3498db;
-    text-decoration-line: underline;
-    text-decoration-thickness: 2px;
-}
 
 .game-price {
     font-size: 18px;
     font-weight: bold;
     color: #27ae60;
     margin-top: 10px;
-    text-decoration: none;
-    transition: color 0.5s;
 }
-a.game-price:hover {
-    color: #2ecc71;
-    text-decoration-line: underline;
-    text-decoration-thickness: 2px;
+
+
+/* Recommended Card */
+.recommended-card {
+    width: 800px;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    color: #444;
+    margin-bottom: 10px;
 }
+
+.recommended-game-image {
+    height: 110px;
+    object-fit: cover;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+.recommended-game-title {
+    font-size: 16px;
+    color: #444;
+}
+
 
 /* Overlay for background image name */
 .overlay {
@@ -132,7 +146,8 @@ a.game-price:hover {
     opacity: 0.8;
     border-top-left-radius: 10px;
 }
-.overlay a, form a {
+
+.overlay a {
     color: white;
     text-decoration: none;
     transition: color 0.1s;
@@ -157,6 +172,7 @@ body.nsfw::before {
 .nsfw img:hover{
     filter: blur(0) !important;
 }
+
 
 /* Easter Eggs */
 body:has(#appid-3314060, #appid-391540) {
