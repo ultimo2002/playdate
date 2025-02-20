@@ -1,3 +1,8 @@
+:root {
+    --font-size: 1rem;
+    --font-size-heading: 2rem;
+}
+
 body {
     background-size: cover;
     background-position: center;
@@ -64,7 +69,6 @@ h3 {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     text-align: center;
     color: #444;
-    padding: 2rem;
 }
 
 /* Recommended Card */
