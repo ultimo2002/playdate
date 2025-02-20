@@ -138,6 +138,7 @@ a.game-price:hover {
 .recommended-columnl {
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 .recommended-columnl img {
     height: 110px;
