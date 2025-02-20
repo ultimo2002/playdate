@@ -27,7 +27,7 @@
                     <p class="game-genres"><strong>Genres:</strong> {{ selected_app.genres | map(attribute="name") | join(", ") }}</p>
                     <p class="game-genres"><strong>Tags:</strong> {{ selected_app.tags | map(attribute="name") | join(", ") }}</p>
                     <p class="game-genres"><strong>Categories:</strong> {{ selected_app.categories | map(attribute="name") | join(", ") }}</p>
-                    <p class="game-price">{{selected_app.price}}</p>
+                    <a class="game-price" href="https://store.steampowered.com/app/{{ selected_app.id }}" target="_blank" ref="noopener noreferrer">Price: {{ selected_app.price if selected_app.price else "Free" }}</a>
                 </div>
             </div>
             {% endif %}
