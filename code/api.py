@@ -295,8 +295,8 @@ class API:
 
             selected_app = app_data_from_id_or_name(game_input, db, True, True)
 
-            apps = [] # currently algorithm not implemented, Bram enable line below to start developing find_similar_games()
-            # apps = find_similar_games(selected_app, db)
+            #apps = [] # currently algorithm not implemented, Bram enable line below to start developing find_similar_games()
+            apps = find_similar_games(selected_app, db)
 
             if not selected_app or not selected_app.id:
                 return self.templates.TemplateResponse(
