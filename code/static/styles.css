@@ -135,7 +135,10 @@ a.game-price:hover {
     text-decoration-line: underline;
     text-decoration-thickness: 2px;
 }
-
+.recommended-columnl {
+    display: flex;
+    align-items: center;
+}
 .recommended-columnl img {
     height: 110px;
     width: fit-content;
