@@ -1,4 +1,7 @@
 body {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     background-color: cadetblue;
     margin: 0 auto;
     width: 80%;
@@ -23,6 +26,10 @@ h3 {
 .container {
     display: flex;
     gap: 10px;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+    }
 }
 
 
@@ -101,11 +108,27 @@ h3 {
     margin: 10px 0;
 }
 
+.game-genres a {
+    color: #444;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+.game-genres a:hover {
+    color: #3498db;
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
+}
+
 .game-price {
     font-size: 18px;
     font-weight: bold;
     color: #27ae60;
     margin-top: 10px;
+}
+a.game-price:hover {
+    color: #2ecc71;
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
 }
 
 
