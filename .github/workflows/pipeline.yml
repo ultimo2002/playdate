@@ -52,7 +52,7 @@ jobs:
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          docker build -t registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} -t registry.digitalocean.com/devops-cicd/fast-api:latest .
+          docker build -t registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} .
         # Push Docker Image
       - name: Push Docker image to DigitalOcean
         env:
