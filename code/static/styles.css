@@ -74,6 +74,7 @@ h3 {
 /* Recommended Card */
 .recommended-card {
     display: flex;
+    width: 100%;
 
     @media (max-width: 1200px) {
         flex-direction: column;
