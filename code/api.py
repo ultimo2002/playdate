@@ -18,7 +18,6 @@ from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
 import code.database.models as models
 from code.database.database import Engine, SessionLocal
 
-
 class API:
     db_dependency = None
 
@@ -35,7 +34,6 @@ class API:
         models.Base.metadata.create_all(bind=Engine)
 
         self.db_dependency = Depends(self.get_db)
-
 
     def run(self):
         """"
@@ -570,7 +568,3 @@ class API:
                 make_typo(app.name, app.id, all_apps): {"expected_appid": app.id, "expected_name": app.name}
                 for app in random_apps
             }
-
-if __name__ == "__main__":
-    api = API()
-    api.run()

@@ -54,7 +54,6 @@ def set_host():
         print('Detected Linux platform (possibly Docker). Setting API_HOST_URL to "0.0.0.0".')
         global API_HOST_URL
         API_HOST_URL = "0.0.0.0"
-        configure_docker_network()
 
     # Cache images from environment
     set_cache_images()
@@ -71,13 +70,6 @@ def handle_specific_env_vars(key, value):
             print(f"Invalid API_HOST_PORT value. Using default port 8000.")
             API_HOST_PORT = 8000
 
-def configure_docker_network():
-    """Configure Docker network settings."""
-    network_url = os.getenv("NETWORK_URL")
-    if network_url:
-        print(f"Detected NETWORK_URL, setting DB_HOST to {network_url}")
-        # replace the url part of the database URL with the network URL
-
 def set_cache_images():
     """Set cache images from the environment."""
     cache_env = os.getenv("CACHE_IMAGES")
@@ -91,3 +83,5 @@ load_dotenv()
 # loop over the environment variables from the .env file and set them
 for key, value in os.environ.items():
     handle_specific_env_vars(key, value)
+
+set_host()
