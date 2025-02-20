@@ -45,6 +45,7 @@ h3 {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 25px;
 }
 
 .columnl {
@@ -55,24 +56,31 @@ h3 {
     flex: 1;
 }
 
-.recommended-columnl {
-    width: 30%;
-}
-
-.recommended-columnr {
-    width: 70%;
-}
-
-
 /* Game Card */
 .card {
-    width: 300px;
     background: white;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     text-align: center;
     color: #444;
+    padding: 2rem;
+}
+
+/* Recommended Card */
+.recommended-card {
+    /*background: white;*/
+    /*border-radius: 10px;*/
+    /*overflow: hidden;*/
+    /*box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);*/
+    /*text-align: center;*/
+    /*color: #444;*/
+    /*margin-bottom: 10px;*/
+    display: flex;
+
+    @media (max-width: 1024px) {
+        flex-direction: column;
+    }
 }
 
 .game-image {
@@ -129,19 +137,6 @@ a.game-price:hover {
     color: #2ecc71;
     text-decoration-line: underline;
     text-decoration-thickness: 2px;
-}
-
-
-/* Recommended Card */
-.recommended-card {
-    width: 800px;
-    background: white;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    color: #444;
-    margin-bottom: 10px;
 }
 
 .recommended-game-image {

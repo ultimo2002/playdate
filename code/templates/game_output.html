@@ -37,8 +37,7 @@
         <div class="column columnr">
             <h2>Recommended Games</h2>
             {% for app in apps %}
-                <div class="recommended-card">
-                    <div class="container">
+                <div class="card recommended-card container">
                         <div class="recommended-columnl">
                             <img class="recommended-game-image" src="{{ app.header_image }}" alt="{{ app.name }}">
                         </div>
@@ -49,10 +48,6 @@
                                 <p><strong>Shared Tags:</strong> {{ app.tags | map(attribute="name") | join(", ") }}</p>
                             </div>
                         </div>
-                    </div>
-<!--                    <p><strong>Genres:</strong> {{ app.genres | join(", ") }}</p>-->
-<!--                    <p><strong>Categories:</strong> {{ app.categories | join(", ") }}</p>-->
-<!--                    <p><strong>Price:</strong> {{ app.price }}</p>-->
                 </div>
             {% endfor %}
         </div>
