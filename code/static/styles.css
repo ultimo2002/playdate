@@ -170,7 +170,7 @@ a.game-price:hover {
     border-top-left-radius: 10px;
 }
 
-.overlay a {
+.overlay a, form a {
     color: white;
     text-decoration: none;
     transition: color 0.1s;
