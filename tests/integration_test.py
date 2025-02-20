@@ -7,7 +7,7 @@ from tests.integration_helpers import check_response, is_json, check_list_of_ite
     ALL_APP_FIELDS, assert_common_app_tests, contains_form, TEST_APPS, DEFAULT_TEST_APPS, check_h1_tag
 
 api_instance = API()
-api_instance.register_endpoints()
+api_instance.register_endpoints(all_endpoints=True)
 client = TestClient(api_instance.app)
 
 def test_root():

@@ -5,9 +5,6 @@ import code.database.models as models
 import sys
 import os
 
-# set PYTEST_RUNNING env to True for defining the development endpoints
-os.environ["PYTEST_RUNNING"] = "True"
-
 POSSIBLE_GET_ENDPOINTS = ["/", "/apps", "/categories", "/tags", "/genres", "/app/{appid}", "/cats", "/apps/developer/{target_name}", "/apps/tag/{target_name}"]
 ALL_APP_FIELDS = [field.name for field in models.App.__table__.columns]
 

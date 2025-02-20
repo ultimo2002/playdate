@@ -46,6 +46,12 @@ def delete(db: Session, model, record_id: int):
         return record
     return None
 
+def handle_create(db: Session, model, **kwargs):
+    record = create(db, model, **kwargs)
+    if record is None:
+        raise HTTPException(status_code=409, detail=f"{model.__name__} already exists")
+    return record
+
 def handle_update(db: Session, model, id: int, name: str):
     record = update(db, model, id, name=name)
     if record is None:

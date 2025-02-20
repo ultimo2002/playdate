@@ -49,7 +49,7 @@ class API:
 
         uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False)
 
-    def register_endpoints(self):
+    def register_endpoints(self, all_endpoints=False):
         """"
         Function to define all the endpoints for the API.
         """
@@ -58,7 +58,7 @@ class API:
         self.app.include_router(categories_router)
 
         # register routers, only when in PYCHARM or Pytest
-        if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING"): # We dont wont users on production to modify the database with the CRUD endpoints.
+        if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING") or all_endpoints: # We dont wont users on production to modify the database with the CRUD endpoints.
             self.app.include_router(apps_router)
             self.app.include_router(categories_router_development)
 
