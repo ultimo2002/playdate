@@ -134,6 +134,7 @@ a.game-price:hover {
 
 .recommended-columnl img {
     height: 110px;
+    width: fit-content;
     border-radius: 10px;
 }
 
