@@ -46,7 +46,7 @@
                             <h3 class="recommended-game-title">{{ app.name }}</h3>
                             <div class="container">
                                 <p><strong>Similarity Score:</strong> {{ app.similarity_score }}</p>
-                                <p><strong>Shared Tags:</strong> {{ app.common_tags | join(", ") }}</p>
+                                <p><strong>Shared Tags:</strong> {{ app.tags | map(attribute="name") | join(", ") }}</p>
                             </div>
                         </div>
                     </div>

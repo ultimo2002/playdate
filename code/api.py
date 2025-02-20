@@ -364,14 +364,14 @@ class API:
                 game_tags_relation_set = set(game_tags_relation)
 
                 # Get tags for the current game
-                game_tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation_set]
+                game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation_set]
 
                 # Calculate the similarity score based on common tags
-                common_tags = set(selected_app.tags).intersection(set(game_tags))
-                similarity_score = len(common_tags)
+                common_tags = set(selected_app.tags).intersection(set(game.tags))
+                game.similarity_score = len(common_tags)
 
-                if similarity_score > 0:
-                    matching_games.append((game, similarity_score))
+                if game.similarity_score > 0:
+                    matching_games.append((game, game.similarity_score))
 
             # Sort matching games by similarity score in descending order
             matching_games.sort(key=lambda x: x[1], reverse=True)
