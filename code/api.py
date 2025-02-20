@@ -348,8 +348,8 @@ class API:
             if not tags or not genres or not categories:
                 raise HTTPException(status_code=404, detail="No tags or genres or categories found for app")
 
-            # get all games that are in the database
-            games = db.query(models.App).all()
+            # get all games that are in the database except the selected game
+            games = db.query(models.App).filter(models.App.id != selected_app.id).all()
             game_tags_relation = db.query(models.AppTags.app_id, models.AppTags.tag_id).all()
 
             if not games:
