@@ -2,6 +2,7 @@ import os
 import sys
 
 import requests
+from dotenv import load_dotenv
 
 API_HOST_URL = '0.0.0.0'
 API_HOST_PORT = 8000
@@ -75,6 +76,7 @@ def configure_docker_network():
     network_url = os.getenv("NETWORK_URL")
     if network_url:
         print(f"Detected NETWORK_URL, setting DB_HOST to {network_url}")
+        # replace the url part of the database URL with the network URL
 
 def set_cache_images():
     """Set cache images from the environment."""
@@ -83,3 +85,9 @@ def set_cache_images():
         caching = cache_env.strip().lower()[0] in ("t", "1", "y")
         os.environ["CACHE_IMAGES"] = str(caching).lower() if caching else ""
         print(f"CACHE_IMAGES set to {caching}")
+
+load_dotenv()
+
+# loop over the environment variables from the .env file and set them
+for key, value in os.environ.items():
+    handle_specific_env_vars(key, value)

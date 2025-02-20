@@ -251,11 +251,7 @@ class API:
             :return: List of developers in JSON/dictionary format with id and name.
             """
             if apps:
-                developers = db.query(
-                    models.App.developer,
-                    models.App.id,
-                    models.App.name,
-                ).order_by(models.App.id).all()
+                developers = db.query(models.App.developer, models.App.id, models.App.name).order_by(models.App.id).all()
 
                 if not developers:
                     raise HTTPException(status_code=404, detail="No developers found in the database.")
