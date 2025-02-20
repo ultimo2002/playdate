@@ -467,6 +467,7 @@ class API:
 
             return None
 
+        @self.app.get("/app/similar/{target_name}")
         def most_similar_named_app(target_name: str, db):
             """
             Helper function to find the most similar named app in the database.
