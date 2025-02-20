@@ -69,13 +69,6 @@ h3 {
 
 /* Recommended Card */
 .recommended-card {
-    /*background: white;*/
-    /*border-radius: 10px;*/
-    /*overflow: hidden;*/
-    /*box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);*/
-    /*text-align: center;*/
-    /*color: #444;*/
-    /*margin-bottom: 10px;*/
     display: flex;
 
     @media (max-width: 1200px) {
