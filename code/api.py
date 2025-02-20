@@ -358,18 +358,6 @@ class API:
             matching_games = []
 
             # Compare with every other game must be (O(n²)) (two for loops in this)
-            for game in games:
-
-                # Convert game_tags_relation to a set for faster lookups
-                game_tags_relation_set = set(game_tags_relation)
-
-                # Use the set to check the tag relation
-                game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation_set]
-
-                matching_games.append(game)
-
-
-            return matching_games[:3]
 
         def app_data_from_id_or_name(app_id_or_name: str, db, fuzzy: bool = True, categories: bool = False):
             """"
