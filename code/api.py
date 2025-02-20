@@ -349,7 +349,7 @@ class API:
                 raise HTTPException(status_code=404, detail="No tags or genres or categories found for app")
 
             # get all games that are in the database
-            games = db.query(models.App).limit(3).all()
+            games = db.query(models.App).all()
             game_tags_relation = db.query(models.AppTags.app_id, models.AppTags.tag_id).all()
 
             if not games:
@@ -359,13 +359,17 @@ class API:
 
             # Compare with every other game must be (O(n²)) (two for loops in this)
             for game in games:
-                # check if game_tags_relation  gameid then add the tagid to the game.tags
-                game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation]
+
+                # Convert game_tags_relation to a set for faster lookups
+                game_tags_relation_set = set(game_tags_relation)
+
+                # Use the set to check the tag relation
+                game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation_set]
 
                 matching_games.append(game)
 
 
-            return matching_games
+            return matching_games[:3]
 
         def app_data_from_id_or_name(app_id_or_name: str, db, fuzzy: bool = True, categories: bool = False):
             """"
