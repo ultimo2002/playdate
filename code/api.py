@@ -476,6 +476,13 @@ class API:
             :param db: The database dependency.
             :return: Dictionary / JSON with the (id, name and similarity) of the app.
             """
+
+            if target_name.isdigit():
+                app = db.query(models.App).filter(models.App.id == int(target_name)).first()
+                if app:
+                    return {"id": app.id, "name": app.name, "similarity": 100}
+                return None
+
             apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
             most_similar_app, similarity = _most_similar(target_name, apps, "name")
 
