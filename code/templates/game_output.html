@@ -37,17 +37,16 @@
         <div class="column columnr">
             <h2>Recommended Games</h2>
             {% for app in apps %}
-                <div class="recommended-card">
-                    <div class="container">
-                        <div class="recommended-columnl">
-                            <img class="recommended-game-image" src="{{ app.header_image }}" alt="{{ app.name }}">
-                        </div>
-                        <div class="recommended-columnr">
-                            <h3 class="recommended-game-title">{{ app.name }}</h3>
-                            <div class="container">
-                                <p><strong>Similarity Score:</strong> {{ app.similarity_score }}</p>
-                                <p><strong>Shared Tags:</strong> {{ app.common_tags | join(", ") }}</p>
-                            </div>
+                <div class="card recommended-card container p-relative">
+                    <a href="/recommend?game={{ app.id }}" class="clickable"></a>
+                    <div class="recommended-columnl">
+                        <img class="game-image" src="{{ app.header_image }}" alt="{{ app.name }}">
+                    </div>
+                    <div class="recommended-columnr">
+                        <h3 class="game-title">{{ app.name }}</h3>
+                        <div class="container">
+                            <p><strong>Similarity Score:</strong> {{ app.similarity_score }}%</p>
+                            <p><strong>Shared Tags:</strong> {{ app.tags | map(attribute="name") | join(", ") }}</p>
                         </div>
                     </div>
                 </div>

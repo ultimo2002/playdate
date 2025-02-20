@@ -340,8 +340,8 @@ class API:
             if not tags or not genres or not categories:
                 raise HTTPException(status_code=404, detail="No tags or genres or categories found for app")
 
-            # get all games that are in the database
-            games = db.query(models.App).limit(3).all()
+            # get all games that are in the database except the selected game
+            games = db.query(models.App).filter(models.App.id != selected_app.id).all()
             game_tags_relation = db.query(models.AppTags.app_id, models.AppTags.tag_id).all()
 
             if not games:
@@ -351,13 +351,26 @@ class API:
 
             # Compare with every other game must be (O(n²)) (two for loops in this)
             for game in games:
-                # check if game_tags_relation  gameid then add the tagid to the game.tags
-                game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation]
 
-                matching_games.append(game)
+                # Convert game_tags_relation to a set for faster lookups
+                game_tags_relation_set = set(game_tags_relation)
 
+                # Get tags for the current game
+                game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation_set]
 
-            return matching_games
+                # Calculate the similarity score based on common tags
+                common_tags = set(selected_app.tags).intersection(set(game.tags))
+                total_tags = len(selected_app.tags)
+                game.similarity_score = ((len(common_tags) / total_tags) * 100).__round__()  # Convert to percentage
+
+                if game.similarity_score > 0:
+                    matching_games.append((game, game.similarity_score))
+
+            # Sort matching games by similarity score in descending order
+            matching_games.sort(key=lambda x: x[1], reverse=True)
+
+            # Return the top 5 matching games
+            return [game for game, _ in matching_games[:5]]
 
         def app_data_from_id_or_name(app_id_or_name: str, db, fuzzy: bool = True, categories: bool = False):
             """"
@@ -446,7 +459,8 @@ class API:
 
             return None
 
-        def most_similar_named_app(target_name: str, db):
+        @self.app.get("/app/similar/{target_name}")
+        def most_similar_named_app(target_name: str, db=self.db_dependency):
             """
             Helper function to find the most similar named app in the database.
 
@@ -454,6 +468,13 @@ class API:
             :param db: The database dependency.
             :return: Dictionary / JSON with the (id, name and similarity) of the app.
             """
+
+            if target_name.isdigit():
+                app = db.query(models.App).filter(models.App.id == int(target_name)).first()
+                if app:
+                    return {"id": app.id, "name": app.name, "similarity": 100}
+                return None
+
             apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
             most_similar_app, similarity = _most_similar(target_name, apps, "name")
 
