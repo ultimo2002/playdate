@@ -360,6 +360,10 @@ button:hover {
     transition: font-size 0.5s, transform 0.5s, text-shadow 10s;
     display: inline-block;
     margin-left: 0.5em;
+
+    @media (max-width: 500px) {
+        display: none;
+    }
 }
 
 .emoji:hover {
