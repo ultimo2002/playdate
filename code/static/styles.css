@@ -53,6 +53,11 @@ h3 {
     gap: 25px;
 }
 
+.selected_games:empty {
+    display:none;
+    background: none;
+}
+
 .columnl {
     flex: 0 0 30%;
 }
