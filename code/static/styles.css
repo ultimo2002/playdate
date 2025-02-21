@@ -250,8 +250,9 @@ body.nsfw::before {
     display: flex;
     gap: 5px;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     transition: transform 0.3s, opacity 0.3s;
+    width: 100%;
 }
 
 @keyframes popOut {
