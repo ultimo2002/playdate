@@ -2,9 +2,12 @@ document.addEventListener("DOMContentLoaded", function() {
     const form = document.querySelector('form[action="/recommend"]');
     const gameInput = document.getElementById("game");
     const selectedGamesElement = document.getElementById("selected_games");
+    const recommendButton = document.getElementById("recommend");
     const games = [];
 
     form.addEventListener("submit", handleFormSubmit);
+
+    recommendButton.addEventListener("click", recommendGames);
 
     function handleFormSubmit(event) {
         event.preventDefault();
@@ -102,5 +105,10 @@ document.addEventListener("DOMContentLoaded", function() {
     function handleError(error) {
         console.error("Error: ", error);
         alert("Error: " + error);
+    }
+
+    function recommendGames() {
+        let gameIds = games.map(game => game.id).join(",");
+        window.location.assign(`/recommend?games=${gameIds}`);
     }
 });
