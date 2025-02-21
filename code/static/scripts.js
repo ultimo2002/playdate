@@ -69,9 +69,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function renderGames() {
-        const recommendGames = document.getElementById("recommend_games");
-        recommendGames.style.display = "initial";
-
         // Clear the list before re-rendering
         selectedGamesElement.innerHTML = "";
 
@@ -83,6 +80,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 createGameDiv(game, index, false); // Already rendered game
             }
         });
+        const recommendGames = document.getElementById("recommend_games");
+        recommendGames.style.display = "initial";
+        recommendGames.classList.add("pop-in");
     }
 
     function animateAndRemove(gameDiv, index) {
