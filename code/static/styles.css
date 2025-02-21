@@ -46,7 +46,7 @@ h3 {
     background-color: #0e263a;
     text-align: center;
     border-radius: 10px;
-    opacity: 80%;
+    opacity: 80% !important;
     color: #FFFFFF;
     display: flex;
     flex-direction: column;
