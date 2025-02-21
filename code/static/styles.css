@@ -222,6 +222,37 @@ body.nsfw::before {
     }
 }
 
+.removeButton {
+    text-decoration: none;
+    cursor: pointer;
+    transition: font-size 0.5s;
+    font-size: var(--font-size);
+}
+.removeButton:before {
+    /* Create a white circle behind the prullenbak icon text */
+    content: "🗑️";
+    display: inline-block;
+    position: relative;
+    width: 2em;
+    height: 2em;
+    line-height: 2em;
+    background-color: #fff;
+    border-radius: 50%;
+    margin-right: 0.5em;
+    text-align: center;
+    vertical-align: middle;
+    z-index: -1;
+}
+.removeButton:hover {
+    font-size: 1.5rem;
+}
+.selected_games div {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Easter Eggs */
 body:has(#appid-3314060, #appid-391540) {
     font-family: "Comic Sans MS", cursive, system-ui, sans-serif;

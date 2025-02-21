@@ -1,47 +1,79 @@
 document.addEventListener("DOMContentLoaded", function() {
-    document.querySelector('form[action="/recommend"]').addEventListener("submit", function(event) {
+    const form = document.querySelector('form[action="/recommend"]');
+    const gameInput = document.getElementById("game");
+    const selectedGamesElement = document.getElementById("selected_games");
+    const games = [];
+
+    form.addEventListener("submit", handleFormSubmit);
+
+    function handleFormSubmit(event) {
         event.preventDefault();
 
-        let gameName = document.getElementById("game").value.trim();
-        if (gameName === "") {
+        const gameName = gameInput.value.trim();
+        if (!gameName) {
             alert("Enter a game name");
             return;
         }
 
-        let url = `app/similar/${encodeURIComponent(gameName)}`;
-
-        let selected_games_element = document.getElementById("selected_games");
-
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("HTTP error, status = " + response.status);
-                }
-                return response.json();
-            })
+        fetchGameData(gameName)
             .then(data => {
-                console.log(data);
-                if (data.length === 0) {
+                if (!data) {
                     alert("The game you entered does not exist");
                     return;
                 }
-
-                // When the game is already in the list, don't add it again
-                let existing_divs = selected_games_element.querySelectorAll("div");
-                for (let div of existing_divs) {
-                    if (div.innerHTML.includes(data.name)) {
-                        console.log("Game already in list");
-                        return;
-                    }
+                else if (isGameAlreadyInList(data)) {
+                    alert("You already selected this game");
+                    return;
                 }
 
-                let new_div = document.createElement("div");
-                new_div.innerHTML = `ID: ${data.id}, Naam: ${data.name}`;
-                selected_games_element.appendChild(new_div);
+                games.push(data);
+                renderGames();
             })
-            .catch(error => {
-                console.error("Error: ", error);
-                alert("Error: " + error);
+            .catch(handleError);
+    }
+
+    function fetchGameData(gameName) {
+        return fetch(`app/similar/${encodeURIComponent(gameName)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error, status = ${response.status}`);
+                }
+                return response.json();
             });
-    });
+    }
+
+    function isGameAlreadyInList(game) {
+        return games.some(existingGame => existingGame.id === game.id);
+    }
+
+    function renderGames() {
+        selectedGamesElement.innerHTML = "";
+        games.forEach((game, index) => {
+            const gameDiv = document.createElement("div");
+            gameDiv.innerHTML = `ID: ${game.id}, Naam: ${game.name} `;
+
+            const removeButton = document.createElement("a");
+            removeButton.href = "#";
+            removeButton.addEventListener("click", function(event) {
+                event.preventDefault(); // Stops `<a>` from navigating
+                removeGame(index);
+            });
+            removeButton.style.textDecoration = "none";
+            removeButton.style.transition = "font-size 0.5s";
+            removeButton.classList.add("removeButton");
+
+            gameDiv.appendChild(removeButton);
+            selectedGamesElement.appendChild(gameDiv);
+        });
+    }
+
+    function removeGame(index) {
+        games.splice(index, 1);
+        renderGames();
+    }
+
+    function handleError(error) {
+        console.error("Error: ", error);
+        alert("Error: " + error);
+    }
 });
