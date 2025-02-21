@@ -97,6 +97,10 @@ a:hover {
     text-align: center;
     color: #444;
     font-size: 1rem;
+    transition: box-shadow 2s;
+}
+.card:hover{
+    box-shadow: 0 8px 16px #1b2838;
 }
 
 /* Recommended Card */
@@ -104,9 +108,15 @@ a:hover {
     display: flex;
     width: 100%;
 
+    transition: transform 0.5s;
+
     @media (max-width: 1200px) {
         flex-direction: column;
     }
+}
+
+.recommended-card:hover {
+    transform: scale(1.02);
 }
 
 .game-image {
