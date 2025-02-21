@@ -1,6 +1,8 @@
 :root {
     --font-size: 1.1rem;
     --font-size-heading: 2rem;
+    --button-color: #3498db;
+    --button-hover-color: #1d90e3;
 }
 
 body {
@@ -126,7 +128,7 @@ h3 {
     transition: color 0.3s;
 }
 .game-genres a:hover {
-    color: #3498db;
+    color: var(--button-color, #3498db);
     text-decoration-line: underline;
     text-decoration-thickness: 2px;
 }
@@ -297,14 +299,14 @@ button {
     padding: 0.4rem 1rem;
     border: none;
     border-radius: 5px;
-    background-color: #3498db;
+    background-color: var(--button-color, #3498db);
     color: white;
     transition: background-color 0.4s, font-size 0.4s;
     font-size: var(--font-size, 1.1rem);
 }
 button:hover {
     font-size: 1.2rem;
-    background-color: #1d90e3;
+    background-color: var(--button-hover-color, #1d90e3);
 }
 
 .home form {
@@ -317,14 +319,15 @@ button:hover {
 }
 
 .emoji {
-    transition: font-size 0.5s, transform 0.5s;
+    transition: font-size 0.5s, transform 0.5s, text-shadow 10s;
     display: inline-block;
-    margin-left: 0.5em
+    margin-left: 0.5em;
 }
 
 .emoji:hover {
     font-size: 1.25em;
     transform: rotate(180deg);
+    text-shadow: 0 0 0.2em var(--button-color, #3498db);
 }
 
 /* Easter Eggs */
