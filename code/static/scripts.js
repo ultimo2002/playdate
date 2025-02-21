@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 return response.json();
             })
             .then(data => {
+                console.log(data);
                 let new_div = document.createElement("div");
                 new_div.innerHTML = `ID: ${data.id}, Naam: ${data.name}`;
                 selected_games_element.appendChild(new_div);
