@@ -303,7 +303,7 @@ button {
     font-size: var(--font-size, 1.1rem);
 }
 button:hover {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     background-color: #1d90e3;
 }
 

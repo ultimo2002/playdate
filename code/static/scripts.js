@@ -87,8 +87,14 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
         const recommendGames = document.getElementById("recommend_games");
-        recommendGames.style.display = "initial";
-        recommendGames.classList.add("pop-in");
+        recommendGames.classList.remove("pop-out");
+
+        if (games.length > 0) {
+            recommendGames.style.display = "initial";
+            recommendGames.classList.add("pop-in");
+        } else {
+            recommendGames.classList.add("pop-out");
+        }
 
         saveGames();
     }
@@ -127,8 +133,6 @@ document.addEventListener("DOMContentLoaded", function() {
             renderGames();
         }
     }
-
-
     function recommendGames() {
         let gameIds = games.map(game => game.id).join(",");
         window.location.assign(`/recommend?games=${gameIds}`);
