@@ -8,9 +8,6 @@
 html {
     font-size: 1rem;
 }
-* {
-    transition: font-size 50ms;
-}
 
 body {
     background-size: cover;
