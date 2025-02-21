@@ -4,10 +4,13 @@ document.addEventListener("DOMContentLoaded", function() {
     const selectedGamesElement = document.getElementById("selected_games");
     const recommendButton = document.getElementById("recommend");
     const games = [];
+    let renderedGameIds = new Set();  // Set to keep track of already rendered game IDs
 
     form.addEventListener("submit", handleFormSubmit);
 
     recommendButton.addEventListener("click", recommendGames);
+
+    loadGames();
 
     function handleFormSubmit(event) {
         event.preventDefault();
@@ -51,8 +54,6 @@ document.addEventListener("DOMContentLoaded", function() {
         return games.some(existingGame => existingGame.id === game.id);
     }
 
-    let renderedGameIds = new Set();  // Set to keep track of already rendered game IDs
-
     function createGameDiv(game, index, isNew) {
         const gameDiv = document.createElement("div");
         gameDiv.innerHTML = `ID: ${game.id}, Naam: ${game.name} `;
@@ -88,6 +89,8 @@ document.addEventListener("DOMContentLoaded", function() {
         const recommendGames = document.getElementById("recommend_games");
         recommendGames.style.display = "initial";
         recommendGames.classList.add("pop-in");
+
+        saveGames();
     }
 
     function animateAndRemove(gameDiv, index) {
@@ -106,6 +109,25 @@ document.addEventListener("DOMContentLoaded", function() {
         console.error("Error: ", error);
         alert("Error: " + error);
     }
+
+    function saveGames() {
+        const gamesJson = JSON.stringify(games);
+        const expireDate = new Date();
+        expireDate.setHours(expireDate.getHours() + 6);
+        document.cookie = `games=${gamesJson}; expires=${expireDate.toUTCString()}; path=/`;
+    }
+
+    function loadGames() {
+        const cookie = document.cookie;
+        const gameslist = cookie.match(/games=([^;]+)/);
+        if (gameslist) {
+            const gamesJson = gameslist[1];
+            const loadedGames = JSON.parse(gamesJson);
+            games.push(...loadedGames);
+            renderGames();
+        }
+    }
+
 
     function recommendGames() {
         let gameIds = games.map(game => game.id).join(",");
