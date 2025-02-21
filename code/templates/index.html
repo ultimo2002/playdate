@@ -9,16 +9,18 @@
     <script src="{{ url_for('static', path='/scripts.js') }}"></script>
 </head>
 
-<body>
+<body class="home">
         <h1>Game Recommender</h1>
         {% if message %}
             <p>{{ message }}</p>
         {% endif %}
         <div class="container flex-column w-50">
-            <div class="column flex-align-start">
+            <div class="column flex-align-start flex-md-align-items-center flex-algn-items-center">
                  <form action="/recommend" method="get">
-                     <label for="game">Game:</label>
-                     <input type="text" id="game" name="game" required>
+                     <span>
+                        <label for="game">Game:</label>
+                        <input type="text" id="game" name="game" required>
+                     </span>
                      <button type="submit">Search</button>
                  </form>
             </div>

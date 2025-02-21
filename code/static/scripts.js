@@ -28,6 +28,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 games.push(data);
                 renderGames();
+
+                gameInput.value = "";
             })
             .catch(handleError);
     }

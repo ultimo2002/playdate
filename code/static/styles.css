@@ -7,6 +7,7 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-attachment: fixed;
     background-color: cadetblue;
     margin: 0 auto;
     width: 80%;
@@ -210,8 +211,15 @@ body.nsfw::before {
     flex-direction: column;
     gap: 20px;
 }
+
 .flex-align-start {
     align-items: flex-start;
+}
+
+.flex-md-align-items-center {
+    @media (max-width: 768px) {
+        align-items: center
+    }
 }
 
 .w-50 {
@@ -226,7 +234,7 @@ body.nsfw::before {
     text-decoration: none;
     cursor: pointer;
     transition: font-size 0.5s;
-    font-size: var(--font-size);
+    font-size: var(--font-size, 1rem);
 }
 .removeButton:before {
     /* Create a white circle behind the prullenbak icon text */
@@ -246,6 +254,7 @@ body.nsfw::before {
 .removeButton:hover {
     font-size: 1.5rem;
 }
+
 .selected_games div {
     display: flex;
     gap: 5px;
@@ -273,6 +282,31 @@ body.nsfw::before {
 
 .pop-out {
     animation: popOut 0.3s ease-out forwards;
+}
+
+button {
+    cursor: pointer;
+    padding: 0.4em 1em;
+    border: none;
+    border-radius: 5px;
+    background-color: #3498db;
+    color: white;
+    font-size: 1rem;
+    transition: background-color 0.4s, font-size 0.4s;
+    font-size: var(--font-size, 1rem);
+}
+button:hover {
+    font-size: 1.1rem;
+    background-color: #1d90e3;
+}
+
+.home form {
+    @media (max-width: 850px) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
 }
 
 /* Easter Eggs */
