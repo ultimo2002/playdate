@@ -5,6 +5,13 @@
     --button-hover-color: #1d90e3;
 }
 
+html {
+    font-size: 1rem;
+}
+* {
+    transition: font-size 50ms;
+}
+
 body {
     background-size: cover;
     background-position: center;
@@ -17,6 +24,10 @@ body {
     font-size: var(--font-size, 1rem);
     font-family: "Motiva Sans", system-ui, Sans-serif;
     font-weight: 500;
+
+    @media (max-width: 768px) {
+        width: 88%;
+    }
 }
 
 
@@ -29,6 +40,17 @@ h3 {
     font-size: 1.5em;
 }
 
+a {
+    color: var(--button-color, #3498db);
+    text-decoration: none;
+    transition: color 0.4s, font-size 0.4s;
+    font-size: var(--font-size, 1rem);
+}
+a:hover {
+    color: var(--button-hover-color, #1d90e3);
+    text-decoration-line: underline;
+    font-size: calc(var(--font-size, 1rem) + 0.08rem);
+}
 
 /* Containers */
 .container {
@@ -77,6 +99,7 @@ h3 {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     text-align: center;
     color: #444;
+    font-size: 1rem;
 }
 
 /* Recommended Card */
@@ -93,37 +116,37 @@ h3 {
     width: 100%;
     height: 150px;
     object-fit: cover;
-    border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 0px;
-}
-
-.game-title {
-    color: #444;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 .game-info {
     padding: 15px;
+    font-size: var(--font-size, 1rem);
+}
+.game-info .container {
+    padding: 0.75em 1em;
 }
 
-.game-developer {
-    font-size: 14px;
-    color: #666;
+.game-title {
+    color: #444;
+    margin: 0.5em 0;
+}
+
+.game-info {
+    color: #444;
+    font-size: 1rem
 }
 
 .game-description {
-    font-size: 14px;
-    color: #444;
-    margin: 10px 0;
+    margin: 1em 0;
 }
 
 .game-genres {
-    font-size: 14px;
-    color: #444;
-    margin: 10px 0;
+    margin: 1em 0;
 }
 
 .game-genres a {
-    color: #444;
     text-decoration: none;
     transition: color 0.3s;
 }
@@ -134,7 +157,7 @@ h3 {
 }
 
 .game-price {
-    font-size: 18px;
+    font-size: 1.25em;
     font-weight: bold;
     color: #27ae60;
     margin-top: 10px;
@@ -143,15 +166,17 @@ a.game-price:hover {
     color: #2ecc71;
     text-decoration-line: underline;
     text-decoration-thickness: 2px;
+    font-size: 1.35em;
 }
 .recommended-columnl {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 50%;
+    object-fit: cover;
 }
 .recommended-columnl img {
-    height: 110px;
-    width: fit-content;
+    height: 100%;
     border-radius: 10px;
 }
 
@@ -164,22 +189,28 @@ a.game-price:hover {
     background-color: rgba(0, 0, 0, 0.2);
     color: white;
     padding: 10px;
-    font-size: 0.95rem;
     opacity: 0.8;
     border-top-left-radius: 10px;
     transition: font-size 0.4s;
-}
-.overlay:hover {
-    font-size: 1.005rem;
+    font-size: 1rem;
 }
 
 .overlay a, form a {
     color: white;
     text-decoration: none;
-    transition: color 0.1s;
+    transition: color 0.1s, font-size 0.5s;
+}
+.overlay a {
+    font-size: 0.95em;
 }
 .overlay a:hover {
     color: #b4cfff;
+    font-size: 1em;
+}
+form a:hover {
+    color: #fff;
+    text-decoration-line: none;
+    font-size: 1.25rem;
 }
 
 body.nsfw::before {
