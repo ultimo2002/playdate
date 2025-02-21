@@ -30,7 +30,6 @@ jobs:
       - name: Create .env file
         run: |
           echo "${{ secrets.DOTENV }}" > code/.env
-          echo "${{ secrets.DOTENV }}" > .env
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
@@ -41,6 +40,9 @@ jobs:
         run: |
           # -v means verbose (display PASSed functions/tests)
           PYTHONPATH=.. pytest -v
+      - name: remove .env
+        run: |
+          rm code/.env
       # Log in to DigitalOcean Container Registry
       - name: Log in to DigitalOcean
         env:
