@@ -58,8 +58,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 event.preventDefault(); // Stops `<a>` from navigating
                 removeGame(index);
             });
-            removeButton.style.textDecoration = "none";
-            removeButton.style.transition = "font-size 0.5s";
             removeButton.classList.add("removeButton");
 
             gameDiv.appendChild(removeButton);
