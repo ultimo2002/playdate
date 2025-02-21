@@ -1,5 +1,5 @@
 :root {
-    --font-size: 1rem;
+    --font-size: 1.1rem;
     --font-size-heading: 2rem;
 }
 
@@ -12,7 +12,7 @@ body {
     margin: 0 auto;
     width: 80%;
     padding: 10px;
-    font-size: 20px;
+    font-size: var(--font-size, 1rem);
     font-family: "Motiva Sans", system-ui, Sans-serif;
     font-weight: 500;
 }
@@ -162,9 +162,13 @@ a.game-price:hover {
     background-color: rgba(0, 0, 0, 0.2);
     color: white;
     padding: 10px;
-    font-size: 15px;
+    font-size: 0.95rem;
     opacity: 0.8;
     border-top-left-radius: 10px;
+    transition: font-size 0.4s;
+}
+.overlay:hover {
+    font-size: 1.005rem;
 }
 
 .overlay a, form a {
@@ -234,7 +238,11 @@ body.nsfw::before {
     text-decoration: none;
     cursor: pointer;
     transition: font-size 0.5s;
-    font-size: var(--font-size, 1rem);
+    font-size: 1.1rem;
+
+    @media (max-width: 500px) {
+        font-size: 1.2rem;
+    }
 }
 .removeButton:before {
     /* Create a white circle behind the prullenbak icon text */
@@ -286,14 +294,13 @@ body.nsfw::before {
 
 button {
     cursor: pointer;
-    padding: 0.4em 1em;
+    padding: 0.4rem 1rem;
     border: none;
     border-radius: 5px;
     background-color: #3498db;
     color: white;
-    font-size: 1rem;
     transition: background-color 0.4s, font-size 0.4s;
-    font-size: var(--font-size, 1rem);
+    font-size: var(--font-size, 1.1rem);
 }
 button:hover {
     font-size: 1.1rem;
