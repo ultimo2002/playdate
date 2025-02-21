@@ -316,6 +316,17 @@ button:hover {
     }
 }
 
+.emoji {
+    transition: font-size 0.5s, transform 0.5s;
+    display: inline-block;
+    margin-left: 0.5em
+}
+
+.emoji:hover {
+    font-size: 1.25em;
+    transform: rotate(180deg);
+}
+
 /* Easter Eggs */
 body:has(#appid-3314060, #appid-391540) {
     font-family: "Comic Sans MS", cursive, system-ui, sans-serif;
