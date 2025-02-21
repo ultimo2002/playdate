@@ -21,6 +21,20 @@ document.addEventListener("DOMContentLoaded", function() {
             })
             .then(data => {
                 console.log(data);
+                if (data.length === 0) {
+                    alert("The game you entered does not exist");
+                    return;
+                }
+
+                // When the game is already in the list, don't add it again
+                let existing_divs = selected_games_element.querySelectorAll("div");
+                for (let div of existing_divs) {
+                    if (div.innerHTML.includes(data.name)) {
+                        console.log("Game already in list");
+                        return;
+                    }
+                }
+
                 let new_div = document.createElement("div");
                 new_div.innerHTML = `ID: ${data.id}, Naam: ${data.name}`;
                 selected_games_element.appendChild(new_div);
