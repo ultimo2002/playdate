@@ -251,6 +251,17 @@ body.nsfw::before {
     gap: 5px;
     align-items: center;
     justify-content: center;
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+@keyframes popOut {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+.pop-out {
+    animation: popOut 0.3s ease-out forwards;
 }
 
 /* Easter Eggs */

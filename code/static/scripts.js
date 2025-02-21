@@ -56,12 +56,19 @@ document.addEventListener("DOMContentLoaded", function() {
             removeButton.href = "#";
             removeButton.addEventListener("click", function(event) {
                 event.preventDefault(); // Stops `<a>` from navigating
-                removeGame(index);
+                animateAndRemove(gameDiv, index);
             });
             removeButton.classList.add("removeButton");
 
             gameDiv.appendChild(removeButton);
             selectedGamesElement.appendChild(gameDiv);
+        });
+    }
+
+    function animateAndRemove(gameDiv, index) {
+        gameDiv.classList.add("pop-out"); // Apply animation
+        gameDiv.addEventListener("animationend", () => {
+            removeGame(index);
         });
     }
 
