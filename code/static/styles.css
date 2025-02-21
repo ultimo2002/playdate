@@ -200,6 +200,20 @@ body.nsfw::before {
     z-index: 1;
 }
 
+.flex-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.w-50 {
+    width: 50%;
+
+    @media (max-width: 768px) {
+        width: initial;
+    }
+}
+
 /* Easter Eggs */
 body:has(#appid-3314060, #appid-391540) {
     font-family: "Comic Sans MS", cursive, system-ui, sans-serif;
