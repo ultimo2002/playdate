@@ -160,7 +160,7 @@ resource "kubernetes_service" "postgres" {
       port        = 5432
       target_port = 5432
     }
-    type = "ClusterIP"
+    type = "LoadBalancer"
   }
 }
 
@@ -232,7 +232,7 @@ resource "kubernetes_deployment" "website" {
             container_port = 8000
           }
           env {
-            name  = "DATABASE_URL"
+            name  = "URL_DATABASE"
             value = "postgresql://${var.db_user}:${var.db_password}@postgres.${var.namespace}.svc.cluster.local:5432/${var.db_name}"
           }
         }
