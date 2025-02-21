@@ -48,52 +48,42 @@ document.addEventListener("DOMContentLoaded", function() {
 
     let renderedGameIds = new Set();  // Set to keep track of already rendered game IDs
 
+    function createGameDiv(game, index, isNew) {
+        const gameDiv = document.createElement("div");
+        gameDiv.innerHTML = `ID: ${game.id}, Naam: ${game.name} `;
+
+        const removeButton = document.createElement("a");
+        removeButton.href = "#";
+        removeButton.addEventListener("click", function(event) {
+            event.preventDefault();
+            animateAndRemove(gameDiv, index);
+        });
+        removeButton.classList.add("removeButton");
+
+        gameDiv.appendChild(removeButton);
+        selectedGamesElement.appendChild(gameDiv);
+
+        if (isNew) {
+            gameDiv.classList.add("pop-in"); // Add animation only for new games
+        }
+    }
+
     function renderGames() {
         const recommendGames = document.getElementById("recommend_games");
         recommendGames.style.display = "initial";
 
-        // Render the selected games list
-        selectedGamesElement.innerHTML = ""; // Clear the list before re-rendering
+        // Clear the list before re-rendering
+        selectedGamesElement.innerHTML = "";
 
         games.forEach((game, index) => {
             if (!renderedGameIds.has(game.id)) {
-                // Only add the pop-in class for new games (that haven't been rendered yet)
                 renderedGameIds.add(game.id);  // Mark this game as rendered
-
-                const gameDiv = document.createElement("div");
-                gameDiv.innerHTML = `ID: ${game.id}, Naam: ${game.name} `;
-
-                const removeButton = document.createElement("a");
-                removeButton.href = "#";
-                removeButton.addEventListener("click", function(event) {
-                    event.preventDefault(); // Stops `<a>` from navigating
-                    animateAndRemove(gameDiv, index);
-                });
-                removeButton.classList.add("removeButton");
-
-                gameDiv.appendChild(removeButton);
-                selectedGamesElement.appendChild(gameDiv);
-
-                // Add the pop-in class to trigger the animation
-                gameDiv.classList.add("pop-in");
+                createGameDiv(game, index, true); // New game
             } else {
-                // Handle already rendered games (just render without animation)
-                const existingGameDiv = document.createElement("div");
-                existingGameDiv.innerHTML = `ID: ${game.id}, Naam: ${game.name} `;
-                const removeButton = document.createElement("a");
-                removeButton.href = "#";
-                removeButton.addEventListener("click", function(event) {
-                    event.preventDefault();
-                    animateAndRemove(existingGameDiv, index);
-                });
-                removeButton.classList.add("removeButton");
-
-                existingGameDiv.appendChild(removeButton);
-                selectedGamesElement.appendChild(existingGameDiv);
+                createGameDiv(game, index, false); // Already rendered game
             }
         });
     }
-
 
     function animateAndRemove(gameDiv, index) {
         gameDiv.classList.add("pop-out"); // Apply animation
