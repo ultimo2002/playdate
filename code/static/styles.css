@@ -210,6 +210,9 @@ body.nsfw::before {
     flex-direction: column;
     gap: 20px;
 }
+.flex-align-start {
+    align-items: flex-start;
+}
 
 .w-50 {
     width: 50%;
