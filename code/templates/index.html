@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Recommender</title>
     <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
     <script src="{{ url_for('static', path='/scripts.js') }}"></script>
+    <script>if(window.location.pathname!=="/"){window.history.replaceState({},"","/");}</script>
 </head>
-
 <body class="home">
         <h1>Game Recommender</h1>
         {% if message %}
