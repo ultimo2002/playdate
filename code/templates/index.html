@@ -15,7 +15,7 @@
             <p>{{ message }}</p>
         {% endif %}
         <div class="container flex-column w-50">
-            <div class="column columnr flex-align-start">
+            <div class="column flex-align-start">
                  <form action="/recommend" method="get">
                      <label for="game">Game:</label>
                      <input type="text" id="game" name="game" required>
@@ -23,7 +23,11 @@
                  </form>
             </div>
             <!-- Selected games here in #selected_games -->
-            <div class="column columnl selected_games p-relative" id="selected_games"></div>
+            <div class="column selected_games p-relative" id="selected_games"></div>
+
+            <div class="column" id="recommend_games" style="display: none;">
+                <button id="recommend" class="btn">Recommend</button>
+            </div>
         </div>
         {% if background_image %}
             <div class="overlay">
