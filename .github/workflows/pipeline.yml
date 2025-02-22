@@ -18,64 +18,96 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # Set up Python 3.10
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
         with:
           python-version: "3.10"
+
+      # Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install flake8 pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      # Create .env file
       - name: Create .env file
         run: |
           echo "${{ secrets.DOTENV }}" > code/.env
+
+      # Lint with flake8
       - name: Lint with flake8
         run: |
-          # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      # Run tests
       - name: Run tests
         run: |
-          # -v means verbose (display PASSed functions/tests)
           PYTHONPATH=.. pytest -v
+
+      # Remove .env
       - name: remove .env
         run: |
           rm code/.env
-      # Log in to DigitalOcean Container Registry
-      - name: Log in to DigitalOcean
+
+      # Log in to GitHub Container Registry
+      - name: Log in to GHCR
         env:
-          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
-          DIGITALOCEAN_USERNAME: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
-          echo "${DIGITALOCEAN_ACCESS_TOKEN}" | docker login registry.digitalocean.com -u "${DIGITALOCEAN_USERNAME}" --password-stdin
-        # Build Docker Image with Git commit hash as tag
+          echo "${GHCR_TOKEN}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # Build Docker image with Git commit hash as tag
       - name: Build Docker image
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          docker build -t registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} -t registry.digitalocean.com/timots/fast-api:latest  .
-        # Push Docker Image
-      - name: Push Docker image to DigitalOcean
+          docker build -t ghcr.io/${{ github.repository }}:${COMMIT_HASH} -t ghcr.io/${{ github.repository }}:latest .
+
+      # Push Docker image to GHCR
+      - name: Push Docker image to GHCR
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          docker push --all-tags registry.digitalocean.com/timots/fast-api
-          # Deploy to DigitalOcean Kubernetes
+          docker push ghcr.io/${{ github.repository }}:${COMMIT_HASH}
+          docker push ghcr.io/${{ github.repository }}:latest
+
+      # Cleanup old images (keep only the two most recent images)
+      - name: Cleanup old Docker images
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          # List all tags in the repository, excluding 'latest' and sort by creation date
+          IMAGE_TAGS=$(curl -s -H "Authorization: Bearer $GHCR_TOKEN" \
+          "https://api.github.com/repos/${{ github.repository }}/packages/container/ghcr.io%2F${{ github.repository }}/versions" \
+          | jq -r 'sort_by(.created_at) | reverse | .[2:] | .[].id')
+          
+          # Delete older images
+          for TAG in $IMAGE_TAGS; do
+            curl -X DELETE -H "Authorization: Bearer $GHCR_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/packages/container/ghcr.io%2F${{ github.repository }}/versions/$TAG"
+          done
+
+      # Set up kubectl
       - name: Set up kubectl
         uses: azure/setup-kubectl@v1
         with:
             version: 'latest'
+
+      # Configure kubeconfig
       - name: Configure kubeconfig
         env:
           KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
         run: |
               mkdir -p $HOME/.kube
-              echo "${KUBE_CONFIG_DATA}"
               echo "${KUBE_CONFIG_DATA}" > $HOME/.kube/config
+
+      # Update Deployment with New Image
       - name: Update Deployment with New Image
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-            kubectl set image deployment/website website=registry.digitalocean.com/timots/fast-api:${COMMIT_HASH} -n fastapi-app
+            kubectl set image deployment/website website=ghcr.io/${{ github.repository }}:${COMMIT_HASH} -n fastapi-app
