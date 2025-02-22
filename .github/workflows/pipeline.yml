@@ -65,37 +65,23 @@ jobs:
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          docker build -t ghcr.io/ultimo2002/devops:${COMMIT_HASH} -t ghcr.io/ultimo2002/devops:latest .
+          docker build -t ghcr.io/ultimo2002/playdate:${COMMIT_HASH} -t ghcr.io/ultimo2002/playdate:latest .
 
       # Push Docker image to GHCR
       - name: Push Docker image to GHCR
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          docker push ghcr.io/ultimo2002/devops --all-tags
+          docker push ghcr.io/ultimo2002/playdate --all-tags
 
-      # Cleanup old images (keep only the two most recent images)
-      - name: Cleanup old Docker images
-        env:
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-        run: |
-          # List all tags in the repository and sort by creation date
-          IMAGE_TAGS=$(curl -s -H "Authorization: Bearer $GHCR_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/packages/container/ghcr.io%2Fultimo2002%2Fdevops/versions" \
-            | jq -r 'sort_by(.created_at) | reverse | .[] | .id')
-          
-          # Delete older images (keep the 2 most recent versions, so exclude the 2 latest)
-          COUNT=0
-          for TAG in $IMAGE_TAGS; do
-            # Increment the count to skip the most recent 2 images
-            if [ $COUNT -ge 2 ]; then
-              echo "Deleting image with tag ID: $TAG"
-              curl -X DELETE -H "Authorization: Bearer $GHCR_TOKEN" \
-                "https://api.github.com/repos/${{ github.repository }}/packages/container/ghcr.io%2Fultimo2002%2Fdevops/versions/$TAG"
-            fi
-            COUNT=$((COUNT + 1))
-          done
-
+     # Use the delete-old-packages action to remove older images
+      - name: Delete old Docker images from GHCR
+        uses: actions/delete-package-versions@v5
+        with:
+            package-name: playdate
+            package-type: docker
+            min-versions-to-keep: 2
+            token: ${{ secrets.GHCR_TOKEN }}
       # Set up kubectl
       - name: Set up kubectl
         uses: azure/setup-kubectl@v1
@@ -115,4 +101,4 @@ jobs:
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-            kubectl set image deployment/website website=ghcr.io/${{ github.repository }}:${COMMIT_HASH} -n fastapi-app
+            kubectl set image deployment/website website=ghcr.io/ultimo2002/playdate:${COMMIT_HASH} -n playdate
