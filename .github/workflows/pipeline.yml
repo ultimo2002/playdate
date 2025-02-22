@@ -101,4 +101,4 @@ jobs:
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-            kubectl set image deployment/website website=ghcr.io/ultimo2002/playdate:${COMMIT_HASH} -n playdate
+            kubectl set image deployment/website website=ghcr.io/${{ github.repository }}/playdate:${COMMIT_HASH} -n playdate
