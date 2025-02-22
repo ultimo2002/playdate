@@ -1,19 +1,30 @@
 :root {
-    --font-size: 1rem;
+    --font-size: 1.1rem;
     --font-size-heading: 2rem;
+    --button-color: #3498db;
+    --button-hover-color: #1d90e3;
+}
+
+html {
+    font-size: 1rem;
 }
 
 body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-attachment: fixed;
     background-color: cadetblue;
     margin: 0 auto;
     width: 80%;
     padding: 10px;
-    font-size: 20px;
+    font-size: var(--font-size, 1rem);
     font-family: "Motiva Sans", system-ui, Sans-serif;
     font-weight: 500;
+
+    @media (max-width: 768px) {
+        width: 88%;
+    }
 }
 
 
@@ -26,6 +37,17 @@ h3 {
     font-size: 1.5em;
 }
 
+a {
+    color: var(--button-color, #3498db);
+    text-decoration: none;
+    transition: color 0.4s, font-size 0.4s;
+    font-size: var(--font-size, 1rem);
+}
+a:hover {
+    color: var(--button-hover-color, #1d90e3);
+    text-decoration-line: underline;
+    font-size: calc(var(--font-size, 1rem) + 0.08rem);
+}
 
 /* Containers */
 .container {
@@ -45,12 +67,17 @@ h3 {
     background-color: #0e263a;
     text-align: center;
     border-radius: 10px;
-    opacity: 80%;
+    opacity: 80% !important;
     color: #FFFFFF;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 25px;
+}
+
+.selected_games:empty {
+    display:none;
+    background: none;
 }
 
 .columnl {
@@ -69,6 +96,11 @@ h3 {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     text-align: center;
     color: #444;
+    font-size: 1rem;
+    transition: box-shadow 2s;
+}
+.card:hover{
+    box-shadow: 0 8px 16px #1b2838;
 }
 
 /* Recommended Card */
@@ -76,57 +108,63 @@ h3 {
     display: flex;
     width: 100%;
 
+    transition: transform 0.5s;
+
     @media (max-width: 1200px) {
         flex-direction: column;
     }
+}
+
+.recommended-card:hover {
+    transform: scale(1.02);
 }
 
 .game-image {
     width: 100%;
     height: 150px;
     object-fit: cover;
-    border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 0px;
-}
-
-.game-title {
-    color: #444;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 .game-info {
     padding: 15px;
+    font-size: var(--font-size, 1rem);
+}
+.game-info .container {
+    padding: 0.75em 1em;
 }
 
-.game-developer {
-    font-size: 14px;
-    color: #666;
+.game-title {
+    color: #444;
+    margin: 0.5em 0;
+}
+
+.game-info {
+    color: #444;
+    font-size: 1rem
 }
 
 .game-description {
-    font-size: 14px;
-    color: #444;
-    margin: 10px 0;
+    margin: 1em 0;
 }
 
 .game-genres {
-    font-size: 14px;
-    color: #444;
-    margin: 10px 0;
+    margin: 1em 0;
 }
 
 .game-genres a {
-    color: #444;
     text-decoration: none;
     transition: color 0.3s;
 }
 .game-genres a:hover {
-    color: #3498db;
+    color: var(--button-color, #3498db);
     text-decoration-line: underline;
     text-decoration-thickness: 2px;
 }
 
 .game-price {
-    font-size: 18px;
+    font-size: 1.25em;
     font-weight: bold;
     color: #27ae60;
     margin-top: 10px;
@@ -135,15 +173,17 @@ a.game-price:hover {
     color: #2ecc71;
     text-decoration-line: underline;
     text-decoration-thickness: 2px;
+    font-size: 1.35em;
 }
 .recommended-columnl {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 50%;
+    object-fit: cover;
 }
 .recommended-columnl img {
-    height: 110px;
-    width: fit-content;
+    height: 100%;
     border-radius: 10px;
 }
 
@@ -156,19 +196,29 @@ a.game-price:hover {
     background-color: rgba(0, 0, 0, 0.2);
     color: white;
     padding: 10px;
-    font-size: 15px;
     opacity: 0.8;
     border-top-left-radius: 10px;
+    transition: font-size 0.4s;
+    font-size: 1rem;
 }
 
 .overlay a, form a {
     color: white;
     text-decoration: none;
-    transition: color 0.1s;
+    transition: color 0.1s, font-size 0.5s;
+}
+.overlay a {
+    font-size: 0.95em;
 }
 
 .overlay a:hover {
     color: #b4cfff;
+    font-size: 1em;
+}
+form a:hover {
+    color: #fff;
+    text-decoration-line: none;
+    font-size: 1.25rem;
 }
 
 body.nsfw::before {
@@ -199,6 +249,128 @@ body.nsfw::before {
     bottom: 0;
     left: 0;
     z-index: 1;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.flex-align-start {
+    align-items: flex-start;
+}
+
+.flex-md-align-items-center {
+    @media (max-width: 768px) {
+        align-items: center
+    }
+}
+
+.w-50 {
+    width: 50%;
+
+    @media (max-width: 768px) {
+        width: initial;
+    }
+}
+
+.removeButton {
+    text-decoration: none;
+    cursor: pointer;
+    transition: font-size 0.5s;
+    font-size: 1.1rem;
+
+    @media (max-width: 500px) {
+        font-size: 1.2rem;
+    }
+}
+.removeButton:before {
+    /* Create a white circle behind the prullenbak icon text */
+    content: "🗑️";
+    display: inline-block;
+    position: relative;
+    width: 2em;
+    height: 2em;
+    line-height: 2em;
+    background-color: #fff;
+    border-radius: 50%;
+    margin-right: 0.5em;
+    text-align: center;
+    vertical-align: middle;
+    z-index: -1;
+}
+.removeButton:hover {
+    font-size: 1.5rem;
+}
+
+.selected_games div {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.3s, opacity 0.3s;
+    width: 100%;
+}
+
+@keyframes popOut {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    75% { transform: scale(1.05); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.pop-in {
+    animation: popIn 0.35s ease-out forwards;
+}
+
+.pop-out {
+    animation: popOut 0.3s ease-out forwards;
+}
+
+button {
+    cursor: pointer;
+    padding: 0.4rem 1rem;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--button-color, #3498db);
+    color: white;
+    transition: background-color 0.4s, font-size 0.4s;
+    font-size: var(--font-size, 1.1rem);
+}
+button:hover {
+    font-size: 1.2rem;
+    background-color: var(--button-hover-color, #1d90e3);
+}
+
+.home form {
+    @media (max-width: 850px) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+}
+
+.emoji {
+    transition: font-size 0.5s, transform 0.5s, text-shadow 10s;
+    display: inline-block;
+    margin-left: 0.5em;
+
+    @media (max-width: 500px) {
+        display: none;
+    }
+}
+
+.emoji:hover {
+    font-size: 1.25em;
+    transform: rotate(180deg);
+    text-shadow: 0 0 0.2em var(--button-color, #3498db);
 }
 
 /* Easter Eggs */

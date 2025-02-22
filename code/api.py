@@ -470,14 +470,14 @@ class API:
             if target_name.isdigit():
                 app = db.query(models.App).filter(models.App.id == int(target_name)).first()
                 if app:
-                    return {"id": app.id, "name": app.name, "similarity": 100}
+                    return {"id": app.id, "name": app.name, "header_image": app.header_image, "similarity": 100}
                 return None
 
-            apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
+            apps = db.query(models.App).with_entities(models.App.id, models.App.name, models.App.header_image).all()
             most_similar_app, similarity = _most_similar(target_name, apps, "name")
 
             if most_similar_app:
-                return {"id": most_similar_app.id, "name": most_similar_app.name, "similarity": similarity}
+                return {"id": most_similar_app.id, "name": most_similar_app.name, "header_image": most_similar_app.header_image, "similarity": similarity}
 
             return None
 

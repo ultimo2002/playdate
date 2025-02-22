@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recommended Games</title>
     <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', path='/scripts.js') }}"></script>
 </head>
 
 <body class="{% if nsfw %}nsfw{% endif %}">
@@ -42,7 +43,7 @@
                     <div class="recommended-columnl">
                         <img class="game-image" src="{{ app.header_image }}" alt="{{ app.name }}">
                     </div>
-                    <div class="recommended-columnr">
+                    <div class="game-info">
                         <h3 class="game-title">{{ app.name }}</h3>
                         <div class="container">
                             <p><strong>Similarity Score:</strong> {{ app.similarity_score }}%</p>
