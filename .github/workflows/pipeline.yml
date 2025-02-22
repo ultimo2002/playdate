@@ -72,7 +72,7 @@ jobs:
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          docker push ghcr.io/${{ github.repository }}/playdate --all-tags
+          docker push ghcr.io/${{ github.repository }}/playdate:${COMMIT_HASH}
 
      # Use the delete-old-packages action to remove older images
       - name: Delete old Docker images from GHCR
