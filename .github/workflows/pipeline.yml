@@ -65,21 +65,21 @@ jobs:
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          docker build -t ghcr.io/ultimo2002/playdate:${COMMIT_HASH} -t ghcr.io/ultimo2002/playdate:latest .
+          docker build -t ghcr.io/${{ github.repository }}/playdate:${COMMIT_HASH} -t ghcr.io/${{ github.repository }}/playdate:latest .
 
       # Push Docker image to GHCR
       - name: Push Docker image to GHCR
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          docker push ghcr.io/ultimo2002/playdate --all-tags
+          docker push ghcr.io/${{ github.repository }}/playdate --all-tags
 
      # Use the delete-old-packages action to remove older images
       - name: Delete old Docker images from GHCR
         uses: actions/delete-package-versions@v5
         with:
-            package-name: playdate
-            package-type: docker
+            package-name: 'playdate'
+            package-type: 'container'
             min-versions-to-keep: 2
             token: ${{ secrets.GHCR_TOKEN }}
       # Set up kubectl
