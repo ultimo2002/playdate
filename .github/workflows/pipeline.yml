@@ -72,23 +72,28 @@ jobs:
         env:
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          docker push ghcr.io/${{ github.repository }}:${COMMIT_HASH}
-          docker push ghcr.io/${{ github.repository }}:latest
+          docker push ghcr.io/ultimo2002/devops --all-tags
 
       # Cleanup old images (keep only the two most recent images)
       - name: Cleanup old Docker images
         env:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
-          # List all tags in the repository, excluding 'latest' and sort by creation date
+          # List all tags in the repository and sort by creation date
           IMAGE_TAGS=$(curl -s -H "Authorization: Bearer $GHCR_TOKEN" \
-          "https://api.github.com/repos/${{ github.repository }}/packages/container/ghcr.io%2F${{ github.repository }}/versions" \
-          | jq -r 'sort_by(.created_at) | reverse | .[2:] | .[].id')
+            "https://api.github.com/repos/${{ github.repository }}/packages/container/ghcr.io%2Fultimo2002%2Fdevops/versions" \
+            | jq -r 'sort_by(.created_at) | reverse | .[] | .id')
           
-          # Delete older images
+          # Delete older images (keep the 2 most recent versions, so exclude the 2 latest)
+          COUNT=0
           for TAG in $IMAGE_TAGS; do
-            curl -X DELETE -H "Authorization: Bearer $GHCR_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/packages/container/ghcr.io%2F${{ github.repository }}/versions/$TAG"
+            # Increment the count to skip the most recent 2 images
+            if [ $COUNT -ge 2 ]; then
+              echo "Deleting image with tag ID: $TAG"
+              curl -X DELETE -H "Authorization: Bearer $GHCR_TOKEN" \
+                "https://api.github.com/repos/${{ github.repository }}/packages/container/ghcr.io%2Fultimo2002%2Fdevops/versions/$TAG"
+            fi
+            COUNT=$((COUNT + 1))
           done
 
       # Set up kubectl
