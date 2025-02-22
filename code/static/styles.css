@@ -210,6 +210,7 @@ a.game-price:hover {
 .overlay a {
     font-size: 0.95em;
 }
+
 .overlay a:hover {
     color: #b4cfff;
     font-size: 1em;

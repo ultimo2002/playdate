@@ -9,7 +9,7 @@ variable "do_version" {
 }
 # images
 variable "website_image" {
-  default = "registry.digitalocean.com/timots/fast-api:99949698d356d9116ff17e9f51960377e2e43931"
+  default = "ghcr.io/ultimo2002/playdate:latest"
 }
 # Kubernetes Cluster Configuration
 variable "cluster_name" {

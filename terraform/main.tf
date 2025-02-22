@@ -65,10 +65,8 @@ resource "kubernetes_secret" "docker_registry" {
   data = {
     ".dockerconfigjson" = jsonencode({
       auths = {
-        "registry.digitalocean.com" = {
-          "username" = var.docker_username
-          "password" = var.docker_auth_token
-          "auth"     = base64encode("${var.docker_username}:${var.do_token}")
+        "ghcr.io" = {
+          "auth"     = base64encode("${var.docker_username}:${var.docker_auth_token}")
         }
       }
     })
@@ -160,7 +158,7 @@ resource "kubernetes_service" "postgres" {
       port        = 5432
       target_port = 5432
     }
-    type = "ClusterIP"
+    type = "LoadBalancer"
   }
 }
 
@@ -232,7 +230,7 @@ resource "kubernetes_deployment" "website" {
             container_port = 8000
           }
           env {
-            name  = "DATABASE_URL"
+            name  = "URL_DATABASE"
             value = "postgresql://${var.db_user}:${var.db_password}@postgres.${var.namespace}.svc.cluster.local:5432/${var.db_name}"
           }
         }

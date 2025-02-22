@@ -18,7 +18,6 @@ from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
 import code.database.models as models
 from code.database.database import Engine, SessionLocal
 
-
 class API:
     db_dependency = None
 
@@ -35,7 +34,6 @@ class API:
         models.Base.metadata.create_all(bind=Engine)
 
         self.db_dependency = Depends(self.get_db)
-
 
     def run(self):
         """"
@@ -313,19 +311,11 @@ class API:
 
             # chache the background image
             if os.getenv("CACHE_IMAGES"):
-                if selected_app.background_image:
-                    cached = cache_background_image(selected_app)
-                    try:
-                        selected_app.background_image = cached["background_image"] if cached else selected_app.background_image
-                    except (TypeError, KeyError):
-                        selected_app.background_image = selected_app.background_image
-
-                if selected_app.header_image:
-                    cached = cache_header_image(selected_app)
-                    try:
-                        selected_app.header_image = cached["header_image"] if cached else selected_app.header_image
-                    except (TypeError, KeyError):
-                        selected_app.header_image = selected_app.header_image
+                for attr, cache_func in [("background_image", cache_background_image),
+                                         ("header_image", cache_header_image)]:
+                    if getattr(selected_app, attr):
+                        cached = cache_func(selected_app) or {}
+                        setattr(selected_app, attr, cached.get(attr, getattr(selected_app, attr)))
 
             return self.templates.TemplateResponse(
                 request=request, name="game_output.html", context={"selected_app":selected_app, "apps": apps,"nsfw": nsfw}
@@ -578,7 +568,3 @@ class API:
                 make_typo(app.name, app.id, all_apps): {"expected_appid": app.id, "expected_name": app.name}
                 for app in random_apps
             }
-
-if __name__ == "__main__":
-    api = API()
-    api.run()
