@@ -498,7 +498,8 @@ class API:
                 for app in random_apps
             }
 
-        @self.app.get("/robots.txt", response_class=PlainTextResponse)
+        @self.app.get("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)
         def robots():
+            """Don't allow any crawlers to index the API. E.g: Search engines."""
             data = """User-agent: *\nDisallow: /"""
             return data
