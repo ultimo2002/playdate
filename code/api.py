@@ -1,18 +1,20 @@
 import os
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 import uvicorn
 
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 
 from sqlalchemy.sql.expression import func
 
+from .algoritmes.cache import cache_background_image, cache_header_image
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
-from .config import API_HOST_URL, API_HOST_PORT
+from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
 
 from code.routes.development.apps import router as apps_router, app_data_from_id_or_name
-from .routes.frontend import router as frontend_router
+from .routes.frontend import router as frontend_router, root
 from code.routes.development.categories import router_development as categories_router_development
 from code.routes.categories import router as categories_router
 
@@ -210,6 +212,7 @@ class API:
             """
             if not game:
                 return root(request, db)
+
             # clean up the input to prevent XSS attacks
             game_input = game.strip()
             game_input = game_input.strip()
