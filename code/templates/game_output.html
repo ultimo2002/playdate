@@ -18,17 +18,17 @@
     <div class="container">
         <div class="column columnl">
             <h2>Selected Game</h2>
-            {% if selected_app %}
-            <div class="card" id="appid-{{selected_app.id}}">
-                <img src="{{selected_app.header_image}}" alt="Logo of {{selected_app.name}}" class="game-image">
+            {% for game in selected_apps %}
+            <div class="card" id="appid-{{selected_apps.id}}">
+                <img src="{{selected_apps.header_image}}" alt="Logo of {{selected_apps.name}}" class="game-image">
                 <div class="game-info">
-                    <h3 class="game-title">{{selected_app.name}}</h3>
-                    <p class="game-developer">Developed by <a href="/apps/developer/{{ selected_app.developer }}"><strong>{{selected_app.developer}}</strong></a></p>
-                    <p class="game-description">{{selected_app.short_description}}</p>
-                    <p class="game-genres"><strong>Genres:</strong> {{ selected_app.genres | map(attribute="name") | join(", ") }}</p>
-                    <p class="game-genres"><strong>Tags:</strong> {{ selected_app.tags | map(attribute="name") | join(", ") }}</p>
-                    <p class="game-genres"><strong>Categories:</strong> {{ selected_app.categories | map(attribute="name") | join(", ") }}</p>
-                    <a class="game-price" href="https://store.steampowered.com/app/{{ selected_app.id }}" target="_blank" ref="noopener noreferrer">Price: {{ selected_app.price if selected_app.price else "Free" }}</a>
+                    <h3 class="game-title">{{selected_apps.name}}</h3>
+                    <p class="game-developer">Developed by <a href="/apps/developer/{{ selected_apps.developer }}"><strong>{{selected_app.developer}}</strong></a></p>
+                    <p class="game-description">{{selected_apps.short_description}}</p>
+                    <p class="game-genres"><strong>Genres:</strong> {{ selected_apps.genres | map(attribute="name") | join(", ") }}</p>
+                    <p class="game-genres"><strong>Tags:</strong> {{ selected_apps.tags | map(attribute="name") | join(", ") }}</p>
+                    <p class="game-genres"><strong>Categories:</strong> {{ selected_apps.categories | map(attribute="name") | join(", ") }}</p>
+                    <a class="game-price" href="https://store.steampowered.com/app/{{ selected_apps.id }}" target="_blank" ref="noopener noreferrer">Price: {{ selected_apps.price if selected_apps.price else "Free" }}</a>
                 </div>
             </div>
             {% endif %}

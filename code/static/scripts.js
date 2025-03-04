@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", function() {
     const form = document.querySelector('form[action="/recommend"]');
-    const gameInput = document.getElementById("game");
+    const gameInput1 = document.getElementById("game1");
+    const gameInput2 = document.getElementById("game2");
+    const gameInput3 = document.getElementById("game3");
     const selectedGamesElement = document.getElementById("selected_games");
     const recommendButton = document.getElementById("recommend");
     const games = [];
@@ -15,29 +17,40 @@ document.addEventListener("DOMContentLoaded", function() {
     function handleFormSubmit(event) {
         event.preventDefault();
 
-        const gameName = gameInput.value.trim();
-        if (!gameName) {
-            alert("Enter a game name");
+        const gameName1 = gameInput1.value.trim();
+        const gameName2 = gameInput2.value.trim();
+        const gameName3 = gameInput3.value.trim();
+
+        // Collect all non-empty game inputs
+        const gameNames = [gameName1, gameName2, gameName3].filter(name => name);
+
+        if (gameNames.length === 0) {
+            alert("Enter at least one game name");
             return;
         }
 
-        fetchGameData(gameName)
-            .then(data => {
-                if (!data) {
-                    alert("The game you entered does not exist");
-                    return;
-                }
-                else if (isGameAlreadyInList(data)) {
-                    alert("You already selected this game");
-                    return;
-                }
+        // Fetch data for each non-empty game name
+        gameNames.forEach(gameName => {
+            fetchGameData(gameName)
+                .then(data => {
+                    if (!data) {
+                        alert(`The game "${gameName}" does not exist`);
+                        return;
+                    } else if (isGameAlreadyInList(data)) {
+                        alert(`You already selected the game "${gameName}"`);
+                        return;
+                    }
 
-                games.push(data);
-                renderGames();
+                    games.push(data);
+                    renderGames();
+                })
+                .catch(handleError);
+        });
 
-                gameInput.value = "";
-            })
-            .catch(handleError);
+        // Clear input fields after submission
+        gameInput1.value = "";
+        gameInput2.value = "";
+        gameInput3.value = "";
     }
 
     function fetchGameData(gameName) {
@@ -86,6 +99,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 createGameDiv(game, index, false); // Already rendered game
             }
         });
+
         const recommendGames = document.getElementById("recommend_games");
         recommendGames.classList.remove("pop-out");
 
@@ -133,6 +147,7 @@ document.addEventListener("DOMContentLoaded", function() {
             renderGames();
         }
     }
+
     function recommendGames() {
         let gameIds = games.map(game => game.id).join(",");
         window.location.assign(`/recommend?games=${gameIds}`);

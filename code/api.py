@@ -321,54 +321,58 @@ class API:
                 request=request, name="game_output.html", context={"selected_app":selected_app, "apps": apps,"nsfw": nsfw}
             )
 
-        def find_similar_games(selected_app, db):
-            """Finds games with the most similar tags to the given game.
-
-            :param selected_app: The app object from the DB to filter on.
-            :param db: The database object
-            :return: The matching games filtered on matching tags of the input "selected_app"
+        def find_similar_games(selected_apps, db):
             """
-            gameid = str(selected_app.id)
-            gamename = selected_app.name
+            Finds games with the most similar tags to the given games.
 
-            tags = selected_app.tags
-            genres = selected_app.genres
-            categories = selected_app.categories
+            :param selected_apps: A list of selected app objects from the DB.
+            :param db: The database object
+            :return: The matching games filtered based on similarity scores.
+            """
 
-            if not tags or not genres or not categories:
-                raise HTTPException(status_code=404, detail="No tags or genres or categories found for app")
+            if not selected_apps:
+                raise HTTPException(status_code=400, detail="At least one game must be selected.")
 
-            # get all games that are in the database except the selected game
-            games = db.query(models.App).filter(models.App.id != selected_app.id).all()
-            game_tags_relation = db.query(models.AppTags.app_id, models.AppTags.tag_id).all()
+            # Get all games in the database except the selected ones
+            selected_game_ids = {app.id for app in selected_apps}
+            games = db.query(models.App).filter(models.App.id.notin_(selected_game_ids)).all()
 
             if not games:
                 raise HTTPException(status_code=404, detail="No games found in the database.")
 
+            # Get tag relationships (faster lookups)
+            game_tags_relation = db.query(models.AppTags.app_id, models.AppTags.tag_id).all()
+            game_tags_relation_set = set(game_tags_relation)
+
             matching_games = []
 
-            # Compare with every other game must be (O(n²)) (two for loops in this)
+            # Compare each game in the database with each selected game (O(n²))
             for game in games:
+                total_similarity = 0  # Store cumulative similarity score
 
-                # Convert game_tags_relation to a set for faster lookups
-                game_tags_relation_set = set(game_tags_relation)
+                for selected_app in selected_apps:
+                    selected_tags = set(selected_app.tags)
 
-                # Get tags for the current game
-                game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation_set]
+                    # Get tags for the current game
+                    game.tags = [tag for tag in selected_tags if (game.id, tag.id) in game_tags_relation_set]
 
-                # Calculate the similarity score based on common tags
-                common_tags = set(selected_app.tags).intersection(set(game.tags))
-                total_tags = len(selected_app.tags)
-                game.similarity_score = ((len(common_tags) / total_tags) * 100).__round__()  # Convert to percentage
+                    # Calculate similarity based on common tags
+                    common_tags = selected_tags.intersection(set(game.tags))
+                    total_tags = len(selected_tags)
 
-                if game.similarity_score > 0:
-                    matching_games.append((game, game.similarity_score))
+                    if total_tags > 0:
+                        similarity = ((len(common_tags) / total_tags) * 100).__round__()
+                        total_similarity += similarity  # Accumulate similarity across all selected games
 
-            # Sort matching games by similarity score in descending order
+                if total_similarity > 0:
+                    matching_games.append((game, total_similarity))
+
+            # Sort matching games by total similarity score in descending order
             matching_games.sort(key=lambda x: x[1], reverse=True)
 
-            # Return the top 5 matching games
+            # Return the top 5 recommended games
             return [game for game, _ in matching_games[:5]]
+
 
         def app_data_from_id_or_name(app_id_or_name: str, db, fuzzy: bool = True, categories: bool = False):
             """"

@@ -16,12 +16,20 @@
         <div class="container flex-column w-50">
             <div class="column flex-align-start flex-md-align-items-center flex-algn-items-center">
                  <form action="/recommend" method="get">
-                     <span>
-                        <label for="game">Game:</label>
-                        <input type="text" id="game" name="game" required>
-                     </span>
-                     <button type="submit">Search</button>
-                 </form>
+                    <div>
+                        <label for="game1">Game 1:</label>
+                        <input type="text" id="game1" name="game1" required>
+                    </div>
+                    <div>
+                        <label for="game2">Game 2:</label>
+                        <input type="text" id="game2" name="game2">
+                    </div>
+                    <div>
+                        <label for="game3">Game 3:</label>
+                        <input type="text" id="game3" name="game3">
+                    </div>
+                    <button type="submit">Search</button>
+                </form>
             </div>
             <!-- Selected games here in #selected_games -->
             <div class="column selected_games p-relative pop-in" id="selected_games"></div>
