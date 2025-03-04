@@ -19,3 +19,13 @@ def set_database_engine():
     # print(f"Set database base to: {Base}")
 
 set_database_engine()
+
+def get_db():
+    """Get db dependency, don't touch!
+    This makes a new database session for the request and closes it after the request is done.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

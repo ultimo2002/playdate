@@ -3,6 +3,7 @@ from code.api import API
 from code.config import TextStyles
 import code.database.models as models
 import sys
+import os
 
 POSSIBLE_GET_ENDPOINTS = ["/", "/apps", "/categories", "/tags", "/genres", "/app/{appid}", "/cats", "/apps/developer/{target_name}", "/apps/tag/{target_name}"]
 ALL_APP_FIELDS = [field.name for field in models.App.__table__.columns]

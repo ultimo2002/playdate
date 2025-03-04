@@ -1,22 +1,25 @@
 import os
-import random
 
-from fastapi import FastAPI, Depends, Request, HTTPException
+from fastapi import FastAPI, Depends, HTTPException
 import uvicorn
 
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from sqlalchemy.sql import exists
 from sqlalchemy.sql.expression import func
 
-from code.algoritmes.cache import cache_background_image, cache_header_image
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
-from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
+from .config import API_HOST_URL, API_HOST_PORT
+
+from code.routes.development.apps import router as apps_router, app_data_from_id_or_name
+from .routes.frontend import router as frontend_router
+from code.routes.development.categories import router_development as categories_router_development
+from code.routes.categories import router as categories_router
 
 import code.database.models as models
 from code.database.database import Engine, SessionLocal
+
+from code.database.database import Engine, get_db
 
 class API:
     db_dependency = None
@@ -33,7 +36,7 @@ class API:
 
         models.Base.metadata.create_all(bind=Engine)
 
-        self.db_dependency = Depends(self.get_db)
+        self.db_dependency = Depends(get_db)
 
     def run(self):
         """"
@@ -47,57 +50,18 @@ class API:
 
         uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False)
 
-    def get_db(self):
-        """Get db dependency, don't touch!
-        This makes a new database session for the request and closes it after the request is done.
-        """
-        db = SessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
-
-
-    def register_endpoints(self):
+    def register_endpoints(self, all_endpoints=False):
         """"
         Function to define all the endpoints for the API.
         """
 
-        @self.app.get("/")
-        def root(request: Request, db=self.db_dependency):
-            """"
-            The root endpoint of the API when visiting the website.
-            :return: The HTML response from the index.html template.
-            """
+        self.app.include_router(frontend_router)
+        self.app.include_router(categories_router)
 
-            # Get a random background_image from the database
-            background_image = (
-                db.query(models.App.background_image, models.App.id, models.App.name)
-                .filter(
-                    ~exists().where(
-                        (models.AppTags.app_id == models.App.id) &
-                        (models.AppTags.tag_id == models.Tags.id) &
-                        (models.Tags.name.in_(BLOCKED_CONTENT_TAGS))
-                    )
-                )
-                .order_by(func.random())
-                .limit(1)
-                .first()
-            )
-            try:
-                background_image = background_image if background_image else None
-            except (TypeError, IndexError, KeyError):
-                background_image = None
-
-            if os.getenv("CACHE_IMAGES") and background_image:
-                background_image = cache_background_image(background_image)
-
-
-            return self.templates.TemplateResponse(
-                request=request, name="index.html",
-                context={"message": "", "background_image": background_image}
-            )
-
+        # register routers, only when in PYCHARM or Pytest
+        if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING") or all_endpoints: # We dont wont users on production to modify the database with the CRUD endpoints.
+            self.app.include_router(apps_router)
+            self.app.include_router(categories_router_development)
 
         @self.app.get("/apps")
         def read_apps(db=self.db_dependency, all_fields: bool = False, target_name: str = None, like: str = None):
@@ -156,45 +120,6 @@ class API:
                 raise HTTPException(status_code=404, detail=f"App and/or {model_class.__name__.lower()} not found")
 
             return related_data
-
-        @self.app.get("/cats")
-        def read_cats(db=self.db_dependency):
-            """
-            Get all categories, genres and tags in one request.
-            :return: JSON / dictionary with all existing categories, genres and tags with their id and name.
-            """
-            return {
-                "tags": db.query(models.Tags).all(),
-                "categories": db.query(models.Category).all(),
-                "genres": db.query(models.Genre).all(),
-            }
-
-        @self.app.get("/tags")
-        def read_tags(db=self.db_dependency):
-            """"
-            Get all existing tags in the database.
-            :return: List of tags in JSON/dictionary format with id and name.
-            """
-            tags = db.query(models.Tags).all()
-            return tags
-
-        @self.app.get("/categories")
-        def read_categories(db=self.db_dependency):
-            """"
-            Get all existing categories in the database.
-            :return: List of categories in JSON/dictionary format with id and name.
-            """
-            categories = db.query(models.Category).all()
-            return categories
-
-        @self.app.get("/genres")
-        def read_genres(db=self.db_dependency):
-            """
-            Get all existing genres in the database.
-            :return: List of genres in JSON/dictionary format with id and name.
-            """
-            genres = db.query(models.Genre).all()
-            return genres
 
         @self.app.get("/app/{appid}/categories")
         def read_app_categories(appid: str, fuzzy: bool = True, db=self.db_dependency):

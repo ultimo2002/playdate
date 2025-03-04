@@ -20,7 +20,7 @@ BLOCKED_CONTENT_TAGS = ["NSFW", "Nudity", "Mature", "Sexual Content", "Hentai"]
 
 def fetch_from_api(endpoint):
     """Make a GET request to the specified API endpoint and return the JSON data.
-    :return: JSON data from the API, Exit when an error occurs.
+    :return: JSON data from the API or None if an error occurred.
     """
     try:
         response = requests.get(endpoint, timeout=10)
@@ -28,7 +28,6 @@ def fetch_from_api(endpoint):
         return response.json()
     except Exception:
         print("Error fetching data from the API. Is your internet connection working?")
-        # exit("Exiting the application.")
 
     return None
 
