@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 
 from sqlalchemy.sql.expression import func
+from starlette.responses import PlainTextResponse
 
 from .algoritmes.cache import cache_background_image, cache_header_image
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
@@ -496,3 +497,8 @@ class API:
                 make_typo(app.name, app.id, all_apps): {"expected_appid": app.id, "expected_name": app.name}
                 for app in random_apps
             }
+
+        @self.app.get("/robots.txt", response_class=PlainTextResponse)
+        def robots():
+            data = """User-agent: *\nDisallow: /"""
+            return data
