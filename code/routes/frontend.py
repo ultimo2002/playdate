@@ -82,8 +82,9 @@ def handle_form(request: Request, games: str = "", db=db_dependency):
         gameid = str(gameid)
 
         selected_app = app_data_from_id_or_name(gameid, db, False, True)
+
         # append to selected apps
-        selected_apps.append(selected_app)
+        selected_apps.append(selected_app.__dict__)
 
         apps = find_similar_games(selected_app, db) # Bram enable this line to start developing find_similar_games()
 
