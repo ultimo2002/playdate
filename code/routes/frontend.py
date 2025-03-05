@@ -152,5 +152,5 @@ def find_similar_games(selected_app, db):
     # Sort matching games by similarity score in descending order
     matching_games.sort(key=lambda x: x[1], reverse=True)
 
-    # Return the top 5 matching games
+    # Return the top 5 matching games.
     return [game for game, _ in matching_games[:5]]
