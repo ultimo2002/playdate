@@ -40,7 +40,8 @@
         {% if all_apps %}
         <div class="column columnr">
             <h2>Recommended Games</h2>
-            {% for apps in all_apps %}
+            {% for selected_game_name, apps in all_apps.items() %}
+                <div id="recommended-for-{{ selected_game_name.lower() }}">
                 {% for app in apps %}
                     <div class="card recommended-card container p-relative">
                         <a href="/recommend?game={{ app.id }}" class="clickable"></a>
@@ -51,11 +52,13 @@
                             <h3 class="game-title">{{ app.name }}</h3>
                             <div class="container">
                                 <p><strong>Similarity Score:</strong> {{ app.similarity_score }}%</p>
+                                <p>For game: {{ selected_game_name }}</p>
                                 <p><strong>Shared Tags:</strong> {{ app.tags | map(attribute="name") | join(", ") }}</p>
                             </div>
                         </div>
                     </div>
                 {% endfor %}
+                </div>
             {% endfor %}
         </div>
         {% endif %}

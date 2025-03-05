@@ -74,7 +74,7 @@ def handle_form(request: Request, games: str = "", db=db_dependency):
 
     selected_apps = []
 
-    all_apps = []
+    all_apps = {}
 
     for gameid in games:
         # clean up the input to prevent XSS attacks
@@ -99,7 +99,7 @@ def handle_form(request: Request, games: str = "", db=db_dependency):
                 nsfw = True
                 break
 
-        all_apps.append(apps)
+        all_apps[selected_app.name] = apps
 
     return templates.TemplateResponse(
         request=request, name="game_output.html", context={"selected_games": selected_apps, "all_apps": all_apps, "nsfw": nsfw}
