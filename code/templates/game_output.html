@@ -65,14 +65,14 @@
         img {
             border-radius: 10px;
         }
-        {#body {#}
-        {#    background-image: url("{{selected_app.background_image}}");#}
-        {#    background-color: #1b2838;#}
-        {#    background-size: auto;#}
-        {#    background-position: center;#}
-        {#    background-attachment: fixed;#}
-        {#    color: white;#}
-        {#}#}
+        body {
+            background-image: url("{{selected_games[0].background_image}}");
+            background-color: #1b2838;
+            background-size: auto;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+        }
 
 {#        {% for app in apps %}#}
 {#            {% set app_tags = app.tags | map(attribute="name") | list %}#}
