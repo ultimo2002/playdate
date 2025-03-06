@@ -149,7 +149,10 @@ def find_similar_games(selected_app, db, amount):
         # Calculate the similarity score based on common tags
         common_tags = set(selected_app.tags).intersection(set(game.tags))
         total_tags = len(selected_app.tags)
-        game.similarity_score = ((len(common_tags) / total_tags) * 100).__round__()  # Convert to percentage
+        try:
+            game.similarity_score = ((len(common_tags) / total_tags) * 100).__round__()  # Convert to percentage
+        except ZeroDivisionError:
+            game.similarity_score = 0
 
         if game.similarity_score > 0:
             matching_games.append((game.__dict__, game.similarity_score))
