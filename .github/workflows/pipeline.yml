@@ -35,7 +35,7 @@ jobs:
       # Create .env file
       - name: Create .env file
         run: |
-          echo "${{ secrets.DOTENV }}" > code/.env
+          echo "${{ secrets.DOTENV }}" > src/.env
 
       # Lint with flake8
       - name: Lint with flake8
