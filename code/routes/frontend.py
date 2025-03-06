@@ -114,8 +114,6 @@ def find_similar_games(selected_app, db):
     :param db: The database object
     :return: The matching games filtered on matching tags of the input "selected_app"
     """
-    gameid = str(selected_app.id)
-    gamename = selected_app.name
 
     tags = selected_app.tags
     genres = selected_app.genres
