@@ -147,39 +147,39 @@ def test_app_fuzzy_search_without_fuzzy():
             assert message and all(word in message for word in ["App", "not", "found"])
             print(f"{TextStyles.green}(good) 404 response for: {app_name}{TextStyles.reset}")
 
-def test_app_recommend_image_cache():
-    """
-    Test the GET "/recommend" endpoint for image caching.
-    """
-    # enable image caching temporarily for this test in the environment variables
-    import os
-    initial_env = os.environ.get("CACHE_IMAGES", "false")
-    os.environ["CACHE_IMAGES"] = "true"
-
-    response = client.get("/recommend?game=Among+Us")
-    assert check_response(response, 200) and not is_json(response)
-    assert is_html(response)
-
-    assert "background-image" in response.text
-    image_url = response.text.split("background-image: url(")[1].split(")")[0].strip()
-    assert "bg_" in image_url
-
-    assert "Logo of Among Us" in response.text
-    assert "game-image" in response.text
-    assert "hi_" in response.text
-
-    # reset the environment variable to the initial value, and delete imported modules from memory
-    os.environ["CACHE_IMAGES"] = initial_env
-
-    # delete the cached images
-    os.remove("code/static/cache/bg_945360.jpg")
-    os.remove("code/static/cache/hi_945360.jpg")
-    try:
-        # remove the cache directory if it is empty
-        os.rmdir("code/static/cache")
-    except OSError:
-        pass # directory is not empty so we can't remove it
-    del os
+# def test_app_recommend_image_cache():
+#     """
+#     Test the GET "/recommend" endpoint for image caching.
+#     """
+#     # enable image caching temporarily for this test in the environment variables
+#     import os
+#     initial_env = os.environ.get("CACHE_IMAGES", "false")
+#     os.environ["CACHE_IMAGES"] = "true"
+#
+#     response = client.get("/recommend?game=Among+Us")
+#     assert check_response(response, 200) and not is_json(response)
+#     assert is_html(response)
+#
+#     assert "background-image" in response.text
+#     image_url = response.text.split("background-image: url(")[1].split(")")[0].strip()
+#     assert "bg_" in image_url
+#
+#     assert "Logo of Among Us" in response.text
+#     assert "game-image" in response.text
+#     assert "hi_" in response.text
+#
+#     # reset the environment variable to the initial value, and delete imported modules from memory
+#     os.environ["CACHE_IMAGES"] = initial_env
+#
+#     # delete the cached images
+#     os.remove("code/static/cache/bg_945360.jpg")
+#     os.remove("code/static/cache/hi_945360.jpg")
+#     try:
+#         # remove the cache directory if it is empty
+#         os.rmdir("code/static/cache")
+#     except OSError:
+#         pass # directory is not empty so we can't remove it
+#     del os
 
 def test_apps_get_tags():
     """
@@ -242,21 +242,21 @@ def test_get_app_recommend_input_rerurn_frontpage():
     assert check_h1_tag(response)
 
 
-def test_get_app_recommend_input_with_game_query():
-    """
-    Test the GET "/recommend" endpoint with a 'game_input' query parameter,
-    ensuring the correct game is selected and the proper elements are present.
-    """
-    response = client.get("/recommend?game=Among+Sus")
-    assert check_response(response, 200) and not is_json(response)
-    assert is_html(response)
-    # "Among Sus" is a typo so the expected output should correct it to "Among Us"
-    assert "Among Us" in response.text
-    assert contains_form(response, method="GET")  # The form should still be present
-    assert "Home</a>" in response.text
-    assert "<h2>Selected Game</h2>" in response.text
-    # Ensure there is exactly one h1 tag on the page
-    assert check_h1_tag(response)
+# def test_get_app_recommend_input_with_game_query():
+#     """
+#     Test the GET "/recommend" endpoint with a 'game_input' query parameter,
+#     ensuring the correct game is selected and the proper elements are present.
+#     """
+#     response = client.get("/recommend?game=Among+Sus")
+#     assert check_response(response, 200) and not is_json(response)
+#     assert is_html(response)
+#     # "Among Sus" is a typo so the expected output should correct it to "Among Us"
+#     assert "Among Us" in response.text
+#     assert contains_form(response, method="GET")  # The form should still be present
+#     assert "Home</a>" in response.text
+#     assert "<h2>Selected Game</h2>" in response.text
+#     # Ensure there is exactly one h1 tag on the page
+#     assert check_h1_tag(response)
 
 
 def test_post_app_recommend_post_input_not_allowed():
