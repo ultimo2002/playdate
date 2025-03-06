@@ -1,7 +1,7 @@
 import os
 import requests
 
-from code.config import IMAGE_CACHE_PATH
+from src.config import IMAGE_CACHE_PATH
 
 
 def download_image(image_url, image_path):

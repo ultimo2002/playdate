@@ -1,14 +1,10 @@
 import dotenv
 from tests.integration_helpers import *
-
-api_instance = API()
-api_instance.register_endpoints(all_endpoints=True)
-client = TestClient(api_instance.app)
 dotenv.load_dotenv()
 def test_root():
     response = client.get("/")
 
-    # Test if the response status code is 200 (Good)
+    # Test if the response status src is 200 (Good)
     assert check_response(response, 200) and not is_json(response)
 
     # Test if the response is HTML content
@@ -31,14 +27,14 @@ def test_apps():
     Test the GET "/apps" endpoint for a list of all the apps with id and name in the database.
     """
     response = client.get("/apps")
-    assert_common_app_tests(response, ["id", "name"])
+    assert_common_app_tests(response, ["id", "name"],entries_count=9)
 
 def test_apps_all_fields():
     """
     Test the GET "/apps" endpoint for a list of all the apps with all fields in the database.
     """
     response = client.get("/apps?all_fields=true")
-    assert_common_app_tests(response, ALL_APP_FIELDS)
+    assert_common_app_tests(response, ALL_APP_FIELDS, entries_count=9)
 
 def test_cats():
     """
@@ -61,9 +57,9 @@ def test_app_details():
     """
     Test the GET "/app/{appid}" endpoint for valid app details.
     """
-    response = client.get("/app/367520")
+    response = client.get("/app/365670")
     check_app_response(response)
-    assert response.json()["name"] == "Hollow Knight"
+    assert response.json()["name"] == "Blender"
 
 def test_app_invalid_app_id():
     """
@@ -166,11 +162,11 @@ def test_app_recommend_image_cache():
     os.environ["CACHE_IMAGES"] = initial_env
 
     # delete the cached images
-    os.remove("code/static/cache/bg_945360.jpg")
-    os.remove("code/static/cache/hi_945360.jpg")
+    os.remove("src/static/cache/bg_945360.jpg")
+    os.remove("src/static/cache/hi_945360.jpg")
     try:
         # remove the cache directory if it is empty
-        os.rmdir("code/static/cache")
+        os.rmdir("src/static/cache")
     except OSError:
         pass # directory is not empty so we can't remove it
     del os
@@ -304,7 +300,7 @@ def test_random_apps():
     #     assert isinstance(app["expected_appid"], int)
     #     assert isinstance(app["expected_name"], str)
 
-    # short version of the above code
+    # short version of the above src
     assert all(isinstance(app["expected_appid"], int) and isinstance(app["expected_name"], str) for app in response_json.values())
 
     # test that if we ask for more than 1000 apps we only get 25 apps back

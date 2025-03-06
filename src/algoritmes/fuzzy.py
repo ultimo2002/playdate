@@ -1,5 +1,5 @@
 # All functions in this file are for the fuzzy algorithm to find the most similar item in a list based on a calculated similarity score.
-from code.config import TextStyles
+from src.config import TextStyles
 
 
 def levenshtein_distance(s1, s2):

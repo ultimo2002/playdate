@@ -8,9 +8,9 @@ def test_configs():
     """
     assert len(ALL_APP_FIELDS) > 0 and "id" in ALL_APP_FIELDS # Check if the ALL_APP_FIELDS list is not empty and contains an "id" field
 
-    import code.config as config # Test the configuration values from config.py.
+    import src.config as config # Test the configuration values from config.py.
 
-    from code.database.database import URL_DATABASE
+    from src.database.database import URL_DATABASE
 
     # Test if database URL is set and not empty or postgresql://user:password@localhost:5432/database
     assert URL_DATABASE is not None and len(URL_DATABASE) > 0 and URL_DATABASE != "postgresql://user:password@localhost:5432/database"

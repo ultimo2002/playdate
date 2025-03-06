@@ -9,24 +9,25 @@ from fastapi.responses import HTMLResponse
 
 from sqlalchemy.sql.expression import func
 
-from .algoritmes.cache import cache_background_image, cache_header_image
+from src.algoritmes.cache import cache_background_image, cache_header_image
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
 from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
 
-from code.routes.development.apps import router as apps_router, app_data_from_id_or_name
+from src.routes.development.apps import router as apps_router, app_data_from_id_or_name
 from .routes.frontend import router as frontend_router, root
-from code.routes.development.categories import router_development as categories_router_development
-from code.routes.categories import router as categories_router
+from src.routes.development.categories import router_development as categories_router_development
+from src.routes.categories import router as categories_router
 
-import code.database.models as models
-from code.database.database import Engine, SessionLocal
+import src.database.models as models
+from src.database.database import Engine, SessionLocal
+from src.database.models import App
 
-from code.database.database import Engine, get_db
+from src.database.database import Engine, get_db
 
 class API:
     db_dependency = None
 
-    templates = Jinja2Templates(directory="code/templates")
+    templates = Jinja2Templates(directory="src/templates")
 
     def __init__(self):
         """
@@ -34,7 +35,7 @@ class API:
         """
         self.app = FastAPI()
 
-        self.app.mount("/static", StaticFiles(directory="code/static"), name="static")
+        self.app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
         models.Base.metadata.create_all(bind=Engine)
 
@@ -51,6 +52,27 @@ class API:
         print("Run API")
 
         uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False)
+
+    def get_random_apps(db = db_dependency, count: int = 15):
+        """
+        Get a dictionary with random apps from the database. With typo's in the names.
+        :param count: The amount of random apps to return.
+        :return: Dictionary with given count random apps with their id and name.
+        """
+        # maximal 25 apps, minimal 1 app, clamp the count
+        count = max(1, min(count, 25))
+        print(f"Getting {count} random apps from the database.")
+
+        all_apps = db.query(models.App.id,
+                            models.App.name).all()  # get all app names that are in the database, needed to check fuzzy in
+        random_apps = db.query(models.App).with_entities(models.App.id, models.App.name).order_by(
+            func.random()).limit(
+            count).all()
+
+        return {
+            make_typo(app.name, app.id, all_apps): {"expected_appid": app.id, "expected_name": app.name}
+            for app in random_apps
+        }
 
     def register_endpoints(self, all_endpoints=False):
         """"
@@ -133,7 +155,62 @@ class API:
             :return: List of categories for the app.
             """
             return get_app_related_data(appid, db, models.Category, models.AppCategory, fuzzy)
-
+        @self.app.get("/test")
+        def test(db=self.db_dependency):
+            apps = [
+                App(id=365670, name="Blender",
+                    short_description="Blender is the free and open source 3D creation suite.",
+                    price=None, developer="Blender Foundation",
+                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/365670/header.jpg?t=1732033230",
+                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/365670/page_bg_generated_v6b.jpg?t=1732033230"),
+                App(id=1174180, name="Red Dead Redemption 2",
+                    short_description="Winner of over 175 Game of the Year Awards...",
+                    price="€ 59,99", developer="Rockstar Games",
+                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1174180/header.jpg?t=1720558643",
+                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1174180/page_bg_generated_v6b.jpg?t=1720558643"),
+                App(id=35140, name="Batman: Arkham Asylum GOTY Edition",
+                    short_description="Experience what it’s like to be Batman...", price="€ 19,99",
+                    developer="Rocksteady Studios",
+                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/35140/header.jpg?t=1702934705",
+                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/35140/page_bg_generated_v6b.jpg?t=1702934705"),
+                App(id=570, name="Dota 2", short_description="Every day, millions of players worldwide enter battle...",
+                    price=None, developer="Valve",
+                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/570/header.jpg?t=1731544174",
+                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/570/page_bg_generated_v6b.jpg?t=1731544174"),
+                App(id=812140, name="Assassin's Creed Odyssey",
+                    short_description="Assassin's Creed Odyssey is an action-adventure game...", price="€ 59,99",
+                    developer="Ubisoft Quebec",
+                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/812140/header.jpg?t=1736257794",
+                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/812140/page_bg_generated_v6b.jpg?t=1736257794"),
+                App(id=524220, name="NieR:Automata™",
+                    short_description="NieR: Automata tells the story of androids 2B, 9S and A2...", price="CDN$ 21.40",
+                    developer="Square Enix",
+                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/524220/header.jpg?t=1734624625",
+                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/524220/page_bg_generated_v6b.jpg?t=1734624625"),
+                App(id=3188910, name="Waifu", short_description="💗 Idler Clicker + Dating Sim 💗 Earn rare Waifus...",
+                    price=None, developer="Team Waifu",
+                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3188910/header.jpg?t=1737031359",
+                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3188910/page_bg_generated_v6b.jpg?t=1737031359"),
+                App(id=403640, name="Dishonored 2",
+                    short_description="Reprise your role as a supernatural assassin in Dishonored 2...",
+                    price="€ 29,99",
+                    developer="Arkane Studios",
+                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/403640/header.jpg?t=1726161101",
+                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/403640/page_bg_generated_v6b.jpg?t=1726161101"),
+                App(id=460930, name="Tom Clancy's Ghost Recon® Wildlands",
+                    short_description="Create a team with up to 3 friends...", price="€ 49,99",
+                    developer="Ubisoft Paris",
+                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460930/header.jpg?t=1734366779",
+                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460930/page_bg_generated_v6b.jpg?t=1734366779"),
+                App(id=2904000, name="The Spell Brigade",
+                    short_description="Survivors-like with ONLINE CO-OP for 1-4 players...", price="€ 9,75",
+                    developer="Bolt Blaster Games",
+                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2904000/header.jpg?t=1738335681",
+                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2904000/page_bg_generated_v6b.jpg?t=1738335681")
+            ]
+            # Add apps to the session and commit
+            db.add_all(apps)
+            db.commit()
         @self.app.get("/app/{appid}/genres")
         def read_app_genres(appid: str, fuzzy: bool = True, db=self.db_dependency):
             """"
@@ -164,6 +241,7 @@ class API:
             :param fuzzy: If True, try to find the app by name even when the grammar is not correct using my fuzzy algorithm ^Seger. It skips this always when the appid is a number.
             """
             app = app_data_from_id_or_name(appid, db, fuzzy, False)
+            print(app)
             if not app:
                 raise HTTPException(status_code=404, detail="App not found.")
             return app
@@ -478,21 +556,4 @@ class API:
             except AttributeError:
                 raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found with tag name '{tag}'")
 
-        @self.app.get("/apps/random")
-        def get_random_apps(count: int = 15, db=self.db_dependency):
-            """
-            Get a dictionary with random apps from the database. With typo's in the names.
-            :param count: The amount of random apps to return.
-            :return: Dictionary with given count random apps with their id and name.
-            """
-            # maximal 25 apps, minimal 1 app, clamp the count
-            count = max(1, min(count, 25))
-            print(f"Getting {count} random apps from the database.")
 
-            all_apps = db.query(models.App.id, models.App.name).all() # get all app names that are in the database, needed to check fuzzy in
-            random_apps = db.query(models.App).with_entities(models.App.id, models.App.name).order_by(func.random()).limit(count).all()
-
-            return {
-                make_typo(app.name, app.id, all_apps): {"expected_appid": app.id, "expected_name": app.name}
-                for app in random_apps
-            }
