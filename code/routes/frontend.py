@@ -151,7 +151,7 @@ def find_similar_games(selected_app, db):
         game.similarity_score = ((len(common_tags) / total_tags) * 100).__round__()  # Convert to percentage
 
         if game.similarity_score > 0:
-            matching_games.append((game, game.similarity_score))
+            matching_games.append((game.__dict__, game.similarity_score))
 
     # Sort matching games by similarity score in descending order
     matching_games.sort(key=lambda x: x[1], reverse=True)
