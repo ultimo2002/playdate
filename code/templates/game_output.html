@@ -44,7 +44,7 @@
                 <div id="recommended-for-{{ selected_game_name.lower() }}">
                 {% for app in apps %}
                     <div class="card recommended-card container p-relative">
-                        <a href="/recommend?game={{ app.id }}" class="clickable"></a>
+                        <a href="/recommend?games={{ app.id }}" class="clickable"></a>
                         <div class="recommended-columnl">
                             <img class="game-image" src="{{ app.header_image }}" alt="{{ app.name }}">
                         </div>
