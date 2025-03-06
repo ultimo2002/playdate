@@ -102,7 +102,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 });
             }
 
-            console.log(amount);
             // reload the page the new selected games in the url
             window.location.assign(`/recommend?games=${games.map(game => game.id).join(",")}`);
             return;

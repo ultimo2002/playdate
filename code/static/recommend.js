@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", function() {
     cards.forEach(card => {
         var name = card.querySelector(".game-title").innerHTML.toLowerCase().replace(/ /g, "-");
         name = name.replace(/[^a-zA-Z0-9 ]/g, "");
-        console.log(name);
         const recommendedFor = document.getElementById(`recommended-for-${name}`);
 
         card.addEventListener("click", function() {
