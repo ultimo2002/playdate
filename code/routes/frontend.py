@@ -96,7 +96,7 @@ def get_recommendations_games(games: str = "", db=db_dependency, amount: int = 5
     for gameid in games:
         gameid = str(gameid.strip())
 
-        selected_app = app_data_from_id_or_name(gameid, db, False, True)
+        selected_app = app_data_from_id_or_name(gameid, db, True, True)
         selected_apps.append(selected_app.__dict__)
 
         apps = find_similar_games(selected_app, db, amount)
@@ -127,9 +127,6 @@ def find_similar_games(selected_app, db, amount):
     tags = selected_app.tags
     genres = selected_app.genres
     categories = selected_app.categories
-
-    if not tags or not genres or not categories:
-        raise HTTPException(status_code=404, detail="No tags or genres or categories found for app")
 
     # get all games that are in the database except the selected game
     games = db.query(models.App).filter(models.App.id != selected_app.id).all()
