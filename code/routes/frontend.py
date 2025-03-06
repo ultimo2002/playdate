@@ -1,4 +1,5 @@
 import os
+import re
 
 from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.responses import HTMLResponse
@@ -105,7 +106,7 @@ def get_recommendations_games(games: str = "", db=db_dependency):
                 nsfw = True
                 break
 
-        recommended_apps[selected_app.name] = apps
+        recommended_apps[re.sub(r'[^a-zA-Z0-9 ]', '', selected_app.name.replace(" ", "_"))] = apps
 
 
     return {"selected_games": selected_apps, "all_apps": recommended_apps, "nsfw": nsfw}

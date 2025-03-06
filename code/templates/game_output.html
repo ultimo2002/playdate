@@ -6,6 +6,7 @@
     <title>Recommended Games</title>
     <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
     <script src="{{ url_for('static', path='/scripts.js') }}"></script>
+    <script src="{{ url_for('static', path='/recommend.js') }}"></script>
 </head>
 
 <body class="{% if nsfw %}nsfw{% endif %}">
@@ -21,10 +22,10 @@
             {% if selected_games %}
                 <p>Selected games given</p>
                 {% for selected_app in selected_games %}
-                    <div class="card" id="appid-{{selected_app.id}}">
+                    <div class="card selected-card" id="appid-{{selected_app.id}}">
                         <img src="{{selected_app.header_image}}" alt="Logo of {{selected_app.name}}" class="game-image">
+                        <h3 class="game-title">{{selected_app.name}}</h3>
                         <div class="game-info">
-                            <h3 class="game-title">{{selected_app.name}}</h3>
                             <p class="game-developer">Developed by <a href="/apps/developer/{{ selected_app.developer }}"><strong>{{selected_app.developer}}</strong></a></p>
                             <p class="game-description">{{selected_app.short_description}}</p>
                             <p class="game-genres"><strong>Genres:</strong> {{ selected_app.genres | map(attribute="name") | join(", ") }}</p>
@@ -41,7 +42,7 @@
         <div class="column columnr">
             <h2>Recommended Games</h2>
             {% for selected_game_name, apps in all_apps.items() %}
-                <div id="recommended-for-{{ selected_game_name.lower() }}">
+                <div id="recommended-for-{{ selected_game_name.lower() | replace(' ', '') }}">
                 <h3>Games similar to: {{ selected_game_name }}</h3>
                 {% for app in apps %}
                     <div class="card recommended-card container p-relative">

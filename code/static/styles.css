@@ -139,7 +139,7 @@ a:hover {
 
 .game-title {
     color: #444;
-    margin: 0.5em 0;
+    margin: 0.75em 0;
 }
 
 .game-info {
@@ -378,6 +378,13 @@ button:hover {
 .loading p {
     margin-top: 7rem;
     font-size: 1.5rem;
+}
+
+.folded img{
+    display: none;
+}
+.folded .game-info {
+    display: none;
 }
 
 /* Easter Eggs */

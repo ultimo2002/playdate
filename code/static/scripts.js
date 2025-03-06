@@ -35,12 +35,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
         fetchGameData(gameName)
             .then(data => {
+                const loading = document.querySelector(".loading");
                 if (!data) {
                     alert("The game you entered does not exist");
+
+                    // remove the loading element if it exists
+                    if (loading) { loading.remove();}
+
                     return;
                 }
                 else if (isGameAlreadyInList(data)) {
                     alert("You already selected this game");
+                    if (loading) { loading.remove();}
                     return;
                 }
 
