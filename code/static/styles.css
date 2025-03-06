@@ -397,7 +397,7 @@ button:hover {
 }
 
 .selected-card:hover {
-    transform: scale(0.95);
+    transform: scale(0.97);
 }
 
 .folded img{
