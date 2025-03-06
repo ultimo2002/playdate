@@ -67,7 +67,7 @@ class API:
             self.app.include_router(categories_router_development)
 
         @self.app.get("/apps")
-        def read_apps(db=self.db_dependency, all_fields: bool = False, target_name: str = None, like: str = None):
+        def read_apps(db=self.db_dependency, all_fields: bool = False, like: str = None):
             """
             Get a JSON / dictionary with all the apps in the database.
 
@@ -76,9 +76,7 @@ class API:
             :param like: Find apps with names like this, Uses %string% for SQL LIKE query.
             :return: List of apps in JSON/dictionary format.
             """
-            if target_name:
-                return find_similar_named_apps(target_name, db)
-            elif like:
+            if like:
                 like = like.strip().lower()
                 apps = db.query(models.App).filter(models.App.name.ilike(f"%{like}%")).order_by(models.App.id).all()
                 if not apps:
