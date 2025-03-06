@@ -2,6 +2,10 @@ from exceptiongroup import catch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
+from dotenv import load_dotenv  # Import the load_dotenv function
+
+# Load environment variables from .env file
+load_dotenv()
 
 URL_DATABASE = os.getenv("URL_DATABASE")
 

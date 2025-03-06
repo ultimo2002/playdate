@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.sql.expression import func
 
 from src.algoritmes.cache import cache_background_image, cache_header_image
+from tests.fill_database import fill_database
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
 from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
 
@@ -19,10 +20,10 @@ from src.routes.development.categories import router_development as categories_r
 from src.routes.categories import router as categories_router
 
 import src.database.models as models
-from src.database.database import Engine, SessionLocal
-from src.database.models import App
+from tests.fill_database import fill_database
 
-from src.database.database import Engine, get_db
+from src.database.database import Engine, get_db, SessionLocal
+
 
 class API:
     db_dependency = None
@@ -156,61 +157,9 @@ class API:
             """
             return get_app_related_data(appid, db, models.Category, models.AppCategory, fuzzy)
         @self.app.get("/test")
-        def test(db=self.db_dependency):
-            apps = [
-                App(id=365670, name="Blender",
-                    short_description="Blender is the free and open source 3D creation suite.",
-                    price=None, developer="Blender Foundation",
-                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/365670/header.jpg?t=1732033230",
-                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/365670/page_bg_generated_v6b.jpg?t=1732033230"),
-                App(id=1174180, name="Red Dead Redemption 2",
-                    short_description="Winner of over 175 Game of the Year Awards...",
-                    price="€ 59,99", developer="Rockstar Games",
-                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1174180/header.jpg?t=1720558643",
-                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1174180/page_bg_generated_v6b.jpg?t=1720558643"),
-                App(id=35140, name="Batman: Arkham Asylum GOTY Edition",
-                    short_description="Experience what it’s like to be Batman...", price="€ 19,99",
-                    developer="Rocksteady Studios",
-                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/35140/header.jpg?t=1702934705",
-                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/35140/page_bg_generated_v6b.jpg?t=1702934705"),
-                App(id=570, name="Dota 2", short_description="Every day, millions of players worldwide enter battle...",
-                    price=None, developer="Valve",
-                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/570/header.jpg?t=1731544174",
-                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/570/page_bg_generated_v6b.jpg?t=1731544174"),
-                App(id=812140, name="Assassin's Creed Odyssey",
-                    short_description="Assassin's Creed Odyssey is an action-adventure game...", price="€ 59,99",
-                    developer="Ubisoft Quebec",
-                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/812140/header.jpg?t=1736257794",
-                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/812140/page_bg_generated_v6b.jpg?t=1736257794"),
-                App(id=524220, name="NieR:Automata™",
-                    short_description="NieR: Automata tells the story of androids 2B, 9S and A2...", price="CDN$ 21.40",
-                    developer="Square Enix",
-                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/524220/header.jpg?t=1734624625",
-                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/524220/page_bg_generated_v6b.jpg?t=1734624625"),
-                App(id=3188910, name="Waifu", short_description="💗 Idler Clicker + Dating Sim 💗 Earn rare Waifus...",
-                    price=None, developer="Team Waifu",
-                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3188910/header.jpg?t=1737031359",
-                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3188910/page_bg_generated_v6b.jpg?t=1737031359"),
-                App(id=403640, name="Dishonored 2",
-                    short_description="Reprise your role as a supernatural assassin in Dishonored 2...",
-                    price="€ 29,99",
-                    developer="Arkane Studios",
-                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/403640/header.jpg?t=1726161101",
-                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/403640/page_bg_generated_v6b.jpg?t=1726161101"),
-                App(id=460930, name="Tom Clancy's Ghost Recon® Wildlands",
-                    short_description="Create a team with up to 3 friends...", price="€ 49,99",
-                    developer="Ubisoft Paris",
-                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460930/header.jpg?t=1734366779",
-                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/460930/page_bg_generated_v6b.jpg?t=1734366779"),
-                App(id=2904000, name="The Spell Brigade",
-                    short_description="Survivors-like with ONLINE CO-OP for 1-4 players...", price="€ 9,75",
-                    developer="Bolt Blaster Games",
-                    header_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2904000/header.jpg?t=1738335681",
-                    background_image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2904000/page_bg_generated_v6b.jpg?t=1738335681")
-            ]
-            # Add apps to the session and commit
-            db.add_all(apps)
-            db.commit()
+        def test():
+            session = SessionLocal()
+            fill_database(session)
         @self.app.get("/app/{appid}/genres")
         def read_app_genres(appid: str, fuzzy: bool = True, db=self.db_dependency):
             """"
