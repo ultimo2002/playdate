@@ -21,17 +21,16 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
 
-        if (!selectedGamesElement || !selectedGamesElement.innerHTML) {
-            // make an element cover the whole screen saying wait
-            const loading = document.createElement("div");
-            loading.classList.add("loading");
-            document.body.appendChild(loading);
-            // give style to the loading element to make it cover the whole screen
+        // make an element cover the whole screen saying wait
+        const loading = document.createElement("div");
+        loading.classList.add("loading");
+        loading.classList.add("fade-in");
+        document.body.appendChild(loading);
+        // give style to the loading element to make it cover the whole screen
 
-            const p = document.createElement("p");
-            p.textContent = "Please wait we load the data";
-            loading.appendChild(p);
-        }
+        const p = document.createElement("p");
+        p.textContent = "Please wait we load the data";
+        loading.appendChild(p);
 
         fetchGameData(gameName)
             .then(data => {
