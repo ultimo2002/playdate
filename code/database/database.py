@@ -14,7 +14,7 @@ def set_database_engine():
     Engine = create_engine(URL_DATABASE)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=Engine)
     Base = declarative_base()
-    print(f"Set database engine to: {Engine}")
+    print(f"Set database engine 🔧  to: {Engine}")
     # print(f"Set database session to: {SessionLocal}")
     # print(f"Set database base to: {Base}")
 

@@ -50,7 +50,7 @@ class TextStyles:
 def set_host():
     # Docker-specific adjustments (Linux platform)
     if sys.platform.startswith("linux"):
-        print('Detected Linux platform (possibly Docker). Setting API_HOST_URL to "0.0.0.0".')
+        print('Detected Linux platform (possibly Docker 📦 ). Setting API_HOST_URL to "0.0.0.0".')
         global API_HOST_URL
         API_HOST_URL = "0.0.0.0"
 
