@@ -59,10 +59,9 @@ def setup():
     #check database
     URL_DATABASE = os.getenv("URL_DATABASE")
     if "sqlite" in URL_DATABASE:
-        print("in-memory database gevonden"
-              "")
-    # else:
-    #     raise ValueError(f"Je gebruikt niet de in-memory database! (zocht \"sqlite\" in {URL_DATABASE})")
+        print("in-memory database gevonden!")
+    else:
+        raise ValueError(f"Je gebruikt niet de in-memory database! (zocht \"sqlite\" in {URL_DATABASE})")
 
     #maak API voor testen
     global api_instance
