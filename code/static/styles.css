@@ -3,6 +3,7 @@
     --font-size-heading: 2rem;
     --button-color: #3498db;
     --button-hover-color: #1d90e3;
+    --game-text-color: #444;
 }
 
 html {
@@ -21,10 +22,6 @@ body {
     font-size: var(--font-size, 1rem);
     font-family: "Motiva Sans", system-ui, Sans-serif;
     font-weight: 500;
-
-    @media (max-width: 768px) {
-        width: 88%;
-    }
 }
 
 
@@ -49,14 +46,19 @@ a:hover {
     font-size: calc(var(--font-size, 1rem) + 0.08rem);
 }
 
+.flex-md-align-items-center {
+    @media (max-width: 768px) {
+        align-items: center
+    }
+}
+
+
 /* Containers */
 .container {
     display: flex;
     gap: 10px;
 
-    @media (max-width: 768px) {
-        flex-direction: column;
-    }
+    @media (max-width: 768px) { flex-direction: column; }
 }
 
 
@@ -88,6 +90,7 @@ a:hover {
     flex: 1;
 }
 
+
 /* Game Card */
 .card {
     background: white;
@@ -103,6 +106,7 @@ a:hover {
     box-shadow: 0 8px 16px #1b2838;
 }
 
+
 /* Recommended Card */
 .recommended-card {
     display: flex;
@@ -110,9 +114,7 @@ a:hover {
 
     transition: transform 0.5s;
 
-    @media (max-width: 1200px) {
-        flex-direction: column;
-    }
+    @media (max-width: 1200px) { flex-direction: column; }
 }
 
 .recommended-card:hover {
@@ -175,6 +177,7 @@ a.game-price:hover {
     text-decoration-thickness: 2px;
     font-size: 1.35em;
 }
+
 .recommended-columnl {
     display: flex;
     align-items: center;
@@ -182,9 +185,14 @@ a.game-price:hover {
     flex: 0 0 50%;
     object-fit: cover;
 }
+
 .recommended-columnl img {
     height: 100%;
     border-radius: 10px;
+}
+
+.recom-details {
+    width: 100%;
 }
 
 
@@ -261,18 +269,10 @@ body.nsfw::before {
     align-items: flex-start;
 }
 
-.flex-md-align-items-center {
-    @media (max-width: 768px) {
-        align-items: center
-    }
-}
-
 .w-50 {
     width: 50%;
 
-    @media (max-width: 768px) {
-        width: initial;
-    }
+    @media (max-width: 768px) { width: initial; }
 }
 
 .removeButton {
@@ -281,12 +281,9 @@ body.nsfw::before {
     transition: font-size 0.5s;
     font-size: 1.1rem;
 
-    @media (max-width: 500px) {
-        font-size: 1.2rem;
-    }
+    @media (max-width: 500px) { font-size: 1.2rem; }
 }
 .removeButton:before {
-    /* Create a white circle behind the prullenbak icon text */
     content: "🗑️";
     display: inline-block;
     position: relative;
@@ -302,6 +299,15 @@ body.nsfw::before {
 }
 .removeButton:hover {
     font-size: 1.5rem;
+}
+
+.home form {
+    @media (max-width: 850px) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
 }
 
 .selected_games div {
@@ -348,14 +354,6 @@ button:hover {
     background-color: var(--button-hover-color, #1d90e3);
 }
 
-.home form {
-    @media (max-width: 850px) {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-    }
-}
 
 .emoji {
     transition: font-size 0.5s, transform 0.5s, text-shadow 10s;
@@ -367,11 +365,7 @@ button:hover {
     }
 }
 
-.emoji:hover {
-    font-size: 1.25em;
-    transform: rotate(180deg);
-    text-shadow: 0 0 0.2em var(--button-color, #3498db);
-}
+
 
 /* Easter Eggs */
 body:has(#appid-3314060, #appid-391540) {
