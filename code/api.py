@@ -650,10 +650,7 @@ class API:
                 details = get_app_details(appid)
                 if details:
                     # Platform as a comma-separated string
-                    try:
-                        developer = details["developers"][0] if details["developers"] else ''
-                    except KeyError:
-                        developer = 'ErrorStudio'
+                    developer = details["developers"][0] if details["developers"] else ''
                     header_image = details["header_image"] if details["header_image"] else ''
                     background_image = details["background"] if details["background"] else ''
                     short_description = details["short_description"] if details["short_description"] else ''
