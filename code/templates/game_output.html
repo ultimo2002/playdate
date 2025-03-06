@@ -42,6 +42,7 @@
             <h2>Recommended Games</h2>
             {% for selected_game_name, apps in all_apps.items() %}
                 <div id="recommended-for-{{ selected_game_name.lower() }}">
+                <h3>Games similar to: {{ selected_game_name }}</h3>
                 {% for app in apps %}
                     <div class="card recommended-card container p-relative">
                         <a href="/recommend?games={{ app.id }}" class="clickable"></a>

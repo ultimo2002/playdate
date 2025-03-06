@@ -74,7 +74,7 @@ a:hover {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 25px;
+    gap: 1rem;
 }
 
 .selected_games:empty {
