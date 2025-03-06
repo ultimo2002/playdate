@@ -46,11 +46,19 @@ a:hover {
     font-size: calc(var(--font-size, 1rem) + 0.08rem);
 }
 
+.flex-md-align-items-center {
+    @media (max-width: 768px) {
+        align-items: center
+    }
+}
+
 
 /* Containers */
 .container {
     display: flex;
     gap: 10px;
+
+    @media (max-width: 768px) { flex-direction: column; }
 }
 
 
@@ -105,6 +113,8 @@ a:hover {
     width: 100%;
 
     transition: transform 0.5s;
+
+    @media (max-width: 1200px) { flex-direction: column; }
 }
 
 .recommended-card:hover {
@@ -257,6 +267,8 @@ body.nsfw::before {
 
 .w-50 {
     width: 50%;
+
+    @media (max-width: 768px) { width: initial; }
 }
 
 .removeButton {
@@ -264,6 +276,8 @@ body.nsfw::before {
     cursor: pointer;
     transition: font-size 0.5s;
     font-size: 1.1rem;
+
+    @media (max-width: 500px) { font-size: 1.2rem; }
 }
 .removeButton:before {
     content: "🗑️";
@@ -281,6 +295,15 @@ body.nsfw::before {
 }
 .removeButton:hover {
     font-size: 1.5rem;
+}
+
+.home form {
+    @media (max-width: 850px) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
 }
 
 .selected_games div {
