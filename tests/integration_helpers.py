@@ -1,9 +1,10 @@
+import os
+
 from fastapi.testclient import TestClient
 from code.api import API
 from code.config import TextStyles
 import code.database.models as models
 import sys
-import os
 
 POSSIBLE_GET_ENDPOINTS = ["/", "/apps", "/categories", "/tags", "/genres", "/app/{appid}", "/cats", "/apps/developer/{target_name}", "/apps/tag/{target_name}"]
 ALL_APP_FIELDS = [field.name for field in models.App.__table__.columns]
@@ -22,7 +23,12 @@ TEST_APPS = {
 DEFAULT_TEST_APPS = TEST_APPS.copy()
 
 STEEKPROEF_APPS = 10
-
+def check_database():
+    URL_DATABASE = os.getenv("URL_DATABASE")
+    if "sqlite" in URL_DATABASE:
+        print("in-memory database gevonden")
+    else:
+        raise ValueError(f"Je gebruikt niet de in-memory database! (zocht \"sqlite\" in {URL_DATABASE})")
 def is_imported_from(filename):
     stack = sys._getframe().f_back
     while stack:
@@ -139,3 +145,4 @@ def assert_common_app_tests(response, expected_fields):
 
     # Test if the response contains a list of apps with the expected fields
     assert all(key in response.json()[0] for key in expected_fields)
+check_database()
