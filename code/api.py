@@ -80,12 +80,12 @@ class API:
                 return find_similar_named_apps(target_name, db)
             elif like:
                 like = like.strip().lower()
-                apps = db.query(models.App).filter(models.App.name.ilike(f"%{like}%")).all()
+                apps = db.query(models.App).filter(models.App.name.ilike(f"%{like}%")).order_by(models.App.id).all()
                 if not apps:
                     raise HTTPException(status_code=404, detail=f"No apps found with name like '{like}'")
                 return apps
             if all_fields:
-                apps = db.query(models.App).all()
+                apps = db.query(models.App).order_by(models.App.id).all()
                 return apps
 
             apps = db.query(models.App.id, models.App.name).order_by(models.App.id).all()
