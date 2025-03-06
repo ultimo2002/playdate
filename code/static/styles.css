@@ -105,7 +105,7 @@ a:hover {
     text-align: center;
     color: #444;
     font-size: 1rem;
-    transition: box-shadow 2s;
+    transition: box-shadow 2s, transform 0.5s;
     cursor: pointer;
 }
 .card:hover{
@@ -394,6 +394,10 @@ button:hover {
 .loading p {
     margin-top: 7rem;
     font-size: 1.5rem;
+}
+
+.selected-card:hover {
+    transform: scale(0.95);
 }
 
 .folded img{
