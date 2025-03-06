@@ -60,7 +60,7 @@ def root(request: Request, db=db_dependency):
 
 
 @router.get("/recommend", response_class=HTMLResponse)
-def handle_form(request: Request, games: str = "", db=db_dependency):
+def handle_form(request: Request, games: str = "", amount: int = 5, db=db_dependency):
     """"
     Handle the GET request for the HTML <form> to search for a game.
 
@@ -71,12 +71,15 @@ def handle_form(request: Request, games: str = "", db=db_dependency):
     if not games:
         return root(request, db)
 
+    # limit amount by min 1 and max 10
+    amount = max(1, min(amount, 10))
+
     return templates.TemplateResponse(
-        request=request, name="game_output.html", context=get_recommendations_games(games, db)
+        request=request, name="game_output.html", context=get_recommendations_games(games, db, amount)
     )
 
 @router.get("/recommendations")
-def get_recommendations_games(games: str = "", db=db_dependency):
+def get_recommendations_games(games: str = "", db=db_dependency, amount: int = 5):
     """"
     Get all the recommendations for the selected games.
     :param selected_games: The selected games to get recommendations for.
@@ -96,7 +99,7 @@ def get_recommendations_games(games: str = "", db=db_dependency):
         selected_app = app_data_from_id_or_name(gameid, db, False, True)
         selected_apps.append(selected_app.__dict__)
 
-        apps = find_similar_games(selected_app, db)
+        apps = find_similar_games(selected_app, db, amount)
 
         if not selected_app.id:
             raise HTTPException(status_code=404, detail=f"Game {selected_app.id} not found.")
@@ -106,12 +109,12 @@ def get_recommendations_games(games: str = "", db=db_dependency):
                 nsfw = True
                 break
 
-        recommended_apps[re.sub(r'[^a-zA-Z0-9 ]', '', selected_app.name.replace(" ", "_"))] = apps
+        recommended_apps[re.sub(r'[^a-zA-Z0-9 ]', '', selected_app.name)] = apps
 
 
     return {"selected_games": selected_apps, "all_apps": recommended_apps, "nsfw": nsfw}
 
-def find_similar_games(selected_app, db):
+def find_similar_games(selected_app, db, amount):
     """Finds games with the most similar tags to the given game.
 
     :param selected_app: The app object from the DB to filter on.
@@ -158,4 +161,4 @@ def find_similar_games(selected_app, db):
     matching_games.sort(key=lambda x: x[1], reverse=True)
 
     # Return the top 5 matching games.
-    return [game for game, _ in matching_games[:5]]
+    return [game for game, _ in matching_games[:amount]]

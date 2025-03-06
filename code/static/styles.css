@@ -90,6 +90,11 @@ a:hover {
     flex: 1;
 }
 
+#recommend_games {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
 /* Game Card */
 .card {
@@ -101,6 +106,7 @@ a:hover {
     color: #444;
     font-size: 1rem;
     transition: box-shadow 2s;
+    cursor: pointer;
 }
 .card:hover{
     box-shadow: 0 8px 16px #1b2838;

@@ -102,6 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 });
             }
 
+            console.log(amount);
             // reload the page the new selected games in the url
             window.location.assign(`/recommend?games=${games.map(game => game.id).join(",")}`);
             return;
@@ -122,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function() {
         recommendGames.classList.remove("pop-out");
 
         if (games.length > 0) {
-            recommendGames.style.display = "initial";
+            recommendGames.style.display = "flex";
             recommendGames.classList.add("pop-in");
         } else {
             recommendGames.classList.add("pop-out");
@@ -167,6 +168,8 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     function recommendGames() {
         let gameIds = games.map(game => game.id).join(",");
-        window.location.assign(`/recommend?games=${gameIds}`);
+        let amount = document.getElementById("amount").value;
+        window.location.assign(`/recommend?games=${gameIds}&amount=${amount}`);
+
     }
 });
