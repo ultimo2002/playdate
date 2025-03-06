@@ -204,12 +204,12 @@ def fill_database(db):
         AppTags(app_id=7, tag_id=2),  # Daily Planner -> Single-Player
         AppTags(app_id=8, tag_id=3),  # Math Tutor AI -> Online
         AppTags(app_id=9, tag_id=4),  # Yoga & Meditation -> Offline
-        AppTags(app_id=10, tag_id=5),  # Music Studio Pro -> Casual
-        AppTags(app_id=11, tag_id=1),  # Racing Champions -> Multiplayer
-        AppTags(app_id=12, tag_id=2),  # Expense Manager -> Single-Player
-        AppTags(app_id=13, tag_id=3),  # History Explorer -> Online
-        AppTags(app_id=14, tag_id=4),  # Cooking Assistant -> Offline
-        AppTags(app_id=15, tag_id=5),  # Photo Editor Deluxe -> Casual
+        AppTags(app_id=10, tag_id=5), # Music Studio Pro -> Casual
+        AppTags(app_id=11, tag_id=1), # Racing Champions -> Multiplayer
+        AppTags(app_id=12, tag_id=2), # Expense Manager -> Single-Player
+        AppTags(app_id=13, tag_id=3), # History Explorer -> Online
+        AppTags(app_id=14, tag_id=4), # Cooking Assistant -> Offline
+        AppTags(app_id=15, tag_id=5), # Photo Editor Deluxe -> Casual
     ]
 
     # Add apps to the session and commit

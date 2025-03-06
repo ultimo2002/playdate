@@ -114,7 +114,7 @@ def test_app_recommend():
     Test the GET "/recommend" endpoint.
     """
 
-    response = client.get("/recommend?game=Expense Manager")
+    response = client.get("/recommend?games=12")
     assert check_response(response, 200) and not is_json(response)
     assert is_html(response)
 
@@ -183,10 +183,10 @@ def test_get_app_recommend_input_with_game_query():
     Test the GET "/recommend" endpoint with a 'game_input' query parameter,
     ensuring the correct game is selected and the proper elements are present.
     """
-    response = client.get("/recommend?game=Racing+Champions")
+    response = client.get("/recommend?games=14")
     assert check_response(response, 200) and not is_json(response)
     assert is_html(response)
-    assert "Racing Champions" in response.text
+    assert "Fitness Tracker Plus" in response.text
     assert contains_form(response, method="GET")  # The form should still be present
     assert "Home</a>" in response.text
     assert "<h2>Selected Game</h2>" in response.text
