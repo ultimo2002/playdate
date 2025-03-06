@@ -21,7 +21,7 @@
         <div class="column columnl">
             <h2>Selected Game</h2>
             {% if selected_games %}
-                <p>Selected games given</p>
+                <button id="closeall">Close all</button>
                 {% for selected_app in selected_games %}
                     <div class="card selected-card" id="appid-{{selected_app.id}}">
                         <img src="{{selected_app.header_image}}" alt="Logo of {{selected_app.name}}" class="game-image">
