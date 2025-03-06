@@ -70,42 +70,45 @@ def handle_form(request: Request, games: str = "", db=db_dependency):
     if not games:
         return root(request, db)
 
-    games = games.split(",")
+    return templates.TemplateResponse(
+        request=request, name="game_output.html", context=get_recommendations_games(games, db)
+    )
 
+@router.get("/recommendations")
+def get_recommendations_games(games: str = "", db=db_dependency):
+    """"
+    Get all the recommendations for the selected games.
+    :param selected_games: The selected games to get recommendations for.
+    :param db: The database object.
+    :return: A list of recommended games.
+    """
     selected_apps = []
+    recommended_apps = {}
+    nsfw = False
 
-    all_apps = {}
+    if type(games) == str:
+        games = games.split(",")
 
     for gameid in games:
-        # clean up the input to prevent XSS attacks
-        gameid = gameid.strip()
-        gameid = str(gameid)
+        gameid = str(gameid.strip())
 
         selected_app = app_data_from_id_or_name(gameid, db, False, True)
-
-        # append to selected apps
         selected_apps.append(selected_app.__dict__)
 
-        apps = find_similar_games(selected_app, db) # Bram enable this line to start developing find_similar_games()
+        apps = find_similar_games(selected_app, db)
 
-        if not gameid:
-            return templates.TemplateResponse(
-                request=request, name="404.html", context={"message": f"Game {gameid} not found."}
-            )
-
-        nsfw = False
+        if not selected_app.id:
+            raise HTTPException(status_code=404, detail=f"Game {selected_app.id} not found.")
 
         for tag in selected_app.tags:
             if tag.name in BLOCKED_CONTENT_TAGS:
                 nsfw = True
                 break
 
-        all_apps[selected_app.name] = apps
+        recommended_apps[selected_app.name] = apps
 
-    return templates.TemplateResponse(
-        request=request, name="game_output.html", context={"selected_games": selected_apps, "all_apps": all_apps, "nsfw": nsfw}
-    )
 
+    return {"selected_games": selected_apps, "all_apps": recommended_apps, "nsfw": nsfw}
 
 def find_similar_games(selected_app, db):
     """Finds games with the most similar tags to the given game.

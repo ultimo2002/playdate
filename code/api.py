@@ -88,7 +88,7 @@ class API:
                 apps = db.query(models.App).all()
                 return apps
 
-            apps = db.query(models.App.id, models.App.name).all()
+            apps = db.query(models.App.id, models.App.name).order_by(models.App.id).all()
             return [{"id": app.id, "name": app.name} for app in apps]
 
         def get_app_related_data(appid: str, db, model_class, relationship_class, fuzzy: bool = True):
