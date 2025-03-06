@@ -191,6 +191,10 @@ a.game-price:hover {
     border-radius: 10px;
 }
 
+.recom-details {
+    width: 100%;
+}
+
 
 /* Overlay for background image name */
 .overlay {
