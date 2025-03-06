@@ -51,7 +51,7 @@ jobs:
       # Remove .env
       - name: remove .env
         run: |
-          rm code/.env
+          rm src/.env
 
       # Log in to GitHub Container Registry
       - name: Log in to GHCR
