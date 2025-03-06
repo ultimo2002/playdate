@@ -567,7 +567,7 @@ class API:
                 with open(ADDED_GAMES_LIST_CACHE_FILE, 'a') as file:
                     file.write(f"{appid}\n")
 
-                MIN_PLAYER_COUNT = 500
+                MIN_PLAYER_COUNT = 20
 
                 player_count = get_current_player_count(appid)
 
