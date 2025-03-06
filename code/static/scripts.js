@@ -128,6 +128,9 @@ document.addEventListener("DOMContentLoaded", function() {
             recommendGames.classList.add("pop-out");
         }
 
+        const loading = document.querySelector(".loading");
+        if (loading) { loading.remove();}
+
         saveGames();
     }
 
