@@ -365,7 +365,20 @@ button:hover {
     }
 }
 
-
+.loading {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    text-align: center;
+}
+.loading p {
+    margin-top: 7rem;
+    font-size: 1.5rem;
+}
 
 /* Easter Eggs */
 body:has(#appid-3314060, #appid-391540) {
