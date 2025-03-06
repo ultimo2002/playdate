@@ -553,7 +553,10 @@ class API:
                     file.write(f"{appid}\n")
 
                 name = details["name"]
-                developer = details["developers"][0] if details["developers"] else ''
+                try:
+                    developer = details["developers"][0] if details["developers"] else ''
+                except Error:
+                    developer = 'Error Studio'
                 header_image = details["header_image"] if details["header_image"] else ''
                 background_image = details["background"] if details["background"] else ''
                 short_description = details["short_description"] if details["short_description"] else ''
