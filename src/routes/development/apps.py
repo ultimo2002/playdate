@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from code.algoritmes.fuzzy import _most_similar
-from code.database import crud
-import code.database.models as models
-from code.database.database import get_db
+from src.algoritmes.fuzzy import _most_similar
+from src.database import crud
+import src.database.models as models
+from src.database.database import get_db
 
 router = APIRouter()
 

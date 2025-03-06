@@ -8,13 +8,13 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.sql import exists
 from sqlalchemy.sql.expression import func
 
-import code.database.models as models
-from code.algoritmes.cache import cache_background_image, cache_header_image
-from code.config import BLOCKED_CONTENT_TAGS
-from code.database.database import get_db
-from code.routes.development.apps import app_data_from_id_or_name
+import src.database.models as models
+from src.algoritmes.cache import cache_background_image, cache_header_image
+from src.config import BLOCKED_CONTENT_TAGS
+from src.database.database import get_db
+from src.routes.development.apps import app_data_from_id_or_name
 
-templates = Jinja2Templates(directory="code/templates")
+templates = Jinja2Templates(directory="src/templates")
 
 router = APIRouter()
 

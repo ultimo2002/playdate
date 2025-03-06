@@ -1,4 +1,4 @@
-from code.api import API
+from src.api import API
 
 def main():
     api = API()

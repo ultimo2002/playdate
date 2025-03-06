@@ -1,9 +1,9 @@
 # GET requests endpoints below:
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-import code.database.models as models
+import src.database.models as models
 
-from code.database.database import get_db
+from src.database.database import get_db
 
 db_dependency = Depends(get_db)
 

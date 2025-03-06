@@ -8,26 +8,27 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 
 from sqlalchemy.sql.expression import func
-from starlette.responses import PlainTextResponse
 
-from .algoritmes.cache import cache_background_image, cache_header_image
+from src.algoritmes.cache import cache_background_image, cache_header_image
+from tests.fill_database import fill_database
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
 from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
 
-from code.routes.development.apps import router as apps_router, app_data_from_id_or_name
+from src.routes.development.apps import router as apps_router, app_data_from_id_or_name
 from .routes.frontend import router as frontend_router, root
-from code.routes.development.categories import router_development as categories_router_development
-from code.routes.categories import router as categories_router
+from src.routes.development.categories import router_development as categories_router_development
+from src.routes.categories import router as categories_router
 
-import code.database.models as models
-from code.database.database import Engine, SessionLocal
+import src.database.models as models
+from tests.fill_database import fill_database
 
-from code.database.database import Engine, get_db
+from src.database.database import Engine, get_db, SessionLocal
+
 
 class API:
     db_dependency = None
 
-    templates = Jinja2Templates(directory="code/templates")
+    templates = Jinja2Templates(directory="src/templates")
 
     def __init__(self):
         """
@@ -35,7 +36,7 @@ class API:
         """
         self.app = FastAPI()
 
-        self.app.mount("/static", StaticFiles(directory="code/static"), name="static")
+        self.app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
         models.Base.metadata.create_all(bind=Engine)
 
@@ -49,9 +50,30 @@ class API:
         """
         self.register_endpoints()
 
-        print("Running API 🚀")
+        print("Run API")
 
-        uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False, use_colors=True, access_log=True)
+        uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False)
+
+    def get_random_apps(db = db_dependency, count: int = 15):
+        """
+        Get a dictionary with random apps from the database. With typo's in the names.
+        :param count: The amount of random apps to return.
+        :return: Dictionary with given count random apps with their id and name.
+        """
+        # maximal 25 apps, minimal 1 app, clamp the count
+        count = max(1, min(count, 25))
+        print(f"Getting {count} random apps from the database.")
+
+        all_apps = db.query(models.App.id,
+                            models.App.name).all()  # get all app names that are in the database, needed to check fuzzy in
+        random_apps = db.query(models.App).with_entities(models.App.id, models.App.name).order_by(
+            func.random()).limit(
+            count).all()
+
+        return {
+            make_typo(app.name, app.id, all_apps): {"expected_appid": app.id, "expected_name": app.name}
+            for app in random_apps
+        }
 
     def register_endpoints(self, all_endpoints=False):
         """"
@@ -67,7 +89,7 @@ class API:
             self.app.include_router(categories_router_development)
 
         @self.app.get("/apps")
-        def read_apps(db=self.db_dependency, all_fields: bool = False, like: str = None):
+        def read_apps(db=self.db_dependency, all_fields: bool = False, target_name: str = None, like: str = None):
             """
             Get a JSON / dictionary with all the apps in the database.
 
@@ -76,17 +98,19 @@ class API:
             :param like: Find apps with names like this, Uses %string% for SQL LIKE query.
             :return: List of apps in JSON/dictionary format.
             """
-            if like:
+            if target_name:
+                return find_similar_named_apps(target_name, db)
+            elif like:
                 like = like.strip().lower()
-                apps = db.query(models.App).filter(models.App.name.ilike(f"%{like}%")).order_by(models.App.id).all()
+                apps = db.query(models.App).filter(models.App.name.ilike(f"%{like}%")).all()
                 if not apps:
                     raise HTTPException(status_code=404, detail=f"No apps found with name like '{like}'")
                 return apps
             if all_fields:
-                apps = db.query(models.App).order_by(models.App.id).all()
+                apps = db.query(models.App).all()
                 return apps
 
-            apps = db.query(models.App.id, models.App.name).order_by(models.App.id).all()
+            apps = db.query(models.App.id, models.App.name).all()
             return [{"id": app.id, "name": app.name} for app in apps]
 
         def get_app_related_data(appid: str, db, model_class, relationship_class, fuzzy: bool = True):
@@ -132,7 +156,10 @@ class API:
             :return: List of categories for the app.
             """
             return get_app_related_data(appid, db, models.Category, models.AppCategory, fuzzy)
-
+        @self.app.get("/test")
+        def test():
+            session = SessionLocal()
+            fill_database(session)
         @self.app.get("/app/{appid}/genres")
         def read_app_genres(appid: str, fuzzy: bool = True, db=self.db_dependency):
             """"
@@ -163,6 +190,7 @@ class API:
             :param fuzzy: If True, try to find the app by name even when the grammar is not correct using my fuzzy algorithm ^Seger. It skips this always when the appid is a number.
             """
             app = app_data_from_id_or_name(appid, db, fuzzy, False)
+            print(app)
             if not app:
                 raise HTTPException(status_code=404, detail="App not found.")
             return app
@@ -199,6 +227,103 @@ class API:
                 raise HTTPException(status_code=404, detail="No developers found in the database.")
 
             return [{"name": dev.developer} for dev in developers]
+
+        @self.app.get("/recommend", response_class=HTMLResponse)
+        def handle_form(request: Request, game: str = "", db=self.db_dependency):
+            """"
+            Handle the GET request for the HTML <form> to search for a game.
+
+            :param request: The request object auto given by FastAPI.
+            :param game_input: The name or id of the game to search for. Always uses fuzzy search.
+            :return: The HTML response with the results in the context.
+            """
+            if not game:
+                return root(request, db)
+
+            # clean up the input to prevent XSS attacks
+            game_input = game.strip()
+            game_input = game_input.strip()
+            game_input = game_input.replace("<", "").replace(">", "")
+            del game
+
+            selected_app = app_data_from_id_or_name(game_input, db, True, True)
+
+            #apps = [] # currently algorithm not implemented, Bram enable line below to start developing find_similar_games()
+            apps = find_similar_games(selected_app, db)
+
+            if not selected_app or not selected_app.id:
+                return self.templates.TemplateResponse(
+                    request=request, name="404.html", context={"message": f"Game {game_input} not found."}
+                )
+
+
+            nsfw = False
+
+            for tag in selected_app.tags:
+                if tag.name in BLOCKED_CONTENT_TAGS:
+                    nsfw = True
+                    break
+
+            # chache the background image
+            if os.getenv("CACHE_IMAGES"):
+                for attr, cache_func in [("background_image", cache_background_image),
+                                         ("header_image", cache_header_image)]:
+                    if getattr(selected_app, attr):
+                        cached = cache_func(selected_app) or {}
+                        setattr(selected_app, attr, cached.get(attr, getattr(selected_app, attr)))
+
+            return self.templates.TemplateResponse(
+                request=request, name="game_output.html", context={"selected_app":selected_app, "apps": apps,"nsfw": nsfw}
+            )
+
+        def find_similar_games(selected_app, db):
+            """Finds games with the most similar tags to the given game.
+
+            :param selected_app: The app object from the DB to filter on.
+            :param db: The database object
+            :return: The matching games filtered on matching tags of the input "selected_app"
+            """
+            gameid = str(selected_app.id)
+            gamename = selected_app.name
+
+            tags = selected_app.tags
+            genres = selected_app.genres
+            categories = selected_app.categories
+
+            if not tags or not genres or not categories:
+                raise HTTPException(status_code=404, detail="No tags or genres or categories found for app")
+
+            # get all games that are in the database except the selected game
+            games = db.query(models.App).filter(models.App.id != selected_app.id).all()
+            game_tags_relation = db.query(models.AppTags.app_id, models.AppTags.tag_id).all()
+
+            if not games:
+                raise HTTPException(status_code=404, detail="No games found in the database.")
+
+            matching_games = []
+
+            # Compare with every other game must be (O(n²)) (two for loops in this)
+            for game in games:
+
+                # Convert game_tags_relation to a set for faster lookups
+                game_tags_relation_set = set(game_tags_relation)
+
+                # Get tags for the current game
+                game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation_set]
+
+                # Calculate the similarity score based on common tags
+                common_tags = set(selected_app.tags).intersection(set(game.tags))
+                total_tags = len(selected_app.tags)
+                game.similarity_score = ((len(common_tags) / total_tags) * 100).__round__()  # Convert to percentage
+
+                if game.similarity_score > 0:
+                    matching_games.append((game, game.similarity_score))
+
+            # Sort matching games by similarity score in descending order
+            matching_games.sort(key=lambda x: x[1], reverse=True)
+
+            # Return the top 5 matching games
+            return [game for game, _ in matching_games[:5]]
 
         def app_data_from_id_or_name(app_id_or_name: str, db, fuzzy: bool = True, categories: bool = False):
             """"
@@ -380,29 +505,4 @@ class API:
             except AttributeError:
                 raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found with tag name '{tag}'")
 
-        @self.app.get("/apps/random")
-        def get_random_apps(count: int = 15, db=self.db_dependency):
-            """
-            Get a dictionary with random apps from the database. With typo's in the names.
-            :param count: The amount of random apps to return.
-            :return: Dictionary with given count random apps with their id and name.
-            """
-            # maximal 25 apps, minimal 1 app, clamp the count
-            count = max(1, min(count, 25))
-            print(f"Getting {count} random apps from the database.")
 
-            all_apps = db.query(models.App.id, models.App.name).all() # get all app names that are in the database, needed to check fuzzy in
-            random_apps = db.query(models.App).with_entities(models.App.id, models.App.name).order_by(func.random()).limit(count).all()
-
-            return {
-                make_typo(app.name, app.id, all_apps): {"expected_appid": app.id, "expected_name": app.name}
-                for app in random_apps
-            }
-
-        @self.app.get("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)
-        def robots():
-            """Don't allow any crawlers to index the API. E.g: Search engines."""
-            data = """User-agent: *\nDisallow: /"""
-            return data
-
-        print("Registered all endpoints ✨")

@@ -2,7 +2,7 @@ import os
 
 from fastapi.testclient import TestClient
 
-from code.api import API
+from src.api import API
 from tests.integration_helpers import check_response, is_json, is_html, POSSIBLE_GET_ENDPOINTS
 
 api_instance = API()
@@ -12,7 +12,7 @@ client = TestClient(api_instance.app)
 def test_openapi():
     response = client.get("/openapi.json")
 
-    # Test if the response status code is 200 (Good)
+    # Test if the response status src is 200 (Good)
     assert check_response(response, 200) and is_json(response)
 
     paths = response.json()["paths"]
@@ -37,7 +37,7 @@ def test_openapi():
 def test_docs():
     response = client.get("/docs")
 
-    # Test if the response status code is 200 (Good)
+    # Test if the response status src is 200 (Good)
     assert check_response(response, 200) and not is_json(response)
 
     assert is_html(response)
@@ -48,7 +48,7 @@ def test_docs():
 def test_redoc():
     response = client.get("/redoc")
 
-    # Test if the response status code is 200 (Good)
+    # Test if the response status src is 200 (Good)
     assert check_response(response, 200) and not is_json(response)
 
     assert is_html(response)

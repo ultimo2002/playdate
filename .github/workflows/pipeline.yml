@@ -35,7 +35,7 @@ jobs:
       # Create .env file
       - name: Create .env file
         run: |
-          echo "${{ secrets.DOTENV }}" > code/.env
+          echo "${{ secrets.DOTENV }}" > src/.env
 
       # Lint with flake8
       - name: Lint with flake8
@@ -51,7 +51,7 @@ jobs:
       # Remove .env
       - name: remove .env
         run: |
-          rm code/.env
+          rm src/.env
 
       # Log in to GitHub Container Registry
       - name: Log in to GHCR
