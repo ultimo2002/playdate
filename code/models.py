@@ -12,6 +12,7 @@ class App(Base):
     developer = Column(String, index=True)
     header_image = Column(String, index=True)
     background_image = Column(String, index=True)
+    players = Column(Integer, index=True)
 
 class Category(Base):
     __tablename__ = "categories"

@@ -451,6 +451,77 @@ class API:
                 else:
                     print(f"No tags found for app {app.id} .")
 
+        # endpoint to fill player count for all apps
+        @self.app.get("/fill_app_playercount")
+        async def fill_app_playercount(background_tasks: BackgroundTasks, db=self.db_dependency):
+            if not os.environ.get("PYCHARM_HOSTED"):
+                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
+
+            background_tasks.add_task(run_fill_playercount, db)
+            return {"message": "The app player count filling task has started in the background."}
+
+        async def run_fill_playercount(db):
+            # get all apps from the database
+            apps = db.query(models.App.id).all()
+
+            # Loop through all apps and get the player count
+            for app in apps:
+                # Get the current player count
+                playercount = get_current_player_count(app.id)
+                print(f"App {app.id} has {playercount} players.")
+                if playercount:
+                    # update app with the player_count app.players
+                    fill_app = db.query(models.App).filter(models.App.id == app.id).first()
+                    # add player count to the app app.players
+                    if fill_app:
+                        # Update player count
+                        fill_app.players = playercount
+                        db.commit()  # Commit changes to the database
+
+        # endpoint to mark game NSFW / add a tag nsfw to the game
+        @self.app.get("/mark_nsfw/{appid}")
+        def mark_nsfw(appid: int, db=self.db_dependency):
+            if not os.environ.get("PYCHARM_HOSTED"):
+                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
+
+            # check if the app exists in the database
+            app = db.query(models.App).filter(models.App.id == appid).first()
+            if not app:
+                raise HTTPException(status_code=404, detail=f"App {appid} not found")
+
+            # add the tag nsfw to the game if it not already has it in AppTags find by tag id: 24 that is NSFW
+            app_tag = db.query(models.AppTags).filter(models.AppTags.app_id == appid, models.AppTags.tag_id == 24).first()
+            if app_tag:
+                return {"message": f"App {appid} already has the NSFW tag."}
+
+            # add the tag nsfw to the game
+            app_tag = models.AppTags(app_id=appid, tag_id=24)
+            db.add(app_tag)
+            db.commit()
+
+
+        # endpoint to save all app ids in csv and when there is allready loop through the csv and check if the app is in the database if not add it with fetch_app
+        @self.app.get("fill_csv")
+        async def fill_csv(background_tasks: BackgroundTasks, db=self.db_dependency):
+            if not os.environ.get("PYCHARM_HOSTED"):
+                raise HTTPException(status_code=403, detail="This endpoint is only available in the development environment.")
+
+            # Call the function to run in the background
+            background_tasks.add_task(run_fill_csv, db)
+            return {"message": "The csv filling task has started in the background."}
+
+        async def run_fill_csv(db):
+            if not os.path.exists("db_games_list.csv"):
+                return
+
+            with open("db_games_list.csv", "r") as file:
+                app_ids = file.readlines()
+                print(f"Total games in the csv: {len(app_ids)}")
+
+                for app_id in app_ids:
+                    
+
+
         # Endpoint to fill the app table with all apps from the Steam API
         @self.app.get("/fill_app_table")
         async def fill_app_table(background_tasks: BackgroundTasks, db=self.db_dependency):
@@ -567,7 +638,7 @@ class API:
                 with open(ADDED_GAMES_LIST_CACHE_FILE, 'a') as file:
                     file.write(f"{appid}\n")
 
-                MIN_PLAYER_COUNT = 500
+                MIN_PLAYER_COUNT = 15
 
                 player_count = get_current_player_count(appid)
 
@@ -579,7 +650,10 @@ class API:
                 details = get_app_details(appid)
                 if details:
                     # Platform as a comma-separated string
-                    developer = details["developers"][0] if details["developers"] else ''
+                    try:
+                        developer = details["developers"][0] if details["developers"] else ''
+                    except KeyError:
+                        developer = 'ErrorStudio'
                     header_image = details["header_image"] if details["header_image"] else ''
                     background_image = details["background"] if details["background"] else ''
                     short_description = details["short_description"] if details["short_description"] else ''

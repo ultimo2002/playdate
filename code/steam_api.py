@@ -38,7 +38,9 @@ def load_cache(cache_file):
         loaded_data = [app for app in loaded_data if app["appid"] not in app_ids and not app_ids.add(app["appid"])]
 
         # order the apps by appid
-        loaded_data.sort(key=lambda x: x["appid"])
+        # loaded_data.sort(key=lambda x: x["appid"])
+
+        loaded_data.sort(key=lambda x: x["appid"], reverse=True)
 
         return loaded_data
 
