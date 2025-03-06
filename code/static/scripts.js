@@ -169,7 +169,11 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     function recommendGames() {
         let gameIds = games.map(game => game.id).join(",");
-        let amount = document.getElementById("amount").value;
+        const amount_element = document.getElementById("amount");
+        let amount = 5;
+        if (amount_element && amount_element.value) {
+            amount = document.getElementById("amount").value;
+        }
         window.location.assign(`/recommend?games=${gameIds}&amount=${amount}`);
 
     }
