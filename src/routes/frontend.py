@@ -24,7 +24,7 @@ db_dependency = Depends(get_db)
 # The endpoints defined in this file are accessible for everyone.
 # Not only in development mode. Unlike the other routers in app.py and categories.py
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse, include_in_schema=False)
 def root(request: Request, db=db_dependency):
     """"
     The root endpoint of the API when visiting the website.
@@ -60,7 +60,7 @@ def root(request: Request, db=db_dependency):
     )
 
 
-@router.get("/recommend", response_class=HTMLResponse)
+@router.get("/recommend", response_class=HTMLResponse, include_in_schema=False)
 def handle_form(request: Request, games: str = "", amount: int = 5, db=db_dependency):
     """"
     Handle the GET request for the HTML <form> to search for a game.
@@ -83,7 +83,7 @@ def handle_form(request: Request, games: str = "", amount: int = 5, db=db_depend
 def get_recommendations_games(games: str = "", db=db_dependency, amount: int = 5):
     """"
     Get all the recommendations for the selected games.
-    :param selected_games: The selected games to get recommendations for.
+    :param selected_games: The selected games to get recommendations for. Can be a comma separated string of id's or names.
     :param db: The database object.
     :return: A list of recommended games.
     """

@@ -159,10 +159,12 @@ class API:
             :return: List of categories for the app.
             """
             return get_app_related_data(appid, db, models.Category, models.AppCategory, fuzzy)
-        @self.app.get("/test")
+
+        @self.app.get("/test", include_in_schema=False)
         def test():
             session = SessionLocal()
             fill_database(session)
+
         @self.app.get("/app/{appid}/genres")
         def read_app_genres(appid: str, fuzzy: bool = True, db=self.db_dependency):
             """"
