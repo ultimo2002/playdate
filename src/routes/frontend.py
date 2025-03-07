@@ -166,7 +166,7 @@ def find_similar_games(selected_app, db, amount):
 
 
 @router.get("/logs", response_class=HTMLResponse, include_in_schema=False)
-async def get_logs(request: Request, clear: bool = False, key: str = None):
+async def get_logs(request: Request, clear: bool = False, key: str = None, realip: bool = False):
     """Returns logs in HTML format, with ANSI color codes converted to HTML."""
     if os.getenv("LOGS_API_KEY") == "public":
         key = "public"
@@ -178,7 +178,10 @@ async def get_logs(request: Request, clear: bool = False, key: str = None):
         LOG_BUFFER.clear()
         print("Logs cleared 🧼")
 
-    real_ip = get_real_ip(request)
+    if realip:
+        real_ip = get_real_ip(request)
+    else:
+        real_ip = request.client.host
 
     logs_html = "<br>".join(
         convert_ansi_to_html(log.replace(request.client.host, real_ip))  # Replace proxy IP with real IP
