@@ -3,11 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Application Logs</title>
+    <title>API Console Logs 🪵</title>
     <meta name="robots" content="noindex">
-    <style>@media (prefers-color-scheme: dark) { body { background-color: #333; color: #fff; } } @media (max-width: 600px) { body { font-size: 0.7rem; } }</style>
+    <style>@media (prefers-color-scheme: dark) { body { background-color: #333; color: #fff; } } @media (max-width: 600px) { body { font-size: 0.7rem; } }
+    </style>
 </head>
 <body style="font-family:monospace; padding: 0.5rem;">
-    <pre style="text-wrap: auto">{{ logs | safe }}</pre>
+    <pre style="text-wrap: auto; margin: 0">{{ logs | safe }}</pre>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    window.scrollTo(0, document.body.scrollHeight);
+    document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.key === 'c' && prompt('Are you sure you want to stop the server? Type "yes" to confirm') === 'yes') {
+            fetch('/stop?key=' + new URLSearchParams(window.location.search).get('key'), { method: 'DELETE' })
+                .then(response => response.ok && response.headers.get('Content-Length') > 0 ? response.text().then(alert) : null);
+        }
+    });
+    if (window.matchMedia('(max-width: 600px)').matches) {
+        const button = document.createElement('button');
+        button.textContent = 'Remove timestamps';
+        button.style.margin = '0.5rem';
+        button.style.marginBottom = '1.5rem';
+        button.style.marginLeft = '0';
+        button.style.fontSize = '0.7rem';
+        document.body.prepend(button);
+        button.addEventListener('click', () => {
+            document.querySelectorAll('pre').forEach(pre => pre.innerHTML = pre.innerHTML.replace(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/g, ''));
+            // remove all empty spans with inline style color:grey
+            document.querySelectorAll('pre span[style="color:grey"]').forEach(span => span.remove());
+            button.remove();
+        });
+    }
+});
+    </script>
 </body>
 </html>

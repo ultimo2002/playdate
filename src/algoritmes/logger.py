@@ -1,6 +1,7 @@
 import logging
 import re
 import sys
+import time
 from collections import deque
 from fastapi import Request
 
@@ -41,6 +42,16 @@ class StreamInterceptor:
         self.stream = stream
 
     def write(self, message):
+        # add current time in front of the message using grey ansi color, using ansi
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S")
+
+        # ANSI code for grey color
+        grey_color_code = "\x1B[90m"  # Grey color escape sequence
+        reset_code = "\x1B[0m"  # Reset code to end color formatting
+
+        # Add timestamp in grey color before the message
+        message = f"{grey_color_code}{current_time}{reset_code} {message}"
+
         self.stream.write(message)  # Write to original stream
         self.stream.flush()  # Ensure the message is flushed immediately
         if message.strip():
@@ -65,6 +76,7 @@ ANSI_COLORS = {
     "35": "magenta",
     "36": "cyan",
     "37": "white",
+    "90": "grey",
     "0": "reset",  # No color
 }
 
@@ -83,15 +95,6 @@ def convert_ansi_to_html(text):
     # If any `reset` code is left unclosed, we manually close it
     text = text.replace("[0m", "</span>")
     return text
-
-def get_real_ip(request: Request) -> str:
-    """Get the real IP of the client, e.g Cloudflare"""
-    forwarded_for = request.headers.get("X-Forwarded-For")
-    if forwarded_for:
-        real_ip = forwarded_for.split(",")[0].strip()  # Get the first IP (real IP)
-    else:
-        real_ip = request.client.host  # Fallback for local development
-    return real_ip
 
 # Override stdout and stderr to intercept print() outputs
 sys.stdout = StreamInterceptor(sys.__stdout__)

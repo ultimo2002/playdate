@@ -10,8 +10,8 @@ from sqlalchemy.sql.expression import func
 
 import src.database.models as models
 from src.algoritmes.cache import cache_background_image, cache_header_image
-from src.algoritmes.logger import LOG_BUFFER, convert_ansi_to_html, get_real_ip
-from src.config import BLOCKED_CONTENT_TAGS
+from src.algoritmes.logger import LOG_BUFFER, convert_ansi_to_html
+from src.config import BLOCKED_CONTENT_TAGS, check_key
 from src.database.database import get_db
 from src.routes.development.apps import app_data_from_id_or_name
 
@@ -168,9 +168,7 @@ def find_similar_games(selected_app, db, amount):
 @router.get("/logs", response_class=HTMLResponse, include_in_schema=False)
 async def get_logs(request: Request, clear: bool = False, key: str = None):
     """Returns logs in HTML format, with ANSI color codes converted to HTML."""
-    if os.getenv("LOGS_API_KEY") == "public":
-        key = "public"
-    if key != os.getenv("LOGS_API_KEY"):
+    if not check_key(key):
         raise HTTPException(status_code=403, detail="Forbidden")
         return
 

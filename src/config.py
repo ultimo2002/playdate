@@ -85,6 +85,14 @@ def set_cache_images():
 
 load_dotenv()
 
+def check_key(key):
+    """Check if a API key is in the environment variables."""
+    if os.getenv("LOGS_API_KEY") == "public":
+        key = "public"
+    if key != os.getenv("LOGS_API_KEY"):
+        return False
+    return True
+
 # loop over the environment variables from the .env file and set them
 for key, value in os.environ.items():
     handle_specific_env_vars(key, value)

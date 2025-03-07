@@ -1,6 +1,6 @@
 import os
 
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Depends, HTTPException, Request, BackgroundTasks
 import uvicorn
 
 from fastapi.templating import Jinja2Templates
@@ -12,7 +12,7 @@ from starlette.responses import PlainTextResponse
 
 from src.algoritmes.cache import cache_background_image, cache_header_image
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
-from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
+from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS, check_key
 
 from src.routes.development.apps import router as apps_router
 from .routes.frontend import router as frontend_router, root
@@ -87,6 +87,24 @@ class API:
         if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING") or all_endpoints: # We dont wont users on production to modify the database with the CRUD endpoints.
             self.app.include_router(apps_router)
             self.app.include_router(categories_router_development)
+
+        @self.app.delete("/stop", include_in_schema=False)
+        def stop(background_tasks: BackgroundTasks, key: str):
+            if not check_key(key):
+                raise HTTPException(status_code=401, detail="Unauthorized")
+                return
+
+            background_tasks.add_task(stop_server)
+            return {"message": "Stopping server in 5 seconds."}
+
+
+        def stop_server(seconds: int = 5):
+            """" Stop the API server in given seconds. """
+            import time
+            for i in range(seconds, 0, -1):
+                print(f"Stopping server in {i} seconds.")
+                time.sleep(1)
+            os._exit(1) # Force exit the server
 
         @self.app.get("/apps")
         def read_apps(db=self.db_dependency, all_fields: bool = False, target_name: str = None, like: str = None):
