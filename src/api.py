@@ -6,18 +6,15 @@ import uvicorn
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-from jinja2 import Template
 
 from sqlalchemy.sql.expression import func
 from starlette.responses import PlainTextResponse
 
 from src.algoritmes.cache import cache_background_image, cache_header_image
-from tests.fill_database import fill_database
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
-from .algoritmes.logger import ANSI_ESCAPE_PATTERN, convert_ansi_to_html
 from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
 
-from src.routes.development.apps import router as apps_router, app_data_from_id_or_name
+from src.routes.development.apps import router as apps_router
 from .routes.frontend import router as frontend_router, root
 from src.routes.development.categories import router_development as categories_router_development
 from src.routes.categories import router as categories_router
