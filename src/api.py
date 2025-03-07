@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 
 from sqlalchemy.sql.expression import func
+from starlette.responses import PlainTextResponse
 
 from src.algoritmes.cache import cache_background_image, cache_header_image
 from tests.fill_database import fill_database
@@ -505,4 +506,10 @@ class API:
             except AttributeError:
                 raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found with tag name '{tag}'")
 
+        @self.app.get("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)
+        def robots():
+            """Don't allow any crawlers to index the API. E.g: Search engines."""
+            data = """User-agent: *\nDisallow: /"""
+            return data
 
+        print("Registered all endpoints ✨")
