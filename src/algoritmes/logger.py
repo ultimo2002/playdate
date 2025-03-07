@@ -40,18 +40,6 @@ logger.addHandler(buffer_handler)
 
 # Interceptor for print statements
 class StreamInterceptor:
-    CLOUDFLARE_IPS = [
-        "10.110.0.0/16",
-        "10.244.0.0/16"
-    ]
-
-    @classmethod
-    def is_cloudflare_ip(cls, ip):
-        for cidr in cls.CLOUDFLARE_IPS:
-            if ipaddress.ip_address(ip) in ipaddress.ip_network(cidr, strict=False):
-                return True
-        return False
-
     def __init__(self, stream):
         self.stream = stream
 
@@ -60,11 +48,6 @@ class StreamInterceptor:
         grey_color_code = "\x1B[90m"
         reset_code = "\x1B[0m"
 
-        def replace_ip(match):
-            ip = match.group(0)
-            return "CF: api.segerend.nl" if self.is_cloudflare_ip(ip) else ip
-
-        message = re.sub(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', replace_ip, message)
         message = f"{grey_color_code}{current_time}{reset_code} {message}"
 
         self.stream.write(message)
