@@ -17,4 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.remove();
         });
     }
+
+    if (location.search.includes('clear')) {
+        history.replaceState(null, '', location.pathname + location.search.replace(/([&?])clear=[^&]*/, ''));
+    }
 });
