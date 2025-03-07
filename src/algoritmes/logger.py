@@ -2,6 +2,7 @@ import logging
 import re
 import sys
 from collections import deque
+from fastapi import Request
 
 # Global log buffer (this will collect all logs and intercepted prints)
 MAX_LOG_BUFFER_SIZE = 100  # Define the maximum size of the log buffer
@@ -82,6 +83,15 @@ def convert_ansi_to_html(text):
     # If any `reset` code is left unclosed, we manually close it
     text = text.replace("[0m", "</span>")
     return text
+
+def get_real_ip(request: Request) -> str:
+    """Get the real IP of the client, e.g Cloudflare"""
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        real_ip = forwarded_for.split(",")[0].strip()  # Get the first IP (real IP)
+    else:
+        real_ip = request.client.host  # Fallback for local development
+    return real_ip
 
 # Override stdout and stderr to intercept print() outputs
 sys.stdout = StreamInterceptor(sys.__stdout__)

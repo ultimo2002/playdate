@@ -10,7 +10,7 @@ from sqlalchemy.sql.expression import func
 
 import src.database.models as models
 from src.algoritmes.cache import cache_background_image, cache_header_image
-from src.algoritmes.logger import LOG_BUFFER, convert_ansi_to_html
+from src.algoritmes.logger import LOG_BUFFER, convert_ansi_to_html, get_real_ip
 from src.config import BLOCKED_CONTENT_TAGS
 from src.database.database import get_db
 from src.routes.development.apps import app_data_from_id_or_name
@@ -172,8 +172,11 @@ async def get_logs(request: Request, clear: bool = False):
         LOG_BUFFER.clear()
         print("Logs cleared 🧼")
 
+    real_ip = get_real_ip(request)
+
     logs_html = "<br>".join(
-        convert_ansi_to_html(log) for log in LOG_BUFFER
+        convert_ansi_to_html(log.replace(request.client.host, real_ip))  # Replace proxy IP with real IP
+        for log in LOG_BUFFER
     )
     response = templates.TemplateResponse("logs.html", {"request": request, "logs": logs_html})
 
