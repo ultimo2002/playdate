@@ -48,6 +48,12 @@ class TextStyles:
     reset = "\u001b[0m"
 
 def set_host():
+    if os.getenv("LOGS_API_KEY") is None:
+        print("No LOGS_API_KEY set in ENV, defaulting to public access 🔓")
+        os.environ["LOGS_API_KEY"] = "public"
+    else:
+        print(f"LOGS_API_KEY set in ENV, using private access 🔒")
+
     # Docker-specific adjustments (Linux platform)
     if sys.platform.startswith("linux"):
         print('Detected Linux platform (possibly Docker 📦 ). Setting API_HOST_URL to "0.0.0.0".')
