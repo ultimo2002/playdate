@@ -175,4 +175,9 @@ async def get_logs(request: Request, clear: bool = False):
     logs_html = "<br>".join(
         convert_ansi_to_html(log) for log in LOG_BUFFER
     )
-    return templates.TemplateResponse("logs.html", {"request": request, "logs": logs_html})
+    response = templates.TemplateResponse("logs.html", {"request": request, "logs": logs_html})
+
+    # Prevent caching
+    response.headers["Cache-Control"] = "max-age=0, no-store, no-cache, must-revalidate, private"
+
+    return response
