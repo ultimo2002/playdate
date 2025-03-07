@@ -1,9 +1,11 @@
+import ipaddress
 import logging
 import re
 import sys
 import time
 from collections import deque
-from fastapi import Request
+
+import requests
 
 # Global log buffer (this will collect all logs and intercepted prints)
 MAX_LOG_BUFFER_SIZE = 100  # Define the maximum size of the log buffer
@@ -38,29 +40,52 @@ logger.addHandler(buffer_handler)
 
 # Interceptor for print statements
 class StreamInterceptor:
+    CLOUDFLARE_IPS = []
+
+    @classmethod
+    def fetch_cloudflare_ips(cls):
+        url = "https://www.cloudflare.com/ips-v4"
+        response = requests.get(url)
+        if response.status_code == 200:
+            cls.CLOUDFLARE_IPS = [ip.strip() for ip in response.text.splitlines()]
+            print(f"Fetched {len(cls.CLOUDFLARE_IPS)} Cloudflare ☁️🔥 IP ranges")
+        else:
+            print(f"Failed to fetch Cloudflare IPs 🌧️🔥 (HTTP {response.status_code})")
+            cls.CLOUDFLARE_IPS = []
+
+    @classmethod
+    def is_cloudflare_ip(cls, ip):
+        for cidr in cls.CLOUDFLARE_IPS:
+            if ipaddress.ip_address(ip) in ipaddress.ip_network(cidr, strict=False):
+                return True
+        return False
+
     def __init__(self, stream):
         self.stream = stream
+        if not self.CLOUDFLARE_IPS:
+            self.fetch_cloudflare_ips()
 
     def write(self, message):
-        # add current time in front of the message using grey ansi color, using ansi
         current_time = time.strftime("%Y-%m-%d %H:%M:%S")
+        grey_color_code = "\x1B[90m"
+        reset_code = "\x1B[0m"
 
-        # ANSI code for grey color
-        grey_color_code = "\x1B[90m"  # Grey color escape sequence
-        reset_code = "\x1B[0m"  # Reset code to end color formatting
+        def replace_ip(match):
+            ip = match.group(0)
+            return "CF: api.segerend.nl" if self.is_cloudflare_ip(ip) else ip
 
-        # Add timestamp in grey color before the message
+        message = re.sub(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', replace_ip, message)
         message = f"{grey_color_code}{current_time}{reset_code} {message}"
 
-        self.stream.write(message)  # Write to original stream
-        self.stream.flush()  # Ensure the message is flushed immediately
+        self.stream.write(message)
+        self.stream.flush()
         if message.strip():
             LOG_BUFFER.append(message.strip())
 
     def flush(self):
         self.stream.flush()
 
-    def isatty(self):  # This is the fix for the error!
+    def isatty(self):
         return self.stream.isatty()
 
 # ANSI Escape Code Pattern (Matches color codes like `[32m`)

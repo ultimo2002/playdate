@@ -50,7 +50,7 @@ class API:
         """
         self.register_endpoints()
 
-        print("Run API")
+        print("Running the API 🚀")
 
         uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False, log_level="debug", use_colors=True)
 
