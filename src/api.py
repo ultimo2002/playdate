@@ -55,7 +55,7 @@ class API:
 
         print("Run API")
 
-        uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False)
+        uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False, log_level="debug", use_colors=True)
 
     def get_random_apps(db = db_dependency, count: int = 15):
         """
