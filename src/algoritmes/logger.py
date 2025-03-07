@@ -40,18 +40,10 @@ logger.addHandler(buffer_handler)
 
 # Interceptor for print statements
 class StreamInterceptor:
-    CLOUDFLARE_IPS = []
-
-    @classmethod
-    def fetch_cloudflare_ips(cls):
-        url = "https://www.cloudflare.com/ips-v4"
-        response = requests.get(url)
-        if response.status_code == 200:
-            cls.CLOUDFLARE_IPS = [ip.strip() for ip in response.text.splitlines()]
-            print(f"Fetched {len(cls.CLOUDFLARE_IPS)} Cloudflare ☁️🔥 IP ranges")
-        else:
-            print(f"Failed to fetch Cloudflare IPs 🌧️🔥 (HTTP {response.status_code})")
-            cls.CLOUDFLARE_IPS = []
+    CLOUDFLARE_IPS = [
+        "10.110.0.0/16",
+        "10.244.0.0/16"
+    ]
 
     @classmethod
     def is_cloudflare_ip(cls, ip):
@@ -62,8 +54,6 @@ class StreamInterceptor:
 
     def __init__(self, stream):
         self.stream = stream
-        if not self.CLOUDFLARE_IPS:
-            self.fetch_cloudflare_ips()
 
     def write(self, message):
         current_time = time.strftime("%Y-%m-%d %H:%M:%S")
