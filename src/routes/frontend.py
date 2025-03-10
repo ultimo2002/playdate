@@ -66,7 +66,7 @@ def handle_form(request: Request, games: str = "", amount: int = 5, db=db_depend
     Handle the GET request for the HTML <form> to search for a game.
 
     :param request: The request object auto given by FastAPI.
-    :param game_input: The name or id of the game to search for. Always uses fuzzy search.
+    :param games: The name or id of the game to search for. Always uses fuzzy search.
     :return: The HTML response with the results in the context.
     """
     if not games:
@@ -83,7 +83,7 @@ def handle_form(request: Request, games: str = "", amount: int = 5, db=db_depend
 def get_recommendations_games(games: str = "", db=db_dependency, amount: int = 5):
     """"
     Get all the recommendations for the selected games.
-    :param selected_games: The selected games to get recommendations for. Can be a comma separated string of id's or names.
+    :param games: The selected games to get recommendations for. Can be a comma separated string of id's or names.
     :param db: The database object.
     :return: A list of recommended games.
     """
@@ -100,7 +100,7 @@ def get_recommendations_games(games: str = "", db=db_dependency, amount: int = 5
         selected_app = app_data_from_id_or_name(gameid, db, True, True)
         if not selected_app:
             raise HTTPException(status_code=404, detail=f"Game {gameid} not found.")
-        
+
         selected_apps.append(selected_app.__dict__)
 
         apps = find_similar_games(selected_app, db, amount)
