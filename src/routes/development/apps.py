@@ -99,4 +99,7 @@ def app_data_from_id_or_name(app_id_or_name: str, db, fuzzy: bool = True, catego
         app.genres = genres
         app.categories = categories
 
+    if not app:
+        raise HTTPException(status_code=404, detail=f"App {app_id_or_name} not found")
+
     return app
