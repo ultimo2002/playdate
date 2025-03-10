@@ -72,6 +72,8 @@ def setup():
     #richt database in met 15 testgames
     session = SessionLocal()
     fill_database(session)
+    session.commit()
+    session.close()
 
 
 def check_response(response, status_code=200):

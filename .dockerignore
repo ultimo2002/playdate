@@ -2,3 +2,5 @@
 src/cache
 cache
 .github
+.tf
+.tfvars
