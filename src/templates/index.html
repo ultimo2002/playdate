@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Match games, get recommendations. play!">
+    <meta name="robots" content="noindex">
+    <link rel="canonical" href="https://api.segerend.nl/">
+    <title>Game Recommender</title>
+    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', path='/scripts.js') }}"></script>
+    <script>if(window.location.pathname!=="/"){window.history.replaceState({},"","/");}</script>
+</head>
+<body class="home">
+        <h1>Playdate <span class="emoji">&#127918;</span></h1>
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}
+        <div class="container flex-column w-50">
+            <div class="column flex-align-start flex-md-align-items-center flex-algn-items-center">
+                 <form action="/recommend" method="get">
+                     <span>
+                        <label for="game">Game:</label>
+                        <input type="text" id="game" name="game" required>
+                     </span>
+                     <button type="submit">Add</button>
+                 </form>
+            </div>
+            <!-- Selected games here in #selected_games -->
+            <div class="column selected_games p-relative pop-in" id="selected_games"></div>
+
+            <div class="column" id="recommend_games" style="display: none;">
+                <button id="recommend" class="btn">Recommend</button>
+                 <label for="amount">Amount of recommendations:</label>
+                 <input type="number" id="amount" name="amount" inputmode="decimal" style="width: 3rem;" value="5" min="1" max="10">
+            </div>
+        </div>
+        {% if background_image %}
+            <div class="overlay">
+                <a href="/recommend?games={{ background_image.id }}">
+                {{ background_image.name }}
+                </a>
+            </div>
+            <style>
+                body {
+                    background-image: url("{{ background_image.background_image }}");
+                    background-color: #1b2838;
+                    background-size: cover;
+                    background-position: center;
+                    background-attachment: fixed;
+                    color: white;
+                }
+            </style>
+        {% endif %}
+</body>
+</html>

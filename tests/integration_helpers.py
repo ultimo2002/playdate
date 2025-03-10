@@ -1,69 +1,82 @@
+import os
+
 from fastapi.testclient import TestClient
-from code.api import API
-from code.config import TextStyles
-import code.database.models as models
-import sys
+from tests.fill_database import fill_database
+from src.api import API
+from src.config import TextStyles
+from src.database.models import App
+from src.database.database import SessionLocal
+
 
 POSSIBLE_GET_ENDPOINTS = ["/", "/apps", "/categories", "/tags", "/genres", "/app/{appid}", "/cats", "/apps/developer/{target_name}", "/apps/tag/{target_name}"]
-ALL_APP_FIELDS = [field.name for field in models.App.__table__.columns]
+ALL_APP_FIELDS = [field.name for field in App.__table__.columns]
 
-# Default test apps with app names and app IDs and typos (to be later appended with random apps (als steekproef))
-TEST_APPS = {
-    "Hallo%20Night": {"expected_appid": 367520, "expected_name": "Hollow Knight"},
-    "The Sims™ Legacy Collection": {"expected_appid": 3314060, "expected_name": "The Sims™ Legacy Collection"},
-    "terraria": {"expected_appid": 105600, "expected_name": "Terraria"},
-    "Putt+Putt+Circus": {"expected_appid": 294690, "expected_name": "Putt-Putt® Joins the Circus"},
-    "3314070": {"expected_appid": 3314070, "expected_name": "The Sims™ 2 Legacy Collection"},
-    "heeldrivers": {"expected_appid": 553850, "expected_name": "HELLDIVERS™ 2"},
-}
+# test app names for use in testing
+test_names = ["Space Adventure Game",
+              "Task Master Pro",
+              "Learn Python Interactive",
+              "Fitness Tracker Plus",
+              "Movie Streamer",
+              "Puzzle Quest",
+              "Daily Planner",
+              "Math Tutor AI",
+              "Yoga & Meditation",
+              "Music Studio Pro",
+              "Racing Champions",
+              "Expense Manager",
+              "History Explorer",
+              "Cooking Assistant",
+              "Photo Editor Deluxe",
+              ]
+# test name array for fuzzy search, index corresponds to game id
+wrong_test_names = [None,  # there is no 0 id
+                    "sp8ce @tventurefe gm",  # Space Adventure Game
+                    "Tks mSt Pr",  # Task Master Pro
+                    "Learn Python",  # Learn Python Interactive
+                    "F209348209348 tracker plus",  # Fitness Tracker Plus
+                    "M0Vi3 Strmer",  # Movie Streamer
+                    "pzzl qqwetst",  # Puzzle Quest
+                    "delli plainer",  # Daily Planner
+                    "Meth Tutor Jessie!",  # Math Tutor AI
+                    "Yoga and meditation",  # Yoga & Meditation
+                    "amazing music studio pro",  # Music Studio Pro
+                    "Race championship",  # Racing Champions
+                    "Expensive manager",  # Expense Manager
+                    "History repeats",  # History Explorer
+                    "We need to cook, Assistant!",  # Cooking Assistant
+                    "photoshop"  # Photo Editor Deluxe
+                    ]
 
-# Save the default test apps for later use (e.g., if the random apps cannot be fetched)
-DEFAULT_TEST_APPS = TEST_APPS.copy()
-
-STEEKPROEF_APPS = 10
-
-def is_imported_from(filename):
-    stack = sys._getframe().f_back
-    while stack:
-        if stack.f_code.co_filename.endswith(filename):
-            return True
-        stack = stack.f_back
-    return False
 
 api_instance = API()
 api_instance.register_endpoints()
 client = TestClient(api_instance.app)
-try:
-    # only fetch random apps if this file is imported from integration_test.py, else it is not good for testing performance
-    # if the integration_helpers.py file is imported from another file
-    if not is_imported_from("integration_test.py"):
-        raise Exception("Not imported from integration_test.py")
+STEEKPROEF_APPS = 10
 
-    # Fill the TEST_APPS with random apps
-    # Om een steekproef te nemen van een aantal willekeurige apps, Die worden gebruikt in de test van "integration_test.py"
-    reponse_random_apps = client.get(f"/apps/random?count={STEEKPROEF_APPS}")
 
-    if reponse_random_apps.status_code == 200 and "application/json" in reponse_random_apps.headers["content-type"]:
-        for app_name_key, app in reponse_random_apps.json().items():
-            TEST_APPS[app_name_key] = app
+def setup():
 
-    print(f"{TextStyles.bold}Total test apps: {TextStyles.reset}{TextStyles.green}{TextStyles.bold}{len(TEST_APPS)} apps{TextStyles.reset}")
-    del reponse_random_apps
-except Exception as e:
-    print(f"{TextStyles.bold}Error fetching random apps: {TextStyles.reset}{e}")
-    print("Setting TEST_APPS to the DEFAULT_TEST_APPS.")
-    TEST_APPS = DEFAULT_TEST_APPS
-finally:
-    # close the client and delete the API instance and client
-    client.close()
-    del api_instance
-    del client
+    #check database
+    URL_DATABASE = os.getenv("URL_DATABASE")
+    if "sqlite" in URL_DATABASE:
+        print("in-memory database gevonden!")
+    else:
+        raise ValueError(f"Je gebruikt niet de in-memory database! (zocht \"sqlite\" in {URL_DATABASE})")
 
-TEST_APP_NAMES = list(TEST_APPS.keys())
+    #maak API voor testen
+    global api_instance
+    api_instance = API()
+    api_instance.register_endpoints(all_endpoints=True)
+
+
+    #richt database in met 15 testgames
+    session = SessionLocal()
+    fill_database(session)
+
 
 def check_response(response, status_code=200):
     """"
-    Check if the response status code matches the expected status code.
+    Check if the response status src matches the expected status src.
     :return: Boolean
     """
     return response.status_code == status_code
@@ -122,19 +135,21 @@ def check_app_response(response):
     assert check_response(response, 200) and is_json(response)
     assert all(key in response.json() for key in ALL_APP_FIELDS)
 
-def assert_common_app_tests(response, expected_fields):
+def assert_common_app_tests(response, expected_fields, entries_count=100):
     """
     A helper function that asserts common conditions for app responses:
-    - Response status code is 200
+    - Response status src is 200
     - Response is in JSON format
-    - List of apps has more than given entries
+    - List of apps has more than given entries (default=100)
     - All apps contain the expected fields (id, name, other fields)
     """
-    # Test if the response status code is 200 and is JSON
-    assert check_response(response, 200) and is_json(response)
+    # Test if the response status src is 200 and is JSON
+    assert check_response(response, 200)
+    assert is_json(response)
 
-    # Test if the list of apps is higher than 100
-    assert len(response.json()) > 100
+    # Test if the list of apps is higher than given number
+    assert len(response.json()) > entries_count
 
     # Test if the response contains a list of apps with the expected fields
     assert all(key in response.json()[0] for key in expected_fields)
+setup()

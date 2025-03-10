@@ -1,28 +1,34 @@
 import os
-import random
 
-from fastapi import FastAPI, Depends, Request, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request, BackgroundTasks
 import uvicorn
 
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 
-from sqlalchemy.sql import exists
 from sqlalchemy.sql.expression import func
+from starlette.responses import PlainTextResponse
 
-from code.algoritmes.cache import cache_background_image, cache_header_image
+from src.algoritmes.cache import cache_background_image, cache_header_image
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
-from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS
+from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS, check_key
 
-import code.database.models as models
-from code.database.database import Engine, SessionLocal
+from src.routes.development.apps import router as apps_router
+from .routes.frontend import router as frontend_router, root
+from src.routes.development.categories import router_development as categories_router_development
+from src.routes.categories import router as categories_router
+
+import src.database.models as models
+from tests.fill_database import fill_database
+
+from src.database.database import Engine, get_db, SessionLocal
 
 
 class API:
     db_dependency = None
 
-    templates = Jinja2Templates(directory="code/templates")
+    templates = Jinja2Templates(directory="src/templates")
 
     def __init__(self):
         """
@@ -30,12 +36,11 @@ class API:
         """
         self.app = FastAPI()
 
-        self.app.mount("/static", StaticFiles(directory="code/static"), name="static")
+        self.app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
         models.Base.metadata.create_all(bind=Engine)
 
-        self.db_dependency = Depends(self.get_db)
-
+        self.db_dependency = Depends(get_db)
 
     def run(self):
         """"
@@ -45,61 +50,61 @@ class API:
         """
         self.register_endpoints()
 
-        print("Run API")
+        print("Running the API 🚀")
 
-        uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False)
+        uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False, log_level="debug", use_colors=True)
 
-    def get_db(self):
-        """Get db dependency, don't touch!
-        This makes a new database session for the request and closes it after the request is done.
+    def get_random_apps(db = db_dependency, count: int = 15):
         """
-        db = SessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
+        Get a dictionary with random apps from the database. With typo's in the names.
+        :param count: The amount of random apps to return.
+        :return: Dictionary with given count random apps with their id and name.
+        """
+        # maximal 25 apps, minimal 1 app, clamp the count
+        count = max(1, min(count, 25))
+        print(f"Getting {count} random apps from the database.")
 
+        all_apps = db.query(models.App.id,
+                            models.App.name).all()  # get all app names that are in the database, needed to check fuzzy in
+        random_apps = db.query(models.App).with_entities(models.App.id, models.App.name).order_by(
+            func.random()).limit(
+            count).all()
 
-    def register_endpoints(self):
+        return {
+            make_typo(app.name, app.id, all_apps): {"expected_appid": app.id, "expected_name": app.name}
+            for app in random_apps
+        }
+
+    def register_endpoints(self, all_endpoints=False):
         """"
         Function to define all the endpoints for the API.
         """
 
-        @self.app.get("/")
-        def root(request: Request, db=self.db_dependency):
-            """"
-            The root endpoint of the API when visiting the website.
-            :return: The HTML response from the index.html template.
-            """
+        self.app.include_router(frontend_router)
+        self.app.include_router(categories_router)
 
-            # Get a random background_image from the database
-            background_image = (
-                db.query(models.App.background_image, models.App.id, models.App.name)
-                .filter(
-                    ~exists().where(
-                        (models.AppTags.app_id == models.App.id) &
-                        (models.AppTags.tag_id == models.Tags.id) &
-                        (models.Tags.name.in_(BLOCKED_CONTENT_TAGS))
-                    )
-                )
-                .order_by(func.random())
-                .limit(1)
-                .first()
-            )
-            try:
-                background_image = background_image if background_image else None
-            except (TypeError, IndexError, KeyError):
-                background_image = None
+        # register routers, only when in PYCHARM or Pytest
+        if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING") or all_endpoints: # We dont wont users on production to modify the database with the CRUD endpoints.
+            self.app.include_router(apps_router)
+            self.app.include_router(categories_router_development)
 
-            if os.getenv("CACHE_IMAGES") and background_image:
-                background_image = cache_background_image(background_image)
+        @self.app.delete("/stop", include_in_schema=False)
+        def stop(background_tasks: BackgroundTasks, key: str):
+            if not check_key(key):
+                raise HTTPException(status_code=401, detail="Unauthorized")
+                return
+
+            background_tasks.add_task(stop_server)
+            return {"message": "Stopping server in 5 seconds."}
 
 
-            return self.templates.TemplateResponse(
-                request=request, name="index.html",
-                context={"message": "", "background_image": background_image}
-            )
-
+        def stop_server(seconds: int = 5):
+            """" Stop the API server in given seconds. """
+            import time
+            for i in range(seconds, 0, -1):
+                print(f"Stopping server in {i} seconds.")
+                time.sleep(1)
+            os._exit(1) # Force exit the server
 
         @self.app.get("/apps")
         def read_apps(db=self.db_dependency, all_fields: bool = False, target_name: str = None, like: str = None):
@@ -159,45 +164,6 @@ class API:
 
             return related_data
 
-        @self.app.get("/cats")
-        def read_cats(db=self.db_dependency):
-            """
-            Get all categories, genres and tags in one request.
-            :return: JSON / dictionary with all existing categories, genres and tags with their id and name.
-            """
-            return {
-                "tags": db.query(models.Tags).all(),
-                "categories": db.query(models.Category).all(),
-                "genres": db.query(models.Genre).all(),
-            }
-
-        @self.app.get("/tags")
-        def read_tags(db=self.db_dependency):
-            """"
-            Get all existing tags in the database.
-            :return: List of tags in JSON/dictionary format with id and name.
-            """
-            tags = db.query(models.Tags).all()
-            return tags
-
-        @self.app.get("/categories")
-        def read_categories(db=self.db_dependency):
-            """"
-            Get all existing categories in the database.
-            :return: List of categories in JSON/dictionary format with id and name.
-            """
-            categories = db.query(models.Category).all()
-            return categories
-
-        @self.app.get("/genres")
-        def read_genres(db=self.db_dependency):
-            """
-            Get all existing genres in the database.
-            :return: List of genres in JSON/dictionary format with id and name.
-            """
-            genres = db.query(models.Genre).all()
-            return genres
-
         @self.app.get("/app/{appid}/categories")
         def read_app_categories(appid: str, fuzzy: bool = True, db=self.db_dependency):
             """"
@@ -208,6 +174,10 @@ class API:
             :return: List of categories for the app.
             """
             return get_app_related_data(appid, db, models.Category, models.AppCategory, fuzzy)
+
+        @self.app.get("/test", include_in_schema=False)
+        def test(db=self.db_dependency):
+            fill_database(db)
 
         @self.app.get("/app/{appid}/genres")
         def read_app_genres(appid: str, fuzzy: bool = True, db=self.db_dependency):
@@ -239,6 +209,7 @@ class API:
             :param fuzzy: If True, try to find the app by name even when the grammar is not correct using my fuzzy algorithm ^Seger. It skips this always when the appid is a number.
             """
             app = app_data_from_id_or_name(appid, db, fuzzy, False)
+            print(app)
             if not app:
                 raise HTTPException(status_code=404, detail="App not found.")
             return app
@@ -251,11 +222,7 @@ class API:
             :return: List of developers in JSON/dictionary format with id and name.
             """
             if apps:
-                developers = db.query(
-                    models.App.developer,
-                    models.App.id,
-                    models.App.name,
-                ).order_by(models.App.id).all()
+                developers = db.query(models.App.developer, models.App.id, models.App.name).order_by(models.App.id).all()
 
                 if not developers:
                     raise HTTPException(status_code=404, detail="No developers found in the database.")
@@ -279,97 +246,6 @@ class API:
                 raise HTTPException(status_code=404, detail="No developers found in the database.")
 
             return [{"name": dev.developer} for dev in developers]
-
-        @self.app.get("/recommend", response_class=HTMLResponse)
-        def handle_form(request: Request, game: str = "", db=self.db_dependency):
-            """"
-            Handle the GET request for the HTML <form> to search for a game.
-
-            :param request: The request object auto given by FastAPI.
-            :param game_input: The name or id of the game to search for. Always uses fuzzy search.
-            :return: The HTML response with the results in the context.
-            """
-            if not game:
-                return root(request, db)
-            # clean up the input to prevent XSS attacks
-            game_input = game.strip()
-            game_input = game_input.strip()
-            game_input = game_input.replace("<", "").replace(">", "")
-            del game
-
-            selected_app = app_data_from_id_or_name(game_input, db, True, True)
-
-            apps = [] # currently algorithm not implemented, Bram enable line below to start developing find_similar_games()
-            # apps = find_similar_games(selected_app, db)
-
-            if not selected_app or not selected_app.id:
-                return self.templates.TemplateResponse(
-                    request=request, name="404.html", context={"message": f"Game {game_input} not found."}
-                )
-
-
-            nsfw = False
-
-            for tag in selected_app.tags:
-                if tag.name in BLOCKED_CONTENT_TAGS:
-                    nsfw = True
-                    break
-
-            # chache the background image
-            if os.getenv("CACHE_IMAGES"):
-                if selected_app.background_image:
-                    cached = cache_background_image(selected_app)
-                    try:
-                        selected_app.background_image = cached["background_image"] if cached else selected_app.background_image
-                    except (TypeError, KeyError):
-                        selected_app.background_image = selected_app.background_image
-
-                if selected_app.header_image:
-                    cached = cache_header_image(selected_app)
-                    try:
-                        selected_app.header_image = cached["header_image"] if cached else selected_app.header_image
-                    except (TypeError, KeyError):
-                        selected_app.header_image = selected_app.header_image
-
-            return self.templates.TemplateResponse(
-                request=request, name="game_output.html", context={"selected_app":selected_app, "apps": apps,"nsfw": nsfw}
-            )
-
-        def find_similar_games(selected_app, db):
-            """Finds games with the most similar tags to the given game.
-
-            :param selected_app: The app object from the DB to filter on.
-            :param db: The database object
-            :return: The matching games filtered on matching tags of the input "selected_app"
-            """
-            gameid = str(selected_app.id)
-            gamename = selected_app.name
-
-            tags = selected_app.tags
-            genres = selected_app.genres
-            categories = selected_app.categories
-
-            if not tags or not genres or not categories:
-                raise HTTPException(status_code=404, detail="No tags or genres or categories found for app")
-
-            # get all games that are in the database
-            games = db.query(models.App).limit(3).all()
-            game_tags_relation = db.query(models.AppTags.app_id, models.AppTags.tag_id).all()
-
-            if not games:
-                raise HTTPException(status_code=404, detail="No games found in the database.")
-
-            matching_games = []
-
-            # Compare with every other game must be (O(n²)) (two for loops in this)
-            for game in games:
-                # check if game_tags_relation  gameid then add the tagid to the game.tags
-                game.tags = [tag for tag in tags if (game.id, tag.id) in game_tags_relation]
-
-                matching_games.append(game)
-
-
-            return matching_games
 
         def app_data_from_id_or_name(app_id_or_name: str, db, fuzzy: bool = True, categories: bool = False):
             """"
@@ -458,7 +334,8 @@ class API:
 
             return None
 
-        def most_similar_named_app(target_name: str, db):
+        @self.app.get("/app/similar/{target_name}")
+        def most_similar_named_app(target_name: str, db=self.db_dependency):
             """
             Helper function to find the most similar named app in the database.
 
@@ -466,11 +343,18 @@ class API:
             :param db: The database dependency.
             :return: Dictionary / JSON with the (id, name and similarity) of the app.
             """
-            apps = db.query(models.App).with_entities(models.App.id, models.App.name).all()
+
+            if target_name.isdigit():
+                app = db.query(models.App).filter(models.App.id == int(target_name)).first()
+                if app:
+                    return {"id": app.id, "name": app.name, "header_image": app.header_image, "similarity": 100}
+                return None
+
+            apps = db.query(models.App).with_entities(models.App.id, models.App.name, models.App.header_image).all()
             most_similar_app, similarity = _most_similar(target_name, apps, "name")
 
             if most_similar_app:
-                return {"id": most_similar_app.id, "name": most_similar_app.name, "similarity": similarity}
+                return {"id": most_similar_app.id, "name": most_similar_app.name, "header_image": most_similar_app.header_image, "similarity": similarity}
 
             return None
 
@@ -543,25 +427,10 @@ class API:
             except AttributeError:
                 raise HTTPException(status_code=404, detail=f"(AttributeError) No apps found with tag name '{tag}'")
 
-        @self.app.get("/apps/random")
-        def get_random_apps(count: int = 15, db=self.db_dependency):
-            """
-            Get a dictionary with random apps from the database. With typo's in the names.
-            :param count: The amount of random apps to return.
-            :return: Dictionary with given count random apps with their id and name.
-            """
-            # maximal 25 apps, minimal 1 app, clamp the count
-            count = max(1, min(count, 25))
-            print(f"Getting {count} random apps from the database.")
+        @self.app.get("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)
+        def robots():
+            """Don't allow any crawlers to index the API. E.g: Search engines."""
+            data = """User-agent: *\nDisallow: /"""
+            return data
 
-            all_apps = db.query(models.App.id, models.App.name).all() # get all app names that are in the database, needed to check fuzzy in
-            random_apps = db.query(models.App).with_entities(models.App.id, models.App.name).order_by(func.random()).limit(count).all()
-
-            return {
-                make_typo(app.name, app.id, all_apps): {"expected_appid": app.id, "expected_name": app.name}
-                for app in random_apps
-            }
-
-if __name__ == "__main__":
-    api = API()
-    api.run()
+        print("Registered all endpoints ✨")

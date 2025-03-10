@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Recommended Games</title>
+    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', path='/scripts.js') }}"></script>
+    <script src="{{ url_for('static', path='/recommend.js') }}"></script>
+</head>
+
+<body class="{% if nsfw %}nsfw{% endif %}">
+    <form action="/recommend" method="get" style="margin: 30px 0;">
+        <a href="/">Home</a> &nbsp;·&nbsp;
+        <label for="game">Select game:</label>
+        <input type="text" id="game" name="game" required>
+        <button type="submit">Add</button>
+    </form>
+    <div class="container">
+        <div class="column columnl">
+            <h2>Selected Game</h2>
+            {% if selected_games %}
+                <button id="closeall">Close all</button>
+                {% for selected_app in selected_games %}
+                    <div class="card selected-card" id="appid-{{selected_app.id}}">
+                        <img src="{{selected_app.header_image}}" alt="Logo of {{selected_app.name}}" class="game-image">
+                        <h3 class="game-title">{{selected_app.name}}</h3>
+                        <div class="game-info">
+                            <p class="game-developer">Developed by <a href="/apps/developer/{{ selected_app.developer }}"><strong>{{selected_app.developer}}</strong></a></p>
+                            <p class="game-description">{{selected_app.short_description}}</p>
+                            <p class="game-genres"><strong>Genres:</strong> {{ selected_app.genres | map(attribute="name") | join(", ") }}</p>
+                            <p class="game-genres"><strong>Tags:</strong> {{ selected_app.tags | map(attribute="name") | join(", ") }}</p>
+                            <p class="game-genres"><strong>Categories:</strong> {{ selected_app.categories | map(attribute="name") | join(", ") }}</p>
+                            <a class="game-price" href="https://store.steampowered.com/app/{{ selected_app.id }}" target="_blank" ref="noopener noreferrer">Price: {{ selected_app.price if selected_app.price else "Free" }}</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+        </div>
+        {% if all_apps %}
+        <div class="column columnr">
+            <h2>Recommended Games</h2>
+            {% for selected_game_name, apps in all_apps.items() %}
+                <div id="recommended-for-{{ selected_game_name.lower() | replace(' ', '') }}">
+                <h3>Games similar to: {{ selected_game_name }}</h3>
+                {% for app in apps %}
+                    <div class="card recommended-card container p-relative">
+                        <a href="/recommend?games={{ app.id }}" class="clickable"></a>
+                        <div class="recommended-columnl">
+                            <img class="game-image" src="{{ app.header_image }}" alt="{{ app.name }}">
+                        </div>
+                        <div class="game-info">
+                            <h3 class="game-title">{{ app.name }}</h3>
+                            <div class="recom-details"><p><strong>Similarity Score:</strong> {{ app.similarity_score }}%</p></div>
+                            <div class="recom-details"><p>For game: {{ selected_game_name }}</p></div>
+                            <div class="recom-details"><p><strong>Shared Tags:</strong> {{ app.tags | map(attribute="name") | join(", ") }}</p></div>
+                        </div>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <style>
+        img {
+            border-radius: 10px;
+        }
+        body {
+            background-image: url("{{selected_games[0].background_image}}");
+            background-color: #1b2838;
+            background-size: auto;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+        }
+
+{#        {% for app in apps %}#}
+{#            {% set app_tags = app.tags | map(attribute="name") | list %}#}
+{#            {% if "NSFW" in app_tags or "Nudity" in app_tags or "Mature" in app_tags or "Sexual Content" in app_tags or "Hentai" in app_tags %}#}
+{#                #appid-{{ app.id }} img {#}
+{#                    filter: blur(5px);#}
+{#                    transition: filter 1s;#}
+{#                }#}
+{#            {% endif %}#}
+{#        {% endfor %}#}
+    </style>
+
+</body>
+</html>

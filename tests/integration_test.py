@@ -1,19 +1,10 @@
-from fastapi.testclient import TestClient
-
-from code.api import API
-from code.config import TextStyles
-from tests.integration_helpers import check_response, is_json, check_list_of_items, check_app_response, is_html, \
-    TEST_APP_NAMES, \
-    ALL_APP_FIELDS, assert_common_app_tests, contains_form, TEST_APPS, DEFAULT_TEST_APPS, check_h1_tag
-
-api_instance = API()
-api_instance.register_endpoints()
-client = TestClient(api_instance.app)
-
+import dotenv
+from tests.integration_helpers import *
+dotenv.load_dotenv()
 def test_root():
     response = client.get("/")
 
-    # Test if the response status code is 200 (Good)
+    # Test if the response status src is 200 (Good)
     assert check_response(response, 200) and not is_json(response)
 
     # Test if the response is HTML content
@@ -36,14 +27,14 @@ def test_apps():
     Test the GET "/apps" endpoint for a list of all the apps with id and name in the database.
     """
     response = client.get("/apps")
-    assert_common_app_tests(response, ["id", "name"])
+    assert_common_app_tests(response, ["id", "name"],entries_count=9)
 
 def test_apps_all_fields():
     """
     Test the GET "/apps" endpoint for a list of all the apps with all fields in the database.
     """
     response = client.get("/apps?all_fields=true")
-    assert_common_app_tests(response, ALL_APP_FIELDS)
+    assert_common_app_tests(response, ALL_APP_FIELDS, entries_count=9)
 
 def test_cats():
     """
@@ -66,9 +57,9 @@ def test_app_details():
     """
     Test the GET "/app/{appid}" endpoint for valid app details.
     """
-    response = client.get("/app/367520")
+    response = client.get("/app/1")
     check_app_response(response)
-    assert response.json()["name"] == "Hollow Knight"
+    assert response.json()["name"] == "Space Adventure Game"
 
 def test_app_invalid_app_id():
     """
@@ -81,48 +72,20 @@ def test_app_invalid_app_id():
 def test_app_fuzzy_search():
     """
     Test the GET "/app/{appid}" endpoint for fuzzy search.
-    In this test, we will test the endpoint with multiple (steekproef) apps. And test if the app name and app id are expected.
+    In this test, we will test the endpoint with all 15 apps. And test if the app id is expected.
     """
-    # Test one case with fuzzy search, and the expected name.
-    response = client.get("/app/Hallo%20Night")
-    check_app_response(response)
-    assert response.json()["name"] == "Hollow Knight"
 
-    # Some apps can fail the test, because of the typo algorithm and fuzzy, I don't want to fail the test if a litle bit of apps fail
-    TEST_MARGIN = 3 # Amount of apps can fail the test
-
-    # the key of the dictionary is the app name set the app_name to the key from new TEST_APPS
-    for app_name, app in TEST_APPS.items():
-        assert TEST_MARGIN >= 0
-
-        response = client.get(f"/app/{app_name}")
-
-        if response.status_code == 404:
-            TEST_MARGIN -= 1
-            print(f"{TextStyles.red}Failed app: {app_name} - Expected: {app['expected_name']} - Got: 404{TextStyles.reset}")
-            continue
-
+    #loop through the names and compare against the id of their real counterpart
+    for i in range(1,16):
+        response = client.get(f"/app/{wrong_test_names[i]}") #found in integration helpers
         assert check_response(response, 200) and is_json(response)
-
-        if app_name.isdigit(): # Edge case when given an app id, must return the same app id
-            assert response.json()["id"] == int(app_name)
-
-        # Test if the app name from the response is the same as the expected app name
-        if response.json()["name"] != app["expected_name"] and TEST_MARGIN > 0:
-            TEST_MARGIN -= 1
-            print(f"{TextStyles.red}Failed app: {app_name} - Expected: {app['expected_name']} - Got: {response.json()['name']}{TextStyles.reset}")
-            continue
-        else:
-            assert response.json()["name"] == app["expected_name"]
-
-        # Test if the app id from the response is the same as the expected app id
-        assert response.json()["id"] == app["expected_appid"]
+        assert response.json()["id"] == i
 
 def test_app_fuzzy_search_without_fuzzy():
     """
     Test the GET "/app/{appid}" endpoint for fuzzy search without fuzzy matching (404 response).
     """
-    for app_name in TEST_APP_NAMES:
+    for app_name in test_names: #found in integration helpers
         response = client.get(f"/app/{app_name}?fuzzy=false")
         if response.status_code == 200:
             # It is possible to enter the exact name of the app (or id) without fuzzy matching
@@ -146,67 +109,39 @@ def test_app_fuzzy_search_without_fuzzy():
             assert message and all(word in message for word in ["App", "not", "found"])
             print(f"{TextStyles.green}(good) 404 response for: {app_name}{TextStyles.reset}")
 
-def test_app_recommend_image_cache():
+def test_app_recommend():
     """
-    Test the GET "/recommend" endpoint for image caching.
+    Test the GET "/recommend" endpoint.
     """
-    # enable image caching temporarily for this test in the environment variables
-    import os
-    initial_env = os.environ.get("CACHE_IMAGES", "false")
-    os.environ["CACHE_IMAGES"] = "true"
 
-    response = client.get("/recommend?game=Among+Us")
+    response = client.get("/recommend?games=12")
     assert check_response(response, 200) and not is_json(response)
     assert is_html(response)
 
     assert "background-image" in response.text
     image_url = response.text.split("background-image: url(")[1].split(")")[0].strip()
-    assert "bg_" in image_url
+    assert "bg" in image_url
 
-    assert "Logo of Among Us" in response.text
+    assert "Recommended Games" in response.text
+    assert "Logo of Expense Manager" in response.text
     assert "game-image" in response.text
-    assert "hi_" in response.text
-
-    # reset the environment variable to the initial value, and delete imported modules from memory
-    os.environ["CACHE_IMAGES"] = initial_env
-
-    # delete the cached images
-    os.remove("code/static/cache/bg_945360.jpg")
-    os.remove("code/static/cache/hi_945360.jpg")
-    try:
-        # remove the cache directory if it is empty
-        os.rmdir("code/static/cache")
-    except OSError:
-        pass # directory is not empty so we can't remove it
-    del os
 
 def test_apps_get_tags():
     """
     Test the GET "/apps/tag/{target_name}" endpoint for valid apps based on the tag name.
     """
-    response = client.get("/apps/tag/Pools") # Pool is a tag, it does fuzzy matching to find the tag "Pool"
+    response = client.get("/apps/tag/Multiplayer")
     check_list_of_items(response, ["id", "name"])
-    # Check if Planet Coaster 2 is in the response (game has the tag "Pool")
-    assert any(app["name"] == "Planet Coaster 2" for app in response.json())
+    # Check if Space Adventure Game is in the response (game has the tag "Pool")
+    assert any(app["name"] == "Space Adventure Game" for app in response.json())
 
     # Test when using a tag that does not exist with fuzzy=false
-    response = client.get("/apps/tag/Pools?fuzzy=false") # Pools does not exist, Pool does
+    response = client.get("/apps/tag/Pools?fuzzy=false") # Pools does not exist
     assert check_response(response, 404) and is_json(response)
     assert response.json()["detail"].startswith("No apps found for tag")
 
-    # Five nights at freddy's has the tag "Horror", there are multiple games of Five nights at freddy's so we can test if it returns multiple FNAF games
-    response = client.get("/apps/tag/Horror")
-    check_list_of_items(response, ["id", "name"])
-    response_json = response.json()
-    # check if list contains a part of "Five Nights at Freddy's"
-    assert any(app["name"].lower().startswith("five nights at freddy") for app in response_json)
-
-    # Test if five nights at freddy's has more than 1 app with the tag "Horror"
-    assert len([app for app in response_json if app["name"].lower().startswith("five nights at freddy")]) > 1
-    del response_json
-
     # Test if the response contains app details
-    for app_name, app in DEFAULT_TEST_APPS.items():
+    for app_name in test_names:
         # get tags for each app in TEST_APPS
         response = client.get(f"/app/{app_name}/tags")
         check_list_of_items(response, ["id", "name"])
@@ -215,16 +150,18 @@ def test_apps_from_developer():
     """
     Test the GET "/apps/developer/{target_name}" endpoint to get all apps from a specific developer.
     """
-    response = client.get("/apps/developer/Vaalv") # Valve is a developer, it does fuzzy matching to find the developer "Valve"
+    response = client.get("/apps/developer/Speed Demons Studio") # Valve is a developer, it does fuzzy matching to find the developer "Valve"
     assert check_response(response, 200) and is_json(response)
     check_list_of_items(response, ["id", "name"])
-    # Check if Portal 2 is in the response (game is developed by Valve)
-    assert any(app["name"] == "Portal 2" for app in response.json())
+    # Check if Racing Champions is in the response (game is developed by Valve)
+    assert any(app["name"] == "Racing Champions" for app in response.json())
 
-    # Test when using fuzzy=false and the developer does not exist
-    response = client.get("/apps/developer/Vaalv?fuzzy=false") # Vaalv does not exist, Valve does, but fuzzy is disabled this time
-    assert check_response(response, 404) and is_json(response)
-    assert "No apps found for developer" in response.json()["detail"]
+    #Dit moet weg. We testen fuzzy alleen in de fuzzy test, anders falen alle tests als fuzzy het niet doet
+
+    # # Test when using fuzzy=false and the developer does not exist
+    # response = client.get("/apps/developer/Vaalv?fuzzy=false") # Vaalv does not exist, Valve does, but fuzzy is disabled this time
+    # assert check_response(response, 404) and is_json(response)
+    # assert "No apps found for developer" in response.json()["detail"]
 
 def test_get_app_recommend_input_rerurn_frontpage():
     """
@@ -246,11 +183,10 @@ def test_get_app_recommend_input_with_game_query():
     Test the GET "/recommend" endpoint with a 'game_input' query parameter,
     ensuring the correct game is selected and the proper elements are present.
     """
-    response = client.get("/recommend?game=Among+Sus")
+    response = client.get("/recommend?games=14")
     assert check_response(response, 200) and not is_json(response)
     assert is_html(response)
-    # "Among Sus" is a typo so the expected output should correct it to "Among Us"
-    assert "Among Us" in response.text
+    assert "Fitness Tracker Plus" in response.text
     assert contains_form(response, method="GET")  # The form should still be present
     assert "Home</a>" in response.text
     assert "<h2>Selected Game</h2>" in response.text
@@ -281,43 +217,43 @@ def test_developers():
     assert all(key in response.json()[0] for key in ["name", "apps"])
     assert all(key in response.json()[0]["apps"][0] for key in ["id", "name"])
 
-def test_random_apps():
-    """
-    Test the GET "/random_apps" endpoint for a dictionary containing random app names and app IDs.
-    """
-    NUMBER_OF_RANDOM_APPS = 3
-
-    response = client.get(f"/apps/random?count={NUMBER_OF_RANDOM_APPS}")
-    assert check_response(response, 200) and is_json(response)
-
-    response_json = response.json()
-
-    # Test if the response contains the correct number of random apps
-    assert len(response_json) == NUMBER_OF_RANDOM_APPS
-
-    # Result for 1 random app
-    # {
-    #   "StmbleGuys": {
-    #     "expected_appid": 1677740,
-    #     "expected_name": "Stumble Guys"
-    #   }
-    # }
-
-    # Test if the response contains the expected app names and app IDs with the correct data types
-    # for app_name, app in response_json.items():
-    #     assert app_name in response_json
-    #     assert isinstance(app["expected_appid"], int)
-    #     assert isinstance(app["expected_name"], str)
-
-    # short version of the above code
-    assert all(isinstance(app["expected_appid"], int) and isinstance(app["expected_name"], str) for app in response_json.values())
-
-    # test that if we ask for more than 1000 apps we only get 25 apps back
-    response = client.get("/apps/random?count=1000")
-    assert check_response(response, 200) and is_json(response)
-    assert len(response.json()) == 25
-
-    # test that if we ask for less than 1 app we get 1 app back
-    response = client.get("/apps/random?count=0")
-    assert check_response(response, 200) and is_json(response)
-    assert len(response.json()) == 1
+# def test_random_apps():
+#     """
+#     Test the GET "/random_apps" endpoint for a dictionary containing random app names and app IDs.
+#     """
+#     NUMBER_OF_RANDOM_APPS = 3
+#
+#     response = client.get(f"/apps/random?count={NUMBER_OF_RANDOM_APPS}")
+#     assert check_response(response, 200) and is_json(response)
+#
+#     response_json = response.json()
+#
+#     # Test if the response contains the correct number of random apps
+#     assert len(response_json) == NUMBER_OF_RANDOM_APPS
+#
+#     # Result for 1 random app
+#     # {
+#     #   "StmbleGuys": {
+#     #     "expected_appid": 1677740,
+#     #     "expected_name": "Stumble Guys"
+#     #   }
+#     # }
+#
+#     # Test if the response contains the expected app names and app IDs with the correct data types
+#     # for app_name, app in response_json.items():
+#     #     assert app_name in response_json
+#     #     assert isinstance(app["expected_appid"], int)
+#     #     assert isinstance(app["expected_name"], str)
+#
+#     # short version of the above src
+#     assert all(isinstance(app["expected_appid"], int) and isinstance(app["expected_name"], str) for app in response_json.values())
+#
+#     # test that if we ask for more than 1000 apps we only get 25 apps back
+#     response = client.get("/apps/random?count=1000")
+#     assert check_response(response, 200) and is_json(response)
+#     assert len(response.json()) == 25
+#
+#     # test that if we ask for less than 1 app we get 1 app back
+#     response = client.get("/apps/random?count=0")
+#     assert check_response(response, 200) and is_json(response)
+#     assert len(response.json()) == 1

@@ -2,6 +2,7 @@ import os
 import sys
 
 import requests
+from dotenv import load_dotenv
 
 API_HOST_URL = '0.0.0.0'
 API_HOST_PORT = 8000
@@ -12,21 +13,14 @@ STEAMSTORE_BASE_URL = 'https://store.steampowered.com/api/'
 APPS_LIST_CACHE_FILE = 'cache/apps_list.json'
 ADDED_GAMES_LIST_CACHE_FILE = 'cache/added_games_list.txt'
 CACHE_EXPIRATION_TIME = 604800  # Time in seconds (604800 seconds = 1 week)
-IMAGE_CACHE_PATH = "code/static/cache"
+IMAGE_CACHE_PATH = "src/static/cache"
 
 BLOCKED_CONTENT_TAGS = ["NSFW", "Nudity", "Mature", "Sexual Content", "Hentai"]
 
-DB_CONFIG = {
-    "DB_USER": None,
-    "DB_PASSWORD": None,
-    "DB_NAME": None,
-    "DB_HOST": None,
-    "DB_PORT": None,
-}
 
 def fetch_from_api(endpoint):
     """Make a GET request to the specified API endpoint and return the JSON data.
-    :return: JSON data from the API, Exit when an error occurs.
+    :return: JSON data from the API or None if an error occurred.
     """
     try:
         response = requests.get(endpoint, timeout=10)
@@ -34,7 +28,6 @@ def fetch_from_api(endpoint):
         return response.json()
     except Exception:
         print("Error fetching data from the API. Is your internet connection working?")
-        # exit("Exiting the application.")
 
     return None
 
@@ -54,29 +47,18 @@ class TextStyles:
     inverse = "\u001b[7m"
     reset = "\u001b[0m"
 
-def load_env():
-    """Load environment variables from the .env file."""
-    # Read the .env file and process lines
-    with open(".env") as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith("#"):  # Ignore empty lines and comments
-                key, value = line.split("=", 1)
-                os.environ[key] = value
-
-                # Update DB_CONFIG if necessary
-                if key in DB_CONFIG:
-                    DB_CONFIG[key] = value
-
-                # Handle specific environment variables
-                handle_specific_env_vars(key, value)
+def set_host():
+    if os.getenv("LOGS_API_KEY") is None:
+        print("No LOGS_API_KEY set in ENV, defaulting to public access 🔓")
+        os.environ["LOGS_API_KEY"] = "public"
+    else:
+        print(f"LOGS_API_KEY set in ENV, using private access 🔒")
 
     # Docker-specific adjustments (Linux platform)
     if sys.platform.startswith("linux"):
-        print('Detected Linux platform (possibly Docker). Setting API_HOST_URL to "0.0.0.0".')
+        print('Detected Linux platform (possibly Docker 📦 ). Setting API_HOST_URL to "0.0.0.0".')
         global API_HOST_URL
         API_HOST_URL = "0.0.0.0"
-        configure_docker_network()
 
     # Cache images from environment
     set_cache_images()
@@ -93,13 +75,6 @@ def handle_specific_env_vars(key, value):
             print(f"Invalid API_HOST_PORT value. Using default port 8000.")
             API_HOST_PORT = 8000
 
-def configure_docker_network():
-    """Configure Docker network settings."""
-    network_url = os.getenv("NETWORK_URL")
-    if network_url:
-        print(f"Detected NETWORK_URL, setting DB_HOST to {network_url}")
-        DB_CONFIG["DB_HOST"] = network_url
-
 def set_cache_images():
     """Set cache images from the environment."""
     cache_env = os.getenv("CACHE_IMAGES")
@@ -107,3 +82,19 @@ def set_cache_images():
         caching = cache_env.strip().lower()[0] in ("t", "1", "y")
         os.environ["CACHE_IMAGES"] = str(caching).lower() if caching else ""
         print(f"CACHE_IMAGES set to {caching}")
+
+load_dotenv()
+
+def check_key(key):
+    """Check if a API key is in the environment variables."""
+    if os.getenv("LOGS_API_KEY") == "public":
+        key = "public"
+    if key != os.getenv("LOGS_API_KEY"):
+        return False
+    return True
+
+# loop over the environment variables from the .env file and set them
+for key, value in os.environ.items():
+    handle_specific_env_vars(key, value)
+
+set_host()

@@ -7,46 +7,98 @@ on:
   pull_request:
     branches:
       - "*"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   build:
-    runs-on: timo
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Create .env file
-      run: |
-        echo "${{ secrets.DOTENV }}" > code/.env
-        echo "${{ secrets.DOTENV }}" > .env
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Run tests
-      run: |
-          # -v means verbose (display PASSed functions/tests)
-          PYTHONPATH=.. pytest -v
-    - name: Connect to server and execute start script
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y sshpass openssh-client
-        sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" -p 22 "cat start.sh && bash start.sh"
+      - uses: actions/checkout@v4
 
-      env:
-        SERVER_USER: ${{ secrets.SERVER_USER }}
-        SERVER_HOST: ${{ secrets.SERVER_HOST }}
-        SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+      # Set up Python 3.10
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      # Create .env file
+      - name: Create .env file
+        run: |
+          echo "${{ secrets.DOTENV }}" > src/.env
+
+      # Lint with flake8
+      - name: Lint with flake8
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      # Run tests
+      - name: Run tests
+        run: |
+          PYTHONPATH=.. pytest -v
+
+      # Remove .env
+      - name: remove .env
+        run: |
+          rm src/.env
+
+      # Log in to GitHub Container Registry
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          echo "${GHCR_TOKEN}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # Build Docker image with Git commit hash as tag
+      - name: Build Docker image
+        env:
+          COMMIT_HASH: ${{ github.sha }}
+        run: |
+          docker build -t ghcr.io/ultimo2002/playdate:${COMMIT_HASH} -t ghcr.io/ultimo2002/playdate:latest .
+
+      # Push Docker image to GHCR
+      - name: Push Docker image to GHCR
+        env:
+          COMMIT_HASH: ${{ github.sha }}
+        run: |
+          docker push ghcr.io/ultimo2002/playdate:${COMMIT_HASH}
+
+     # Use the delete-old-packages action to remove older images
+      - name: Delete old Docker images from GHCR
+        uses: actions/delete-package-versions@v5
+        with:
+            package-name: 'playdate'
+            package-type: 'container'
+            min-versions-to-keep: 2
+            token: ${{ secrets.GHCR_TOKEN }}
+      # Set up kubectl
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v1
+        with:
+            version: 'latest'
+
+      # Configure kubeconfig
+      - name: Configure kubeconfig
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
+        run: |
+              mkdir -p $HOME/.kube
+              echo "${KUBE_CONFIG_DATA}" > $HOME/.kube/config
+
+      # Update Deployment with New Image
+      - name: Update Deployment with New Image
+        env:
+          COMMIT_HASH: ${{ github.sha }}
+        run: |
+            kubectl set image deployment/website website=ghcr.io/ultimo2002/playdate:${COMMIT_HASH} -n playdate
