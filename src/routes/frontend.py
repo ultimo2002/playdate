@@ -98,6 +98,9 @@ def get_recommendations_games(games: str = "", db=db_dependency, amount: int = 5
         gameid = str(gameid.strip())
 
         selected_app = app_data_from_id_or_name(gameid, db, True, True)
+        if not selected_app:
+            raise HTTPException(status_code=404, detail=f"Game {gameid} not found.")
+        
         selected_apps.append(selected_app.__dict__)
 
         apps = find_similar_games(selected_app, db, amount)
