@@ -6,9 +6,6 @@ ENV TERM=xterm-256color
 
 WORKDIR /app
 
-# Install PostgreSQL development libraries
-RUN apk add --no-cache postgresql-dev gcc musl-dev python3-dev
-
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 COPY . .
