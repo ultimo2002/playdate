@@ -176,9 +176,8 @@ class API:
             return get_app_related_data(appid, db, models.Category, models.AppCategory, fuzzy)
 
         @self.app.get("/test", include_in_schema=False)
-        def test():
-            session = SessionLocal()
-            fill_database(session)
+        def test(db=self.db_dependency):
+            fill_database(db)
 
         @self.app.get("/app/{appid}/genres")
         def read_app_genres(appid: str, fuzzy: bool = True, db=self.db_dependency):
