@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Filestructure API 📁</title>
+    <style>body{background-color: #1a1a1e;color: #d1d2d8}</style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/a11y-dark.min.css">
+</head>
+<body>
+    <pre id="filestructure">{{ file_structure | safe }}</pre>
+    <script>
+        code_element = document.querySelector('pre code');
+        if (code_element !== null && code_element !== undefined) {
+            // make #2b2b2b the background color of body
+            document.body.style.backgroundColor = '#2b2b2b';
+            hljs.highlightElement(code_element);
+        }
+    </script>
+</body>
+</html>
