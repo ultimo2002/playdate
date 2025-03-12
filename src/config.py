@@ -48,11 +48,11 @@ class TextStyles:
     reset = "\u001b[0m"
 
 def set_host():
-    if os.getenv("LOGS_API_KEY") is None:
-        print("No LOGS_API_KEY set in ENV, defaulting to public access 🔓")
-        os.environ["LOGS_API_KEY"] = "public"
+    if os.getenv("ADMIN_API_KEY") is None:
+        print("No ADMIN_API_KEY set in ENV, defaulting to public access 🔓")
+        os.environ["ADMIN_API_KEY"] = "public"
     else:
-        print(f"LOGS_API_KEY set in ENV, using private access 🔒")
+        print(f"ADMIN_API_KEY set in ENV, using private access 🔒")
 
     # Docker-specific adjustments (Linux platform)
     if sys.platform.startswith("linux"):
@@ -86,10 +86,10 @@ def set_cache_images():
 load_dotenv()
 
 def check_key(key):
-    """Check if a API key is in the environment variables."""
-    if os.getenv("LOGS_API_KEY") == "public":
+    """Check if the given key is the same as the ADMIN_API_KEY from the environment."""
+    if os.getenv("ADMIN_API_KEY") == "public":
         key = "public"
-    if key != os.getenv("LOGS_API_KEY"):
+    if key != os.getenv("ADMIN_API_KEY"):
         return False
     return True
 

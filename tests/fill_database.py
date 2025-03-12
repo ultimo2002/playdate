@@ -216,7 +216,7 @@ def fill_database(db):
     try:
         db.add_all(entries)
     except IntegrityError:
-        pass
+        print("Database bestaat al")
     db.commit()
 
 

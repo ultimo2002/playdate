@@ -66,7 +66,7 @@ def handle_form(request: Request, games: str = "", amount: int = 5, db=db_depend
     Handle the GET request for the HTML <form> to search for a game.
 
     :param request: The request object auto given by FastAPI.
-    :param game_input: The name or id of the game to search for. Always uses fuzzy search.
+    :param games: The name or id of the game to search for. Always uses fuzzy search.
     :return: The HTML response with the results in the context.
     """
     if not games:
@@ -83,7 +83,7 @@ def handle_form(request: Request, games: str = "", amount: int = 5, db=db_depend
 def get_recommendations_games(games: str = "", db=db_dependency, amount: int = 5):
     """"
     Get all the recommendations for the selected games.
-    :param selected_games: The selected games to get recommendations for. Can be a comma separated string of id's or names.
+    :param games: The selected games to get recommendations for. Can be a comma separated string of id's or names.
     :param db: The database object.
     :return: A list of recommended games.
     """
@@ -98,6 +98,9 @@ def get_recommendations_games(games: str = "", db=db_dependency, amount: int = 5
         gameid = str(gameid.strip())
 
         selected_app = app_data_from_id_or_name(gameid, db, True, True)
+        if not selected_app:
+            raise HTTPException(status_code=404, detail=f"Game {gameid} not found.")
+
         selected_apps.append(selected_app.__dict__)
 
         apps = find_similar_games(selected_app, db, amount)
@@ -164,7 +167,7 @@ def find_similar_games(selected_app, db, amount):
     # Return the top 5 matching games.
     return [game for game, _ in matching_games[:amount]]
 
-
+2
 @router.get("/logs", response_class=HTMLResponse, include_in_schema=False)
 async def get_logs(request: Request, clear: bool = False, key: str = None):
     """Returns logs in HTML format, with ANSI color codes converted to HTML."""
@@ -186,3 +189,61 @@ async def get_logs(request: Request, clear: bool = False, key: str = None):
     response.headers["Cache-Control"] = "max-age=0, no-store, no-cache, must-revalidate, private"
 
     return response
+
+
+def generate_file_structure(startpath):
+    structure = []
+    for root, dirs, files in os.walk(startpath):
+        # Filter verborgen mappen (mappen die beginnen met een punt)
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+
+        # dont show __pycache__ or __init__.py files / dirs
+        dirs[:] = [d for d in dirs if not d.startswith('__')]
+
+        level = root.replace(startpath, '').count(os.sep)
+        indent = ' ' * 4 * level
+        structure.append(f'{indent}├── {os.path.basename(root)}/')
+        subindent = ' ' * 4 * (level + 1)
+        for f in files:
+            structure.append(f'{subindent}├── {f}')
+
+    return '\n'.join(structure)
+
+@router.get("/files", response_class=HTMLResponse, include_in_schema=False)
+def get_file_structure(request: Request, startpath: str = 'src/', key: str = None):
+    if not check_key(key):
+        raise HTTPException(status_code=403, detail="Forbidden")
+        return
+
+    # Prevent directory traversal
+    if startpath.startswith('.') or startpath.startswith('/') or startpath.strip() == '' or startpath is None:
+        startpath = 'src/'
+
+    if startpath == 'root':
+        startpath = '.'
+
+    # when an selected path is an file display the file content
+    if os.path.isfile(startpath):
+        # check if it is not an hidden file or vuknerable file
+        if not startpath.startswith('.') and not startpath.endswith('.env') and not startpath.endswith('.tf'):
+            with open(startpath, 'r') as file:
+                # place a <code> tag around the file content to display it as code
+                output = file.read()
+                # use use highligh.js to highlight the code with correct syntax highlighting based on file extension
+                output = (f'<code class="language-{os.path.splitext(startpath)[1][1:]}">{output}</code>')
+
+                return templates.TemplateResponse(
+                    "files.html",
+                    {"request": request, "file_structure": output}
+                )
+        else:
+            raise HTTPException(status_code=403, detail="Forbidden")
+
+    if not os.path.isdir(startpath):
+        raise HTTPException(status_code=404, detail="Path not found.")
+
+    file_structure = generate_file_structure(startpath)
+    return templates.TemplateResponse(
+        "files.html",
+        {"request": request, "file_structure": file_structure}
+    )
