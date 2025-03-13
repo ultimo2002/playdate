@@ -15,7 +15,7 @@ def test_jaccard_similarity():
 #     mock_levenstein_distance = Mock(return_value=0)
 #     score =
 #
-# 
+#
 # # def test_most_similar():
 # #     mock_jaccard_similarity = Mock(return_value=0)
 # #     mock_similarity_score = Mock(return_value=0)
