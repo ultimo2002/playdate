@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  Testen (CI):
+  Test:
 
     runs-on: ubuntu-latest
 
@@ -43,7 +43,7 @@ jobs:
           PYTHONPATH=.. pytest -v
 
 
-  Deployen (CD):
+  Deploy:
 
     # Deploy only if the Test passed
     needs: CI
