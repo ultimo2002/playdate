@@ -1,7 +1,7 @@
 import os
 
 from fastapi.testclient import TestClient
-from tests.fill_database import fill_database
+from tests.integratie.fill_database import fill_database
 from src.api import API
 from src.config import TextStyles
 from src.database.models import App

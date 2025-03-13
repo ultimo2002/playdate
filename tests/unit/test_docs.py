@@ -3,7 +3,7 @@ import os
 from fastapi.testclient import TestClient
 
 from src.api import API
-from tests.integration_helpers import check_response, is_json, is_html, POSSIBLE_GET_ENDPOINTS
+from tests.integratie.integration_helpers import check_response, is_json, is_html, POSSIBLE_GET_ENDPOINTS
 
 api_instance = API()
 api_instance.register_endpoints(all_endpoints=True)

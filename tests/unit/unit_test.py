@@ -1,5 +1,5 @@
 #hier komen unit tests
-from tests.integration_helpers import ALL_APP_FIELDS
+from tests.integratie.integration_helpers import ALL_APP_FIELDS
 
 
 def test_configs():

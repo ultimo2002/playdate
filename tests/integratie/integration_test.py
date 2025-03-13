@@ -1,5 +1,5 @@
 import dotenv
-from tests.integration_helpers import *
+from tests.integratie.integration_helpers import *
 dotenv.load_dotenv()
 def test_root():
     response = client.get("/")

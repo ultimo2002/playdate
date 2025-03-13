@@ -1,4 +1,4 @@
-name: Test + Deploy
+name: CI/CD
 
 on:
   push:
@@ -10,12 +10,14 @@ permissions:
   contents: read
 
 jobs:
-  Test:
+  Testen (CI):
+
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
       # Set up Python 3.10
-      - name: Set up Python 3.10
+      - name: Set up Python 3.12.2
         uses: actions/setup-python@v3
         with:
           python-version: "3.13.2"
@@ -41,9 +43,14 @@ jobs:
           PYTHONPATH=.. pytest -v
 
 
-  Deploy:
-    needs: Test                             # Deploy only if the Test passed
-    if: github.ref == 'refs/heads/main'     # Deploy only if pushed to 'main'
+  Deployen (CD):
+
+    # Deploy only if the Test passed
+    needs: CI
+
+    # Deploy only if pushed to 'main'
+    if: github.ref == 'refs/heads/main'
+
     runs-on: ubuntu-latest
 
     steps:
@@ -77,6 +84,7 @@ jobs:
             package-type: 'container'
             min-versions-to-keep: 2
             token: ${{ secrets.GHCR_TOKEN }}
+
       # Set up kubectl
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
