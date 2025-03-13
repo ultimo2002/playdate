@@ -20,7 +20,7 @@ from src.routes.development.categories import router_development as categories_r
 from src.routes.categories import router as categories_router
 
 import src.database.models as models
-from tests.integratie.fill_database import fill_database
+from tests.integration.fill_database import fill_database
 
 from src.database.database import Engine, get_db, SessionLocal
 
