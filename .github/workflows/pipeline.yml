@@ -46,7 +46,7 @@ jobs:
   Deploy:
 
     # Deploy only if the Test passed
-    needs: CI
+    needs: Test
 
     # Deploy only if pushed to 'main'
     if: github.ref == 'refs/heads/main'
