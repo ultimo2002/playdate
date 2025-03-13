@@ -10,7 +10,6 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.sql.expression import func
 from starlette.responses import PlainTextResponse
 
-from src.algoritmes.cache import cache_background_image, cache_header_image
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
 from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS, check_key
 

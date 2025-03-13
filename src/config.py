@@ -13,7 +13,6 @@ STEAMSTORE_BASE_URL = 'https://store.steampowered.com/api/'
 APPS_LIST_CACHE_FILE = 'cache/apps_list.json'
 ADDED_GAMES_LIST_CACHE_FILE = 'cache/added_games_list.txt'
 CACHE_EXPIRATION_TIME = 604800  # Time in seconds (604800 seconds = 1 week)
-IMAGE_CACHE_PATH = "src/static/cache"
 
 BLOCKED_CONTENT_TAGS = ["NSFW", "Nudity", "Mature", "Sexual Content", "Hentai"]
 
@@ -60,9 +59,6 @@ def set_host():
         global API_HOST_URL
         API_HOST_URL = "0.0.0.0"
 
-    # Cache images from environment
-    set_cache_images()
-
 def handle_specific_env_vars(key, value):
     """Handle specific environment variables with custom logic."""
     global API_HOST_URL, API_HOST_PORT
@@ -74,14 +70,6 @@ def handle_specific_env_vars(key, value):
         except ValueError:
             print(f"Invalid API_HOST_PORT value. Using default port 8000.")
             API_HOST_PORT = 8000
-
-def set_cache_images():
-    """Set cache images from the environment."""
-    cache_env = os.getenv("CACHE_IMAGES")
-    if cache_env:
-        caching = cache_env.strip().lower()[0] in ("t", "1", "y")
-        os.environ["CACHE_IMAGES"] = str(caching).lower() if caching else ""
-        print(f"CACHE_IMAGES set to {caching}")
 
 load_dotenv()
 
