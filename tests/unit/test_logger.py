@@ -1,10 +1,7 @@
 from src.algoritmes.logger import *
 from tests.unit.unit_helpers import *
 
-import unittest
-import logging
-import sys
-from collections import deque
+
 
 
 class TestLoggingSetup(unittest.TestCase):
