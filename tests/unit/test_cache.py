@@ -1,8 +1,5 @@
 from tests.unit.unit_helpers import *
-from src.algoritmes.cache import download_image, cache_image, cache_background_image, cache_header_image
-
-from src.config import IMAGE_CACHE_PATH
-
+from src.algoritmes.cache import *
 
 
 class MockApp:
