@@ -8,7 +8,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 
 from sqlalchemy.sql.expression import func
-from starlette.responses import PlainTextResponse
+from starlette.responses import PlainTextResponse, Response
+
+from prometheus_client import Counter, Summary, generate_latest, CONTENT_TYPE_LATEST
+
+from functools import wraps
 
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
 from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS, check_key
@@ -86,6 +90,28 @@ class API:
         if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING") or all_endpoints: # We dont wont users on production to modify the database with the CRUD endpoints.
             self.app.include_router(apps_router)
             self.app.include_router(categories_router_development)
+
+        # Prometheus metrics
+        REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"])
+        REQUEST_LATENCY = Summary("http_request_latency_seconds", "Request latency in seconds")
+
+        # Prometheus metrics endpoint
+        @self.app.get("/metrics")
+        async def metrics():
+            return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+        # Decorator for tracking Prometheus metrics
+        def track_metrics(endpoint: str):
+            def decorator(func):
+                @wraps(func)  # Preserve the original function's signature
+                async def wrapper(*args, **kwargs):
+                    REQUEST_COUNT.labels(method="GET", endpoint=endpoint, status="200").inc()
+                    with REQUEST_LATENCY.time():
+                        return await func(*args, **kwargs)
+
+                return wrapper
+
+            return decorator
 
         @self.app.delete("/stop", include_in_schema=False)
         def stop(background_tasks: BackgroundTasks, key: str):
