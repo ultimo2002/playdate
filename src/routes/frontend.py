@@ -10,7 +10,7 @@ from sqlalchemy.sql.expression import func
 
 import src.database.models as models
 from src.algoritmes.logger import LOG_BUFFER, convert_ansi_to_html
-from src.config import BLOCKED_CONTENT_TAGS, check_key, track_metrics
+from src.config import BLOCKED_CONTENT_TAGS, check_key
 from src.database.database import get_db
 from src.routes.development.apps import app_data_from_id_or_name
 
@@ -24,7 +24,6 @@ db_dependency = Depends(get_db)
 # Not only in development mode. Unlike the other routers in app.py and categories.py
 
 @router.get("/", response_class=HTMLResponse, include_in_schema=False)
-@track_metrics("/")
 def root(request: Request, db=db_dependency):
     """"
     The root endpoint of the API when visiting the website.
@@ -57,7 +56,6 @@ def root(request: Request, db=db_dependency):
 
 
 @router.get("/recommend", response_class=HTMLResponse, include_in_schema=False)
-@track_metrics("/recommend")
 def handle_form(request: Request, games: str = "", amount: int = 5, db=db_dependency):
     """"
     Handle the GET request for the HTML <form> to search for a game.
@@ -77,7 +75,6 @@ def handle_form(request: Request, games: str = "", amount: int = 5, db=db_depend
     )
 
 @router.get("/recommendations")
-@track_metrics("/recommendations")
 def get_recommendations_games(games: str = "", db=db_dependency, amount: int = 5):
     """"
     Get all the recommendations for the selected games.
@@ -165,9 +162,8 @@ def find_similar_games(selected_app, db, amount):
     # Return the top 5 matching games.
     return [game for game, _ in matching_games[:amount]]
 
-
+2
 @router.get("/logs", response_class=HTMLResponse, include_in_schema=False)
-@track_metrics("/logs")
 async def get_logs(request: Request, clear: bool = False, key: str = None):
     """Returns logs in HTML format, with ANSI color codes converted to HTML."""
     if not check_key(key):
@@ -209,7 +205,6 @@ def generate_file_structure(startpath):
     return '\n'.join(structure)
 
 @router.get("/files", response_class=HTMLResponse, include_in_schema=False)
-@track_metrics("/files")
 def get_file_structure(request: Request, startpath: str = 'src/', key: str = None):
     if not check_key(key):
         raise HTTPException(status_code=403, detail="Forbidden")
