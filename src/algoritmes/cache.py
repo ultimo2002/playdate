@@ -3,7 +3,7 @@ import requests
 
 from src.config import IMAGE_CACHE_PATH
 
-
+# test for downloading image
 def download_image(image_url, image_path):
     """Helper function to download an image and save it to the given path."""
     os.makedirs(os.path.dirname(image_path), exist_ok=True)
