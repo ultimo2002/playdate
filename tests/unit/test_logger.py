@@ -2,8 +2,6 @@ from src.algoritmes.logger import *
 from tests.unit.unit_helpers import *
 
 
-
-
 class TestLoggingSetup(unittest.TestCase):
     def setUp(self):
         # Reset the global log buffer before each test
