@@ -33,6 +33,10 @@ class API:
 
     templates = Jinja2Templates(directory="src/templates")
 
+    # Prometheus metrics
+    REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"])
+    REQUEST_LATENCY = Summary("http_request_latency_seconds", "Request latency in seconds")
+
     def __init__(self):
         """
         The constructor of this API class. executed when app = API() is called. in the main.py file.
@@ -91,10 +95,6 @@ class API:
             self.app.include_router(apps_router)
             self.app.include_router(categories_router_development)
 
-        # Prometheus metrics
-        REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"])
-        REQUEST_LATENCY = Summary("http_request_latency_seconds", "Request latency in seconds")
-
         # Prometheus metrics endpoint
         @self.app.get("/metrics")
         async def metrics():
@@ -105,8 +105,8 @@ class API:
             def decorator(func):
                 @wraps(func)  # Preserve the original function's signature
                 async def wrapper(*args, **kwargs):
-                    REQUEST_COUNT.labels(method="GET", endpoint=endpoint, status="200").inc()
-                    with REQUEST_LATENCY.time():
+                    self.REQUEST_COUNT.labels(method="GET", endpoint=endpoint, status="200").inc()
+                    with self.REQUEST_LATENCY.time():
                         return await func(*args, **kwargs)
 
                 return wrapper
