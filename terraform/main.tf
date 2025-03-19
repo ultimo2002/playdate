@@ -158,7 +158,8 @@ resource "kubernetes_service" "postgres" {
       port        = 5432
       target_port = 5432
     }
-    type = "clusterIP"
+    type = "ClusterIP"
+    #type = "LoadBalancer"
   }
 }
 
@@ -178,6 +179,7 @@ resource "kubernetes_config_map" "grafana_dashboard" {
 
 
 # Helm Release: Prometheus
+
 resource "helm_release" "prometheus" {
   chart      = "kube-prometheus-stack"
   name       = "prometheus"
@@ -194,6 +196,10 @@ resource "helm_release" "prometheus" {
   set {
     name  = "server.persistentVolume.enabled"
     value = false
+  }
+  set {
+    name  = "grafana.adminPassword"
+    value = var.grafana_admin_password
   }
 }
 

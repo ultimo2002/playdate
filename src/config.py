@@ -2,6 +2,8 @@ import os
 import sys
 
 import requests
+from prometheus_client import Counter, Summary, generate_latest, CONTENT_TYPE_LATEST
+from functools import wraps
 from dotenv import load_dotenv
 
 API_HOST_URL = '0.0.0.0'
@@ -16,6 +18,23 @@ CACHE_EXPIRATION_TIME = 604800  # Time in seconds (604800 seconds = 1 week)
 
 BLOCKED_CONTENT_TAGS = ["NSFW", "Nudity", "Mature", "Sexual Content", "Hentai"]
 
+# Prometheus metrics
+REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"])
+REQUEST_LATENCY = Summary("http_request_latency_seconds", "Request latency in seconds")
+
+
+# Decorator for tracking Prometheus metrics
+def track_metrics(endpoint: str):
+    def decorator(func):
+        @wraps(func)  # Preserve the original function's signature
+        async def wrapper(*args, **kwargs):
+            REQUEST_COUNT.labels(method="GET", endpoint=endpoint, status="200").inc()
+            with REQUEST_LATENCY.time():
+                return await func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 def fetch_from_api(endpoint):
     """Make a GET request to the specified API endpoint and return the JSON data.

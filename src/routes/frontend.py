@@ -10,8 +10,7 @@ from sqlalchemy.sql.expression import func
 
 import src.database.models as models
 from src.algoritmes.logger import LOG_BUFFER, convert_ansi_to_html
-from src.api import track_metrics
-from src.config import BLOCKED_CONTENT_TAGS, check_key
+from src.config import BLOCKED_CONTENT_TAGS, check_key, track_metrics
 from src.database.database import get_db
 from src.routes.development.apps import app_data_from_id_or_name
 

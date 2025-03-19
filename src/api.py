@@ -10,12 +10,12 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.sql.expression import func
 from starlette.responses import PlainTextResponse, Response
 
-from prometheus_client import Counter, Summary, generate_latest, CONTENT_TYPE_LATEST
 
-from functools import wraps
+
+
 
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
-from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS, check_key
+from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS, check_key, track_metrics
 
 from src.routes.development.apps import router as apps_router
 from .routes.frontend import router as frontend_router, root
@@ -27,23 +27,6 @@ from tests.integration.fill_database import fill_database
 
 from src.database.database import Engine, get_db, SessionLocal
 
-# Prometheus metrics
-REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"])
-REQUEST_LATENCY = Summary("http_request_latency_seconds", "Request latency in seconds")
-
-
-# Decorator for tracking Prometheus metrics
-def track_metrics(endpoint: str):
-    def decorator(func):
-        @wraps(func)  # Preserve the original function's signature
-        async def wrapper(*args, **kwargs):
-            REQUEST_COUNT.labels(method="GET", endpoint=endpoint, status="200").inc()
-            with REQUEST_LATENCY.time():
-                return await func(*args, **kwargs)
-
-        return wrapper
-
-    return decorator
 
 class API:
     db_dependency = None
