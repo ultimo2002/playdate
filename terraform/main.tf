@@ -158,7 +158,7 @@ resource "kubernetes_service" "postgres" {
       port        = 5432
       target_port = 5432
     }
-    type = "LoadBalancer"
+    type = "clusterIP"
   }
 }
 
@@ -184,7 +184,7 @@ resource "helm_release" "prometheus" {
   namespace  = kubernetes_namespace.monitoring_namespace.metadata[0].name
   repository = "https://prometheus-community.github.io/helm-charts"
   version    = "56.3.0"
-  #values = [file("${path.module}/values.yaml")]
+  values = [file("${path.module}/values.yaml")]
 
   set {
     name  = "podSecurityPolicy.enabled"

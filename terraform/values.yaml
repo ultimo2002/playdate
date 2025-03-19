@@ -1,0 +1,45 @@
+rbac:
+  create: true
+
+podSecurityPolicy:
+  enabled: false
+
+prometheus:
+  prometheusSpec:
+    additionalScrapeConfigs:
+      - job_name: 'python-api'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['webapi-loadbalancer.playdate.svc.cluster.local:80']
+
+
+server:
+  persistentVolume:
+    enabled: false
+  resources:
+    limits:
+      cpu: "200m"
+      memory: "50Mi"
+    requests:
+      cpu: "100m"
+      memory: "30Mi"
+
+alertmanager:
+  enabled: true
+  persistence:
+    enabled: false
+
+kube-state-metrics:
+  enabled: true
+
+prometheus-node-exporter:
+  enabled: true
+  rbac:
+    pspEnabled: false
+
+grafana:
+  enabled: true
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
