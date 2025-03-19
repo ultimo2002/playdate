@@ -27,15 +27,28 @@ from tests.integration.fill_database import fill_database
 
 from src.database.database import Engine, get_db, SessionLocal
 
+# Prometheus metrics
+REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"])
+REQUEST_LATENCY = Summary("http_request_latency_seconds", "Request latency in seconds")
+
+
+# Decorator for tracking Prometheus metrics
+def track_metrics(endpoint: str):
+    def decorator(func):
+        @wraps(func)  # Preserve the original function's signature
+        async def wrapper(*args, **kwargs):
+            REQUEST_COUNT.labels(method="GET", endpoint=endpoint, status="200").inc()
+            with REQUEST_LATENCY.time():
+                return await func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 class API:
     db_dependency = None
 
     templates = Jinja2Templates(directory="src/templates")
-
-    # Prometheus metrics
-    REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"])
-    REQUEST_LATENCY = Summary("http_request_latency_seconds", "Request latency in seconds")
 
     def __init__(self):
         """
@@ -100,19 +113,6 @@ class API:
         async def metrics():
             return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
-        # Decorator for tracking Prometheus metrics
-        def track_metrics(endpoint: str):
-            def decorator(func):
-                @wraps(func)  # Preserve the original function's signature
-                async def wrapper(*args, **kwargs):
-                    self.REQUEST_COUNT.labels(method="GET", endpoint=endpoint, status="200").inc()
-                    with self.REQUEST_LATENCY.time():
-                        return await func(*args, **kwargs)
-
-                return wrapper
-
-            return decorator
-
         @self.app.delete("/stop", include_in_schema=False)
         def stop(background_tasks: BackgroundTasks, key: str):
             if not check_key(key):
@@ -132,6 +132,7 @@ class API:
             os._exit(1) # Force exit the server
 
         @self.app.get("/apps")
+        @track_metrics("apps")
         def read_apps(db=self.db_dependency, all_fields: bool = False, target_name: str = None, like: str = None):
             """
             Get a JSON / dictionary with all the apps in the database.
@@ -205,6 +206,7 @@ class API:
             fill_database(db)
 
         @self.app.get("/app/{appid}/genres")
+        @track_metrics("app/{appid}/genres")
         def read_app_genres(appid: str, fuzzy: bool = True, db=self.db_dependency):
             """"
             Get all the genres for a specific app.
@@ -226,6 +228,7 @@ class API:
             return get_app_related_data(appid, db, models.Tags, models.AppTags, fuzzy)
 
         @self.app.get("/app/{appid}")
+        @track_metrics("app/{appid}")
         def read_app(appid: str, fuzzy: bool = True, db=self.db_dependency):
             """
             Endpoint to get the data for a specific app.
@@ -240,6 +243,7 @@ class API:
             return app
 
         @self.app.get("/developers")
+        @track_metrics("developers")
         def read_developers(db=self.db_dependency, apps = False):
             """
             Get all developers in the database.
@@ -311,6 +315,7 @@ class API:
             return app
 
         @self.app.get("/apps/developer/{target_name}")
+        @track_metrics("apps/developer/{target_name}")
         def get_developer_games(target_name: str, fuzzy: bool = True, all_fields: bool = False, db=self.db_dependency):
             """"
             Function to get all games for a specific developer.
@@ -360,6 +365,7 @@ class API:
             return None
 
         @self.app.get("/app/similar/{target_name}")
+        @track_metrics("app/similar/{target_name}")
         def most_similar_named_app(target_name: str, db=self.db_dependency):
             """
             Helper function to find the most similar named app in the database.
@@ -410,6 +416,7 @@ class API:
             return sorted(similar_apps, key=lambda x: x["similarity"], reverse=True)
 
         @self.app.get("/apps/tag/{target_name}")
+        @track_metrics("apps/tag/{target_name}")
         def get_apps_based_on_tag_name(target_name: str, fuzzy: bool = True, all_fields: bool = False, db=self.db_dependency):
             """
             Get all apps based on the tag name.
