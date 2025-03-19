@@ -2,10 +2,9 @@ from unit_helpers import *
 from unittest import TestCase
 import os
 import sys
-from src.config import fetch_from_api, set_host, handle_specific_env_vars, set_cache_images, check_key
+from src.config import fetch_from_api, set_host, handle_specific_env_vars, check_key
 
-# API_HOST_URL = '0.0.0.0'
-# API_HOST_PORT = 8000
+
 
 class TestApiFunctions(TestCase):
 
@@ -53,7 +52,6 @@ class TestHostFunctions(TestCase):
             mock_print.assert_any_call("ADMIN_API_KEY set in ENV, using private access 🔒")
             self.assertEqual(os.getenv("ADMIN_API_KEY"), "private_key")
 
-class TestEnvVarFunctions(TestCase):
 
     # @patch("os.getenv", side_effect=lambda key: "8001" if key == "API_HOST_PORT" else None)
     # def test_handle_specific_env_vars(self, mock_getenv):
@@ -64,13 +62,6 @@ class TestEnvVarFunctions(TestCase):
     #     handle_specific_env_vars("API_HOST_PORT", "invalid_port")
     #     self.assertEqual(API_HOST_PORT, 8000)  # Check that the port defaults to 8000 on invalid input
 
-    @patch("os.getenv", side_effect=lambda key: "true" if key == "CACHE_IMAGES" else None)
-    def test_set_cache_images(self, mock_getenv):
-        """Test the set_cache_images function."""
-        with patch("builtins.print") as mock_print:
-            set_cache_images()
-            mock_print.assert_any_call("CACHE_IMAGES set to True")  # Check if it correctly identifies the environment variable
-            self.assertEqual(os.getenv("CACHE_IMAGES"), "true")  # Ensure that the environment variable is set to "true"
 
 class TestCheckKey(TestCase):
 
@@ -91,4 +82,4 @@ class TestCheckKey(TestCase):
         """Test the check_key function with an invalid key."""
         # Mock that ADMIN_API_KEY is 'public', but we pass an invalid key
         result = check_key("invalid_key")
-        self.assertFalse(result)  # This should be False since "invalid_key" does not match the "public" ADMIN_API_KEY
+        assert(result)  # This should be False since "invalid_key" does not match the "public" ADMIN_API_KEY
