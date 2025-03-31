@@ -9,7 +9,6 @@ from sqlalchemy.sql import exists
 from sqlalchemy.sql.expression import func
 
 import src.database.models as models
-from src.algoritmes.cache import cache_background_image, cache_header_image
 from src.algoritmes.logger import LOG_BUFFER, convert_ansi_to_html
 from src.config import BLOCKED_CONTENT_TAGS, check_key
 from src.database.database import get_db
@@ -49,10 +48,6 @@ def root(request: Request, db=db_dependency):
         background_image = background_image if background_image else None
     except (TypeError, IndexError, KeyError):
         background_image = None
-
-    if os.getenv("CACHE_IMAGES") and background_image:
-        background_image = cache_background_image(background_image)
-
 
     return templates.TemplateResponse(
         request=request, name="index.html",

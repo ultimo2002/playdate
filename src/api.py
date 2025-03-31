@@ -5,12 +5,12 @@ import uvicorn
 
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import Response
 
 from sqlalchemy.sql.expression import func
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import PlainTextResponse
 
-from src.algoritmes.cache import cache_background_image, cache_header_image
 from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
 from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS, check_key
 
@@ -20,21 +20,36 @@ from src.routes.development.categories import router_development as categories_r
 from src.routes.categories import router as categories_router
 
 import src.database.models as models
-from tests.fill_database import fill_database
+from tests.integration.fill_database import fill_database
 
 from src.database.database import Engine, get_db, SessionLocal
+from prometheus_client import Counter, generate_latest, REGISTRY, start_http_server
+
+http_requests_total = Counter(
+    "http_requests_total", "Total HTTP Requests", ["method", "endpoint"]
+)
 
 
+# Middleware to count the requests
+class PrometheusMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        # Count the request
+        http_requests_total.labels(method=request.method, endpoint=request.url.path).inc()
+        return response
 class API:
     db_dependency = None
 
     templates = Jinja2Templates(directory="src/templates")
+
+    # Create a Counter metric to count HTTP requests
 
     def __init__(self):
         """
         The constructor of this API class. executed when app = API() is called. in the main.py file.
         """
         self.app = FastAPI()
+        self.app.add_middleware(PrometheusMiddleware)
 
         self.app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
@@ -53,6 +68,7 @@ class API:
         print("Running the API 🚀")
 
         uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False, log_level="debug", use_colors=True)
+
 
     def get_random_apps(db = db_dependency, count: int = 15):
         """
@@ -87,6 +103,15 @@ class API:
         if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING") or all_endpoints: # We dont wont users on production to modify the database with the CRUD endpoints.
             self.app.include_router(apps_router)
             self.app.include_router(categories_router_development)
+
+        @self.app.get("/")
+        async def root():
+            return {"message": "Hello, World!"}
+
+        @self.app.get("/metrics")
+        async def metrics():
+            return Response(generate_latest(REGISTRY), media_type="text/plain")
+
 
         @self.app.delete("/stop", include_in_schema=False)
         def stop(background_tasks: BackgroundTasks, key: str):
