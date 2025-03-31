@@ -8,9 +8,6 @@ from collections import deque
 
 class TestLoggingSetup(unittest.TestCase):
     def setUp(self):
-        # Reset the global log buffer before each test
-        global LOG_BUFFER
-        LOG_BUFFER.clear()
 
         # Capture the logs in a string buffer
         self.log_capture = deque(maxlen=MAX_LOG_BUFFER_SIZE)
