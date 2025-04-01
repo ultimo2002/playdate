@@ -57,7 +57,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      -
       #check out repo
       - name: checkout
         uses: actions/checkout@v4
