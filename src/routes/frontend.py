@@ -51,7 +51,7 @@ def root(request: Request, db=db_dependency):
 
     return templates.TemplateResponse(
         request=request, name="index.html",
-        context={"message": "", "background_image": background_image}
+        context={"message": "\"hot games in your area\"", "background_image": background_image}
     )
 
 
