@@ -1,18 +1,22 @@
 # All functions in this file are for the fuzzy algorithm to find the most similar item in a list based on a calculated similarity score.
-from src.config import TextStyles
 
 
-def levenshtein_distance(s1, s2):
-    if len(s1) < len(s2):
-        return levenshtein_distance(s2, s1)
+def levenshtein_distance(input, reference):
+    """calculates levenshtein distance using the Levenshtein algorithm
+    :param input: input string
+    :param reference: reference string
+    :return: levenshtein distance
+    """
+    if len(input) < len(reference):
+        return levenshtein_distance(reference, input)
 
-    if len(s2) == 0:
-        return len(s1)
+    if len(reference) == 0:
+        return len(input)
 
-    previous_row = list(range(len(s2) + 1))
-    for i, c1 in enumerate(s1):
+    previous_row = list(range(len(reference) + 1))
+    for i, c1 in enumerate(input):
         current_row = [i + 1]
-        for j, c2 in enumerate(s2):
+        for j, c2 in enumerate(reference):
             insertions = previous_row[j + 1] + 1
             deletions = current_row[j] + 1
             substitutions = previous_row[j] + (c1 != c2)
@@ -21,23 +25,32 @@ def levenshtein_distance(s1, s2):
 
     return previous_row[-1]
 
-# Function to check Jaccard similarity
-def jaccard_similarity(s1, s2):
-    set1, set2 = set(s1.lower().split()), set(s2.lower().split())
+
+def jaccard_similarity(input, reference):
+    """checks similarity based on amount of matching words in two strings
+    :param input: input string
+    :param reference: reference string
+    :return: percentage of words that match
+    """
+    set1, set2 = set(input.lower().split()), set(reference.lower().split())
     intersection = set1 & set2
     union = set1 | set2
     return len(intersection) / len(union) * 100 if union else 0
-    return len(intersection) / len(union) * 100 if union else 0
 
-def similarity_score(s1, s2):
-    max_len = max(len(s1), len(s2))
+def similarity_score(input, reference):
+    """checks similarity based on the levenshtein distance
+    :param input: input string
+    :param reference: reference string
+    :return: similarity based on levenshtein distance
+    """
+    max_len = max(len(input), len(reference))
     if max_len == 0:
         return 100
-    return (1 - levenshtein_distance(s1.lower(), s2.lower()) / max_len) * 100
+    return (1 - levenshtein_distance(input.lower(), reference.lower()) / max_len) * 100
 
 
 def _most_similar(target_name: str, items, key: str):
-    """Find the most similar item in a list based on similarity score.
+    """Find the most similar item in a list based on similarity scores.
 
     :param target_name: The string name to compare.
     :param items: The list of items to search through.
@@ -60,61 +73,3 @@ def _most_similar(target_name: str, items, key: str):
         return most_similar_item, round(highest_similarity, 2)
 
     return None, None
-
-import random
-import time
-
-typo_types = ["duplicate", "nospaces", "plusses", "capitalize", "duplicate", "remove_special_chars", "id"]
-random.seed(time.time())
-
-def make_typo(text, appid=0, apps=None):
-    """Introduce small typos or grammatical errors into a string."""
-    original_text = text
-    modified_text = text
-
-    typos_amount = random.randint(1, 3) # The amount of typos to make on the string
-
-    for _ in range(typos_amount):
-        typo_type = random.choice(typo_types)
-        if typo_type == "remove_special_chars" and not any(c for c in text if not c.isalnum() and not c.isspace()):
-            typo_type = random.choice([t for t in typo_types if t != "remove_special_chars"])
-
-        if typo_type == "duplicate":
-            # Duplicate a random neighbour character in the string
-            index = random.randint(0, len(text) - 2)
-            modified_text = text[:index] + text[index] + text[index] + text[index + 1:]
-
-            print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}duplicate chars from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
-        elif typo_type == "nospaces" or typo_type == "plusses":
-            # Remove spaces with empty strings or replace for plusses
-            modified_text = text.replace(" ", "") if typo_type == "nospaces" else text.replace(" ", "+")
-            spaces_or_plusses = "nospaces" if typo_type == "nospaces" else "plusses"
-            print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}replace spaces with {spaces_or_plusses} from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
-        elif typo_type == "capitalize":
-            # capitalize a random letter in the string
-            for i in range(3):
-                index = random.randint(0, len(text) - 1)
-                modified_text = text[:index] + text[index].upper() + text[index + 1:]
-            print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}capitalize a random letter from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
-        elif typo_type == "remove_special_chars":
-            # remove special characters from the string
-            modified_text = "".join(c for c in text if c.isalnum() or c.isspace())
-            print(f"{TextStyles.green}{TextStyles.bold}Doing typo: {TextStyles.reset}{TextStyles.pink}remove special characters from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{modified_text}{TextStyles.reset}")
-        elif typo_type == "id" and original_text == modified_text: # Only do this if the text hasn't been modified yet, for computational efficiency
-            # return the appid as a string
-            print(f"{TextStyles.green}{TextStyles.bold}FOUND & Doing typo: {TextStyles.reset}{TextStyles.pink}return the appid as a string from: {TextStyles.bold}{text}{TextStyles.reset}{TextStyles.grey} -> {TextStyles.yellow}{appid}{TextStyles.reset}")
-            return str(appid)
-
-        text = modified_text
-
-    # Check if the typo is valid (avoiding test failures)
-    if apps and appid:
-        most_similar_app, score = _most_similar(modified_text, apps, "name")
-        if most_similar_app and most_similar_app.id == appid and modified_text != most_similar_app.name and score > 60:
-            print(f"{TextStyles.green}{TextStyles.bold}FOUND Typo:{TextStyles.reset}{TextStyles.yellow} {original_text}{TextStyles.grey} -> {modified_text} (score: {score}){TextStyles.reset}")
-            return modified_text
-        else:
-            print(f"{TextStyles.red}{TextStyles.bold}NOT FOUND Typo: Setting to appid: {TextStyles.reset}{TextStyles.grey} {modified_text} -> {appid}{TextStyles.reset}")
-            return str(appid)
-
-    return modified_text

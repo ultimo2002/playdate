@@ -1,5 +1,6 @@
 import os
 
+import sqlalchemy
 from fastapi import FastAPI, Depends, HTTPException, Request, BackgroundTasks
 import uvicorn
 
@@ -7,11 +8,10 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import Response
 
-from sqlalchemy.sql.expression import func
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import PlainTextResponse
 
-from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar, make_typo
+from .algoritmes.fuzzy import similarity_score, jaccard_similarity, _most_similar
 from .config import API_HOST_URL, API_HOST_PORT, BLOCKED_CONTENT_TAGS, check_key
 
 from src.routes.development.apps import router as apps_router
@@ -37,12 +37,11 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
         # Count the request
         http_requests_total.labels(method=request.method, endpoint=request.url.path).inc()
         return response
+
 class API:
     db_dependency = None
 
     templates = Jinja2Templates(directory="src/templates")
-
-    # Create a Counter metric to count HTTP requests
 
     def __init__(self):
         """
@@ -70,27 +69,6 @@ class API:
         uvicorn.run(self.app, host=API_HOST_URL, port=API_HOST_PORT, reload=False, log_level="debug", use_colors=True)
 
 
-    def get_random_apps(db = db_dependency, count: int = 15):
-        """
-        Get a dictionary with random apps from the database. With typo's in the names.
-        :param count: The amount of random apps to return.
-        :return: Dictionary with given count random apps with their id and name.
-        """
-        # maximal 25 apps, minimal 1 app, clamp the count
-        count = max(1, min(count, 25))
-        print(f"Getting {count} random apps from the database.")
-
-        all_apps = db.query(models.App.id,
-                            models.App.name).all()  # get all app names that are in the database, needed to check fuzzy in
-        random_apps = db.query(models.App).with_entities(models.App.id, models.App.name).order_by(
-            func.random()).limit(
-            count).all()
-
-        return {
-            make_typo(app.name, app.id, all_apps): {"expected_appid": app.id, "expected_name": app.name}
-            for app in random_apps
-        }
-
     def register_endpoints(self, all_endpoints=False):
         """"
         Function to define all the endpoints for the API.
@@ -100,7 +78,7 @@ class API:
         self.app.include_router(categories_router)
 
         # register routers, only when in PYCHARM or Pytest
-        if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING") or all_endpoints: # We dont wont users on production to modify the database with the CRUD endpoints.
+        if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING") or all_endpoints: # We dont want users on production to modify the database with the CRUD endpoints.
             self.app.include_router(apps_router)
             self.app.include_router(categories_router_development)
 
@@ -200,9 +178,17 @@ class API:
             """
             return get_app_related_data(appid, db, models.Category, models.AppCategory, fuzzy)
 
-        @self.app.get("/test", include_in_schema=False)
-        def test(db=self.db_dependency):
-            fill_database(db)
+        @self.app.get("/fill", include_in_schema=False)
+        def fill(db=self.db_dependency):
+            """
+            manually fill the database with testdata if api is hosted by pycharm
+            """
+            if os.getenv("PYCHARM_HOSTED") or os.getenv("PYTEST_RUNNING"):
+                try:
+                    fill_database(db)
+                except sqlalchemy.exc.IntegrityError:
+                    raise HTTPException(status_code=500, detail=f"data is al aanwezig")
+            else: raise HTTPException(status_code=401, detail=f"geen pycharm host")
 
         @self.app.get("/app/{appid}/genres")
         def read_app_genres(appid: str, fuzzy: bool = True, db=self.db_dependency):

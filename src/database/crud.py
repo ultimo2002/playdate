@@ -2,8 +2,6 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-# def get_all(db: Session, model):
-#     return db.query(model).all()
 
 def get_by_id(db: Session, model, record_id: int):
     try:

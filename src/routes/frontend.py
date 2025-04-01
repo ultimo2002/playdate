@@ -162,7 +162,7 @@ def find_similar_games(selected_app, db, amount):
     # Return the top 5 matching games.
     return [game for game, _ in matching_games[:amount]]
 
-2
+
 @router.get("/logs", response_class=HTMLResponse, include_in_schema=False)
 async def get_logs(request: Request, clear: bool = False, key: str = None):
     """Returns logs in HTML format, with ANSI color codes converted to HTML."""
@@ -187,6 +187,10 @@ async def get_logs(request: Request, clear: bool = False, key: str = None):
 
 
 def generate_file_structure(startpath):
+    """
+    shows file tree from startpath
+    :param startpath: where to start searching
+    """
     structure = []
     for root, dirs, files in os.walk(startpath):
         # Filter verborgen mappen (mappen die beginnen met een punt)

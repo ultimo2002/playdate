@@ -1,4 +1,6 @@
 import dotenv
+
+from src.config import TextStyles
 from tests.integration.integration_helpers import *
 dotenv.load_dotenv()
 def test_root():
@@ -27,14 +29,14 @@ def test_apps():
     Test the GET "/apps" endpoint for a list of all the apps with id and name in the database.
     """
     response = client.get("/apps")
-    assert_common_app_tests(response, ["id", "name"],entries_count=9)
+    assert_common_app_tests(response, ["id", "name"], entries_count_min=9)
 
 def test_apps_all_fields():
     """
     Test the GET "/apps" endpoint for a list of all the apps with all fields in the database.
     """
     response = client.get("/apps?all_fields=true")
-    assert_common_app_tests(response, ALL_APP_FIELDS, entries_count=9)
+    assert_common_app_tests(response, ALL_APP_FIELDS, entries_count_min=9)
 
 def test_cats():
     """
@@ -125,6 +127,9 @@ def test_app_recommend():
     assert "Recommended Games" in response.text
     assert "Logo of Expense Manager" in response.text
     assert "game-image" in response.text
+    #assert if right recommendations are given
+    assert "Task Master Pro" in response.text
+    assert "Daily Planner" in response.text
 
 def test_apps_get_tags():
     """

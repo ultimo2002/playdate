@@ -3,7 +3,6 @@ import os
 from fastapi.testclient import TestClient
 from tests.integration.fill_database import fill_database
 from src.api import API
-from src.config import TextStyles
 from src.database.models import App
 from src.database.database import SessionLocal
 
@@ -51,7 +50,6 @@ wrong_test_names = [None,  # there is no 0 id
 api_instance = API()
 api_instance.register_endpoints()
 client = TestClient(api_instance.app)
-STEEKPROEF_APPS = 10
 
 
 def setup():
@@ -137,12 +135,13 @@ def check_app_response(response):
     assert check_response(response, 200) and is_json(response)
     assert all(key in response.json() for key in ALL_APP_FIELDS)
 
-def assert_common_app_tests(response, expected_fields, entries_count=100):
+def assert_common_app_tests(response, expected_fields, entries_count_min=10):
     """
     A helper function that asserts common conditions for app responses:
     - Response status src is 200
+
     - Response is in JSON format
-    - List of apps has more than given entries (default=100)
+    - List of apps has more than given entries (default=10)
     - All apps contain the expected fields (id, name, other fields)
     """
     # Test if the response status src is 200 and is JSON
@@ -150,7 +149,7 @@ def assert_common_app_tests(response, expected_fields, entries_count=100):
     assert is_json(response)
 
     # Test if the list of apps is higher than given number
-    assert len(response.json()) > entries_count
+    assert len(response.json()) > entries_count_min
 
     # Test if the response contains a list of apps with the expected fields
     assert all(key in response.json()[0] for key in expected_fields)

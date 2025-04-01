@@ -15,9 +15,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      # Set up Python 3.10
-      - name: Set up Python 3.12.2
+      #check out repo
+      - name: checkout
+        uses: actions/checkout@v4
+
+      # Set up Python 3.13.2
+      - name: Set up Python
         uses: actions/setup-python@v3
         with:
           python-version: "3.13.2"
@@ -54,7 +57,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      -
+      #check out repo
+      - name: checkout
+        uses: actions/checkout@v4
+
       # Log in to GitHub Container Registry
       - name: Log in to GHCR
         env:

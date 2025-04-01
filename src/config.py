@@ -16,6 +16,7 @@ CACHE_EXPIRATION_TIME = 604800  # Time in seconds (604800 seconds = 1 week)
 
 BLOCKED_CONTENT_TAGS = ["NSFW", "Nudity", "Mature", "Sexual Content", "Hentai"]
 
+load_dotenv()
 
 def fetch_from_api(endpoint):
     """Make a GET request to the specified API endpoint and return the JSON data.
@@ -71,7 +72,7 @@ def handle_specific_env_vars(key, value):
             print(f"Invalid API_HOST_PORT value. Using default port 8000.")
             API_HOST_PORT = 8000
 
-load_dotenv()
+
 
 def check_key(key):
     """Check if the given key is the same as the ADMIN_API_KEY from the environment."""

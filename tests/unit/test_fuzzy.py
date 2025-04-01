@@ -1,5 +1,5 @@
 from tests.unit.unit_helpers import *
-from src.algoritmes.fuzzy import levenshtein_distance, jaccard_similarity, similarity_score, _most_similar, make_typo
+from src.algoritmes.fuzzy import levenshtein_distance, jaccard_similarity, similarity_score, _most_similar
 
 
 class MockData:
