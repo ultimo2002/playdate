@@ -47,7 +47,8 @@ class StreamInterceptor:
         current_time = time.strftime("%Y-%m-%d %H:%M:%S")
         grey_color_code = "\x1B[90m"
         reset_code = "\x1B[0m"
-
+        #filter metrics berichten uit de stream. Deze zijn voor Prometheus
+        if "/metrics" in message: return
         message = f"{grey_color_code}{current_time}{reset_code} {message}"
 
         self.stream.write(message)

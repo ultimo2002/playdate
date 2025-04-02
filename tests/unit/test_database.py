@@ -5,21 +5,6 @@ from src.database.database import Engine, SessionLocal, get_db
 
 class TestDatabaseConnection(unittest.TestCase):
 
-    # @patch('sqlalchemy.create_engine')
-    # def test_database_connection_success(self, mock_create_engine):
-    #     # Mock de database engine creatie
-    #     mock_engine = MagicMock()
-    #     mock_create_engine.return_value = mock_engine
-    #
-    #     # Simuleer succesvolle database URL environment variable
-    #     with patch("os.getenv", return_value="sqlite:///test.db"):
-    #         # Verzeker dat de import van Engine pas na de patching plaatsvindt
-    #         from src.database.database import Engine  # Dit zou de engine aanmaken
-    #
-    #         # Assert dat de engine is aangemaakt met de juiste URL
-    #         mock_create_engine.assert_called_once_with("sqlite:///test.db")
-    #         self.assertEqual(mock_create_engine.return_value, mock_engine)  # Controleer of de juiste engine is teruggegeven
-
     @patch('sqlalchemy.create_engine')
     @patch('sys.exit')  # We patchen sys.exit om te voorkomen dat de applicatie daadwerkelijk stopt
     def test_database_connection_failure(self, mock_exit, mock_create_engine):
